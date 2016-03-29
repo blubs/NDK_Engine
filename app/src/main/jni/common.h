@@ -5,6 +5,8 @@
 #ifndef ENGINE_COMMON_H
 #define ENGINE_COMMON_H
 
+#define DEBUG_MODE
+
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity",__VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity",__VA_ARGS__))
@@ -13,7 +15,7 @@
 extern "C" {
 #include "native_app_glue/android_native_app_glue.h"
 #include <EGL/egl.h>
-#include <GLES3/gl3.h>
+#include <GLES2/gl2.h>
 #include <jni.h>
 #include <android/native_activity.h>
 #include <android/configuration.h>
@@ -26,8 +28,8 @@ extern "C" {
 //#include <unistd.h>
 }
 
-//#include "Engine.h"
-//#include "File_Utils.h"
-//#include "GL_Utils.h"
+#include "Engine.h"
+#include "File_Utils.h"
+#include "GL_Utils.h"
 
 #endif //ENGINE_COMMON_H

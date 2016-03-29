@@ -1,5 +1,5 @@
 #include "engine_main.h"
-#include "Engine.h"
+#include <stdio.h>
 
 void android_main(struct android_app *app)
 {
@@ -11,15 +11,16 @@ void android_main(struct android_app *app)
 	//We never leave this scope anyways
 	app->userData = &engine;
 
-	//Assigning our assetManager
-	//LOGE("============== LOOK HERE===================\n");
-	//File_Utils::asset_mgr = app->activity->assetManager;
-	//LOGE("============== LOOK HERE===================\n");
+	//Trying to get files to load.
+	File_Utils::asset_mgr = app->activity->assetManager;
 
-	//GLuint vertex_shader = GL_Utils::load_shader("shaders/test_vert.fsh",GL_VERTEX_SHADER);
-	//LOGI("Vertex shader has a value of %d",vertex_shader);
+	/*const char* file_contents = File_Utils::read_file_to_string("test_file.txt");
+	LOGW("File returned:\"%s\"\n",file_contents);
+	free((void*)file_contents);*/
 
-	//GL_Utils::unload_shader(vertex_shader);
+#ifdef DEBUG_MODE
+	LOGI("LIFECYCLE: ANDROID_MAIN RAN\n");
+#endif
 
 	//run the engine loop
 	while(1)
@@ -46,8 +47,10 @@ void android_main(struct android_app *app)
 					ASensorEvent event;
 					while(ASensorEventQueue_getEvents(engine.sensor_event_queue,&event,1) > 0)
 					{
-						LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x,
-							event.acceleration.y, event.acceleration.z);
+						//do nothing
+						app_dummy();
+						//LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x,
+						//	event.acceleration.y, event.acceleration.z);
 					}
 				}
 			}
@@ -55,7 +58,12 @@ void android_main(struct android_app *app)
 			//Check if exiting
 			if(app->destroyRequested != 0)
 			{
+#ifdef DEBUG_MODE
+				LOGI("LIFECYCLE: Exiting application.\n");
+#endif
 				engine.term_display();
+				engine.term_data();
+				delete &engine;
 				return;
 			}
 		}

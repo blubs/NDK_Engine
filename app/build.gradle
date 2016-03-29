@@ -15,7 +15,7 @@ model {
     android.ndk {
         moduleName = "engine_main"
         CFlags.add("-I${file("src/main/jni/native_app_glue")}".toString())
-        ldLibs.addAll(["log", "android", "EGL", "GLESv3"])
+        ldLibs.addAll(["log", "android", "EGL", "GLESv2"])
         //stl "stlport_shared" //Use shared stlport library
     }
 

@@ -3,6 +3,9 @@
           android:versionCode="1"
           android:versionName="1.0">
 
+    <!-- Required for fopen utilities for file loading (not currently used) -->
+    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>-->
+
     <application
         android:allowBackup="false"
         android:fullBackupContent="false"

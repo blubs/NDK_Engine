@@ -30,11 +30,33 @@ public:
 	void term_display();
 	int init_display();
 
+	int load_assets();
+	void unload_assets();
+
+	int load_shaders();
+	void unload_shaders();
+
+	int init_gl();
+	void term_gl();
+	//bool gl_initialized = false;
+
+
+	int init_data();
+	void term_data();
+	bool data_initialized = false;
+
+
+	GLuint test_frag_shader = 0;
+	GLuint test_vert_shader = 0;
+		GLint shader_vert_pos_loc = -1;
+		GLint shader_fill_color_loc = -1;
+	GLuint gl_program = 0;
+
 	void draw_frame();
 
-	EGLDisplay gl_display;
-	EGLSurface gl_surface;
-	EGLContext gl_context;
+	EGLDisplay egl_display = 0;
+	EGLSurface egl_surface = 0;
+	EGLContext egl_context = 0;
 
 	struct android_app *app;
 
