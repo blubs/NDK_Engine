@@ -4,7 +4,7 @@
 
 #include "File_Utils.h"
 
-const char* File_Utils::read_file_to_string (const char *file_path)
+const char* File_Utils::read_file_to_buffer (const char *file_path)
 {
 	AAsset* asset = AAssetManager_open(File_Utils::asset_mgr, file_path, AASSET_MODE_BUFFER);
 
@@ -32,6 +32,8 @@ const char* File_Utils::read_file_to_string (const char *file_path)
 	AAsset_close(asset);
 	return alloced_data;
 }
+
+
 
 AAssetManager* File_Utils::asset_mgr = NULL;
 

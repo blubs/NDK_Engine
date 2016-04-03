@@ -10,7 +10,7 @@
 class GL_Utils
 {
 public:
-	static GLuint load_shader(const char* shader_path, GLenum type);
+	static GLuint load_shader(const char* shader_src, const char* shader_path, GLenum type);
 	static void unload_shader(GLuint shader);
 };
 

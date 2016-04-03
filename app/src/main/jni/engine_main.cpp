@@ -3,7 +3,7 @@
 
 void android_main(struct android_app *app)
 {
-	//Making sure Glue is not stripped
+	//Making sure glue is not stripped
 	app_dummy();
 
 	//Engine* engine = new Engine(app);
@@ -14,9 +14,7 @@ void android_main(struct android_app *app)
 	//Trying to get files to load.
 	File_Utils::asset_mgr = app->activity->assetManager;
 
-	/*const char* file_contents = File_Utils::read_file_to_string("test_file.txt");
-	LOGW("File returned:\"%s\"\n",file_contents);
-	free((void*)file_contents);*/
+	//====================================
 
 #ifdef DEBUG_MODE
 	LOGI("LIFECYCLE: ANDROID_MAIN RAN\n");

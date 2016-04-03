@@ -4,6 +4,7 @@
 
 #include "Engine.h"
 
+
 Engine::Engine(struct android_app* mApp)
 {
 	app = mApp;
@@ -44,6 +45,14 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 		case APP_CMD_INIT_WINDOW:
 			if(eng->app->window != NULL)
 			{
+				if(!eng->data_initialized)
+				{
+					LOGE("attempted to draw screen before loading data.\n");
+					if(!eng->init_data())
+					{
+						return;
+					}
+				}
 				if(eng->init_display() == -1)
 				{
 					LOGE("Init display returns -1");
@@ -152,8 +161,6 @@ int Engine::init_display()
 	animating = 1;
 
 	//====== GL Initialization code ======
-	if(!load_shaders())
-		return -1;
 	if(!init_gl())
 		return -1;
 
@@ -164,11 +171,11 @@ int Engine::init_display()
 
 int Engine::load_shaders()
 {
-	test_frag_shader = GL_Utils::load_shader("minimal.frag",GL_FRAGMENT_SHADER);
-	LOGI("fragment shader: %d\n",(int) test_frag_shader);
+	vert_shader_name = "minimal.vert";
+	frag_shader_name = "minimal.frag";
+	frag_shader_src = File_Utils::read_file_to_buffer("minimal.frag");
+	vert_shader_src = File_Utils::read_file_to_buffer("minimal.vert");
 
-	test_vert_shader = GL_Utils::load_shader("minimal.vert",GL_VERTEX_SHADER);
-	LOGI("vertex shader: %d\n",(int) test_vert_shader);
 	return 1;
 }
 
@@ -177,6 +184,9 @@ int Engine::load_shaders()
 //Returns 0 on fail, returns 1 on success.
 int Engine::load_assets()
 {
+	//Loading the test texture.
+	const char* tex_file = File_Utils::read_file_to_buffer("tex.pkm");
+	test_tex = (GLuint) tex_file;
 	return 1;
 }
 
@@ -185,15 +195,16 @@ int Engine::load_assets()
 //========================================= Unloading assets ======================================
 void Engine::unload_shaders()
 {
-	if(test_frag_shader)
-		GL_Utils::unload_shader(test_frag_shader);
-	if(test_vert_shader)
-		GL_Utils::unload_shader(test_vert_shader);
+	if(vert_shader_src)
+		free((char*)vert_shader_src);
+	if(frag_shader_src)
+		free((char*)frag_shader_src);
 }
 
 void Engine::unload_assets()
 {
-
+	if(test_tex)
+		free((char*)test_tex);
 }
 //=================================================================================================
 
@@ -205,7 +216,6 @@ void Engine::term_display()
 
 	//====== GL termination code ======
 	term_gl();
-	unload_shaders();
 	//=================================
 	if(egl_display != EGL_NO_DISPLAY)
 	{
@@ -232,7 +242,7 @@ int Engine::init_gl()
 	//Init gl state
 	//At this stage, all of the shaders have already been loaded.
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	//glDisable(GL_DEPTH_TEST);
 
 
@@ -242,39 +252,102 @@ int Engine::init_gl()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	gl_program = glCreateProgram();
-	LOGI("gl program is: %d.\n",gl_program);
+	LOGI("gl program is: %d.\n", gl_program);
 	if(!gl_program)
 	{
 		LOGE("Error: failed to create gl program.\n");
 		return 0;
 	}
 
+	test_vert_shader = GL_Utils::load_shader(vert_shader_src,vert_shader_name,GL_VERTEX_SHADER);
+	LOGI("vertex shader: %d\n",(int) test_vert_shader);
+
+	test_frag_shader = GL_Utils::load_shader(frag_shader_src,frag_shader_name,GL_FRAGMENT_SHADER);
+	LOGI("fragment shader: %d\n",(int) test_frag_shader);
+
 	glAttachShader(gl_program, test_vert_shader);
 	glAttachShader(gl_program, test_frag_shader);
 
 	glLinkProgram(gl_program);
+
+	GLint linked;
+	glGetProgramiv(gl_program, GL_LINK_STATUS, &linked);
+
+	if(linked == GL_FALSE)
+	{
+		LOGE("Error: Failed to link gl program.\n");
+
+		GLint log_size = 0;
+		glGetProgramiv(gl_program, GL_INFO_LOG_LENGTH, &log_size);
+
+		GLchar *info_log = (GLchar *) malloc(sizeof(GLchar) * log_size);
+		glGetProgramInfoLog(gl_program, log_size, &log_size, info_log);
+		LOGE("   linker log: %s.\n", info_log);
+		free(info_log);
+
+		glDeleteProgram(gl_program);
+		gl_program = 0;
+		return 0;
+	}
+
+
 	glUseProgram(gl_program);
 
 	shader_fill_color_loc = glGetAttribLocation(gl_program, "fill_color");
 	shader_vert_pos_loc = glGetAttribLocation(gl_program, "vert_pos");
+	shader_uv_loc = glGetAttribLocation(gl_program, "src_tex_coord");
+	shader_tex_loc = glGetUniformLocation(gl_program, "tex");
 
+	//==================================== Loading texture ===================
+	GLuint tex_id;
+	glGenTextures(1, &tex_id);
+	//======================
+	//glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex_id);
+	LOGI("Texture id before binding: %u\n", tex_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8, 512, 512, 0, 131072, (const void *) test_tex);
+	glBindTexture(GL_TEXTURE_2D,0);
+
+
+	LOGI("Texture id after binding: %u\n", tex_id);
+	texture_id = tex_id;
+	//========================================================================
 	glViewport(0, 0, width, height);
-
 	glClearColor(1, 1, 1, 1);
-
 	return 1;
 }
 void Engine::term_gl()
 {
+	glDeleteTextures(1, &texture_id);
+
 	glDeleteProgram(gl_program);
+
+
+	//Unloading all loaded shaders
+	if(test_frag_shader)
+		GL_Utils::unload_shader(test_frag_shader);
+	if(test_vert_shader)
+		GL_Utils::unload_shader(test_vert_shader);
+
 	gl_program = 0;
 	shader_vert_pos_loc = -1;
 	shader_fill_color_loc = -1;
+	shader_uv_loc = -1;
+	shader_tex_loc = -1;
+	texture_id = 0;
+	test_frag_shader = 0;
+	test_vert_shader = 0;
 }
 
 int Engine::init_data()
 {
 	LOGI("init_data...\n");
+	if(!load_shaders())
+		return 0;
 	if(!load_assets())
 		return 0;
 
@@ -284,12 +357,19 @@ int Engine::init_data()
 
 void Engine::term_data()
 {
+	unload_shaders();
 	unload_assets();
 	data_initialized = false;
 }
 
 void Engine::draw_frame()
 {
+	//Need to initialize data before the screen context has been created.
+	if(!data_initialized)
+	{
+		if(!init_data())
+			return;
+	}
 #ifdef DEBUG_MODE
 	static bool was_rendering = true;
 	if(!egl_display)
@@ -312,20 +392,18 @@ void Engine::draw_frame()
 	{
 		return;
 	}
-	//Need to initialize data after the screen context has been created.
-	//DO WE NEED TO RECREATE SHADERS, ETC.. THAT DEPEND ON OPENGL/EGL CONTEXT? can we reuse them? FIXME TODO
-	if(!data_initialized)
-	{
-		if(!init_data())
-			return;
-	}
-
 
 	const float triangleVertices[] =
 	{
 		-0.5f, 0.5f, 0.0f,
 		0.0f, -0.5f, 0.0f,
 		0.5f, 0.5f, 0.0f,
+	};
+	const float triangleUVs[] =
+	{
+		0.25f, 0.0f,
+		0.5f, 1.0f,
+		0.75f, 0.0f,
 	};
 	const float triangleColors[] =
 	{
@@ -337,8 +415,6 @@ void Engine::draw_frame()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
-
-	glDisable(GL_CULL_FACE);
 
 	//Filling the screen with a color
 	glClearColor(((float)state.x)/width, 0.0f/*state.angle*/, ((float)state.y)/height,1);
@@ -353,6 +429,19 @@ void Engine::draw_frame()
 		glVertexAttribPointer(shader_fill_color_loc, 4, GL_FLOAT, GL_FALSE, 0, triangleColors);
 		glEnableVertexAttribArray(shader_fill_color_loc);
 	}
+	//Pass the uv coords
+	glVertexAttribPointer(shader_uv_loc,2, GL_FLOAT, GL_FALSE, 0, triangleUVs);
+	glEnableVertexAttribArray(shader_uv_loc);
+	//Binding the texture to use
+	if(texture_id)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		glUniform1i(shader_tex_loc, 0);
+	}
+	else
+		LOGE("texture not set, abort binding tex.\n");
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	eglSwapBuffers(egl_display, egl_surface);

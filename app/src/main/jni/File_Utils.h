@@ -11,7 +11,7 @@ class File_Utils
 {
 public:
 	static AAssetManager* asset_mgr;
-	static const char* read_file_to_string(const char* file_path);
+	static const char* read_file_to_buffer(const char* file_path);
 };
 
 #endif //ENGINE_FILE_UTILS_H

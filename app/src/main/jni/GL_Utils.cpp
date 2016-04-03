@@ -4,10 +4,8 @@
 
 #include "GL_Utils.h"
 
-GLuint GL_Utils::load_shader(const char* shader_path, GLenum type)
+GLuint GL_Utils::load_shader(const char* shader_src, const char* shader_path, GLenum type)
 {
-	const char* shader_src = File_Utils::read_file_to_string(shader_path);
-
 	GLuint shader;
 	GLint compiled;
 
@@ -37,8 +35,7 @@ GLuint GL_Utils::load_shader(const char* shader_path, GLenum type)
 
 		glDeleteShader(shader);
 		return 0;
-	}
-	free((void*)shader_src);
+	};
 	return shader;
 }
 

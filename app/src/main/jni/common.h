@@ -24,12 +24,20 @@ extern "C" {
 #include <android/log.h>
 #include <string.h>
 #include <android/asset_manager.h>
+#include <time.h>
+#include <stdint.h>
+#include <math.h>
 //#include <errno.h>
 //#include <unistd.h>
 }
 
+//This is the internal data value for opengl to recognize ETC1 compressed textures
+#define ETC1_RGB8 0x8D64
+
 #include "Engine.h"
 #include "File_Utils.h"
 #include "GL_Utils.h"
+#include "Misc.h"
+//#include "math/Math.h"
 
 #endif //ENGINE_COMMON_H
