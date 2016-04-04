@@ -20,6 +20,40 @@ void android_main(struct android_app *app)
 	LOGI("LIFECYCLE: ANDROID_MAIN RAN\n");
 #endif
 
+	//===========Test file loading========
+	//"data/data/engine.games.luisg.engine/files/test.dat"
+	const char* path = "data/data/engine.games.luisg.engine/files";
+	int len = strlen(path) + strlen("test.dat") + 1;
+
+	char* file_path = (char*)malloc(sizeof(char)*len);
+	strcpy(file_path,path);
+	strcat(file_path,"/");
+	strcat(file_path,"test.dat");
+
+	FILE* f = fopen(file_path,"r");
+	if(f)
+	{
+		char str[100];
+		fgets(str,100,f);
+
+		LOGI("fopen file f exists, read data:%s\n",str);
+		fclose(f);
+	}
+
+	f = fopen(file_path,"a+");//w for write, a+ for append
+	if(f)
+	{
+		LOGI("fopen file f exists, writing to file.\n");
+		fputs("test",f);
+		fclose(f);
+	}
+	else
+	{
+		LOGW("fopen failed\n");
+	}
+	free(file_path);
+	//====================================
+
 	//run the engine loop
 	while(1)
 	{

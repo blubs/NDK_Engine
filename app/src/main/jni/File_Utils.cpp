@@ -24,7 +24,7 @@ const char* File_Utils::read_file_to_buffer (const char *file_path)
 	const char* asset_buffer = (char*)AAsset_getBuffer(asset);
 	off_t file_size = AAsset_getLength(asset);
 
-	LOGW("File_read_to_string: %s\n",asset_buffer);
+	//LOGW("File_read_to_buffer: %s\n",asset_buffer);
 	//Allocating the file data.
 	char* alloced_data = (char*)malloc(sizeof(char) * file_size);
 	//How and when am I going to clear this array that is allocated?
