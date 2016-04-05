@@ -173,8 +173,8 @@ int Engine::load_shaders()
 {
 	vert_shader_name = "minimal.vert";
 	frag_shader_name = "minimal.frag";
-	frag_shader_src = File_Utils::read_file_to_buffer("minimal.frag");
-	vert_shader_src = File_Utils::read_file_to_buffer("minimal.vert");
+	frag_shader_src = File_Utils::load_asset("minimal.frag");
+	vert_shader_src = File_Utils::load_asset("minimal.vert");
 
 	return 1;
 }
@@ -185,7 +185,7 @@ int Engine::load_shaders()
 int Engine::load_assets()
 {
 	//Loading the test texture.
-	const char* tex_file = File_Utils::read_file_to_buffer("tex.pkm");
+	const char* tex_file = File_Utils::load_asset("tex.pkm");
 	test_tex = (GLuint) tex_file;
 	return 1;
 }

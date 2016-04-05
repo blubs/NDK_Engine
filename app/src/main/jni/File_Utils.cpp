@@ -4,7 +4,7 @@
 
 #include "File_Utils.h"
 
-const char* File_Utils::read_file_to_buffer (const char *file_path)
+const char* File_Utils::load_asset (const char *file_path)
 {
 	AAsset* asset = AAssetManager_open(File_Utils::asset_mgr, file_path, AASSET_MODE_BUFFER);
 
@@ -34,20 +34,62 @@ const char* File_Utils::read_file_to_buffer (const char *file_path)
 }
 
 
+const char* File_Utils::read_savedata(const char* file_name)
+{
+	//test.dat
+	int len = strlen(SAVE_FILE_PATH) + strlen(file_name);
+
+	char* file_path = (char*)malloc(sizeof(char)*len);
+	strcpy(file_path,SAVE_FILE_PATH);
+	strcat(file_path,file_name);
+
+	//Open the file for reading
+	FILE* f = fopen(file_path,"r");
+	if(!f)
+	{
+		LOGE("Error: opening file \"%s\" for read failed.\n",file_name);
+		return "";
+	}
+
+	char* data = (char*)malloc(sizeof(char)*100);//TODO: replace 100 with an expected data size.
+	fgets(data,100,f);//TODO: also replace this 100
+
+#ifdef DEBUG_MODE
+	LOGI("fopen file \"%s\":%s\n",file_name,data);
+#endif
+	fclose(f);
+
+	return data;
+}
+void File_Utils::write_savedata(const char* file_name)
+{
+	//test.dat
+	//TODO: what data are we going to store?
+	//TODO: what parameters does this function require to store?
+	//TODO: what data are we going to store?
+	//TODO: need a helper function that transforms this data to the exact format that we're going to store it in.
+	int len = strlen(SAVE_FILE_PATH) + strlen(file_name);
+
+	char* file_path = (char*)malloc(sizeof(char)*len);
+	strcpy(file_path,SAVE_FILE_PATH);
+	strcat(file_path,file_name);
+
+	//Open the file for writing (currently for appending)
+	FILE* f = fopen(file_path,"a+");//w for write, a+ for append (used to test/ensure lifetime of stored data)
+	if(!f)
+	{
+		LOGE("Error: opening file \"%s\" for write failed.\n",file_name);
+		return;
+	}
+
+#ifdef DEBUG_MODE
+	LOGI("writing to fopen file \"%s\".\n",file_name);
+#endif
+
+	fputs("test",f);//TODO: replace "test" with the transformed data buffer
+	fclose(f);
+
+	free(file_path);
+}
 
 AAssetManager* File_Utils::asset_mgr = NULL;
-
-//Alternative way of handling file loading
-//May or may not allow the writing of files
-//This requires the permission:
-//<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-//inside of AndroidManifest.xml, enable it if we use this method.
-/*FILE* fp = fopen("test_text.txt","r");
-if(fp == NULL)
-	LOGW("file found is null");
-else
-	LOGW("file found is not null");
-
-if(fp != NULL)
-	fclose(fp);*/
-
