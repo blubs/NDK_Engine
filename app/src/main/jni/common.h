@@ -39,6 +39,6 @@ extern "C" {
 #include "File_Utils.h"
 #include "GL_Utils.h"
 #include "Misc.h"
-//#include "math/Math.h"
+#include "math/Math.h"
 
 #endif //ENGINE_COMMON_H

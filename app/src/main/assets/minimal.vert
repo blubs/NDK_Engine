@@ -5,6 +5,7 @@ attribute vec4 fill_color;
 
 varying vec4 vert_color;
 varying vec2 dest_tex_coord;
+
 void main()
 {
 	dest_tex_coord = src_tex_coord;
