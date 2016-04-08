@@ -60,7 +60,7 @@ struct Vec3
 
 	float len()
 	{
-		return sqrt(x*x + y*y + z*z);
+		return (float)sqrt(x*x + y*y + z*z);
 	}
 	float len_squared()
 	{
@@ -99,6 +99,7 @@ struct Vec3
 };
 
 
+//This implementation is a column major-matrix (as OGL expects them)
 struct Mat4
 {
 	float m[16];
@@ -138,50 +139,52 @@ struct Mat4
 	{
 		Mat4 result;
 
-		result.m[0]  = l.m[0]*r.m[0] + l.m[1]*r.m[4] + l.m[2]*r.m[8]  + l.m[3]*r.m[12];
-		result.m[1]  = l.m[0]*r.m[1] + l.m[1]*r.m[5] + l.m[2]*r.m[9]  + l.m[3]*r.m[13];
-		result.m[2]  = l.m[0]*r.m[2] + l.m[1]*r.m[6] + l.m[2]*r.m[10] + l.m[3]*r.m[14];
-		result.m[3]  = l.m[0]*r.m[3] + l.m[1]*r.m[7] + l.m[2]*r.m[11] + l.m[3]*r.m[15];
+		result.m[0]  = l.m[0] * r.m[0]  + l.m[4] * r.m[1]  + l.m[8]  * r.m[2]  + l.m[12] * r.m[3];
+		result.m[1]  = l.m[1] * r.m[0]  + l.m[5] * r.m[1]  + l.m[9]  * r.m[2]  + l.m[13] * r.m[3];
+		result.m[2]  = l.m[2] * r.m[0]  + l.m[6] * r.m[1]  + l.m[10] * r.m[2]  + l.m[14] * r.m[3];
+		result.m[3]  = l.m[3] * r.m[0]  + l.m[7] * r.m[1]  + l.m[11] * r.m[2]  + l.m[15] * r.m[3];
 
-		result.m[4]  = l.m[4]*r.m[0] + l.m[5]*r.m[4] + l.m[6]*r.m[8]  + l.m[7]*r.m[12];
-		result.m[5]  = l.m[4]*r.m[1] + l.m[5]*r.m[5] + l.m[6]*r.m[9]  + l.m[7]*r.m[13];
-		result.m[6]  = l.m[4]*r.m[2] + l.m[5]*r.m[6] + l.m[6]*r.m[10] + l.m[7]*r.m[14];
-		result.m[7]  = l.m[4]*r.m[3] + l.m[5]*r.m[7] + l.m[6]*r.m[11] + l.m[7]*r.m[15];
+		result.m[4]  = l.m[0] * r.m[4]  + l.m[4] * r.m[5]  + l.m[8]  * r.m[6]  + l.m[12] * r.m[7];
+		result.m[5]  = l.m[1] * r.m[4]  + l.m[5] * r.m[5]  + l.m[9]  * r.m[6]  + l.m[13] * r.m[7];
+		result.m[6]  = l.m[2] * r.m[4]  + l.m[6] * r.m[5]  + l.m[10] * r.m[6]  + l.m[14] * r.m[7];
+		result.m[7]  = l.m[3] * r.m[4]  + l.m[7] * r.m[5]  + l.m[11] * r.m[6]  + l.m[15] * r.m[7];
 
-		result.m[8]  = l.m[8]*r.m[0] + l.m[9]*r.m[4] + l.m[10]*r.m[8]  + l.m[11]*r.m[12];
-		result.m[9]  = l.m[8]*r.m[1] + l.m[9]*r.m[5] + l.m[10]*r.m[9]  + l.m[11]*r.m[13];
-		result.m[10] = l.m[8]*r.m[2] + l.m[9]*r.m[6] + l.m[10]*r.m[10] + l.m[11]*r.m[14];
-		result.m[11] = l.m[8]*r.m[3] + l.m[9]*r.m[7] + l.m[10]*r.m[11] + l.m[11]*r.m[15];
+		result.m[8]  = l.m[0] * r.m[8]  + l.m[4] * r.m[9]  + l.m[8]  * r.m[10] + l.m[12] * r.m[11];
+		result.m[9]  = l.m[1] * r.m[8]  + l.m[5] * r.m[9]  + l.m[9]  * r.m[10] + l.m[13] * r.m[11];
+		result.m[10] = l.m[2] * r.m[8]  + l.m[6] * r.m[9]  + l.m[10] * r.m[10] + l.m[14] * r.m[11];
+		result.m[11] = l.m[3] * r.m[8]  + l.m[7] * r.m[9]  + l.m[11] * r.m[10] + l.m[15] * r.m[11];
 
-		result.m[12] = l.m[12]*r.m[0] + l.m[13]*r.m[4] + l.m[14]*r.m[8]  + l.m[15]*r.m[12];
-		result.m[13] = l.m[12]*r.m[1] + l.m[13]*r.m[5] + l.m[14]*r.m[9]  + l.m[15]*r.m[13];
-		result.m[14] = l.m[12]*r.m[2] + l.m[13]*r.m[6] + l.m[14]*r.m[10] + l.m[15]*r.m[14];
-		result.m[15] = l.m[12]*r.m[3] + l.m[13]*r.m[7] + l.m[14]*r.m[11] + l.m[15]*r.m[15];
+		result.m[12] = l.m[0] * r.m[12] + l.m[4] * r.m[13] + l.m[8]  * r.m[14] + l.m[12] * r.m[15];
+		result.m[13] = l.m[1] * r.m[12] + l.m[5] * r.m[13] + l.m[9]  * r.m[14] + l.m[13] * r.m[15];
+		result.m[14] = l.m[2] * r.m[12] + l.m[6] * r.m[13] + l.m[10] * r.m[14] + l.m[14] * r.m[15];
+		result.m[15] = l.m[3] * r.m[12] + l.m[7] * r.m[13] + l.m[11] * r.m[14] + l.m[15] * r.m[15];
 
 		return result;
 	}
 
-	//Treating vec3 as column vector, treating 4th component of vector (w) as 1
+	//Left multiplying Vec3
+	//Treating vec3 as row vector, treating 4th component of vector (w) as 1
 	//if w = 1, full transformation, if w = 0, only rotate the point
 	friend Vec3& operator*(Vec3& l, Mat4& r)
 	{
 		Vec3 result;
 
-		result.x =l.x*r.m[0] + l.y*r.m[4] + l.z*r.m[8]  + r.m[12];
-		result.y =l.x*r.m[1] + l.y*r.m[5] + l.z*r.m[9]  + r.m[13];
-		result.z =l.x*r.m[2] + l.y*r.m[6] + l.z*r.m[10] + r.m[14];
+		result.x =l.x*r.m[0] + l.y*r.m[1] + l.z*r.m[2]  + r.m[3];
+		result.y =l.x*r.m[4] + l.y*r.m[5] + l.z*r.m[6]  + r.m[7];
+		result.z =l.x*r.m[8] + l.y*r.m[9] + l.z*r.m[10] + r.m[11];
 		return result;
 	}
 
-	//Treating vec3 as row vector, treating 4th component of vector (w) as 1
+	//Right multiplying Vec3
+	//Treating vec3 as column vector, treating 4th component of vector (w) as 1
 	//if w = 1, full transformation, if w = 0, only rotate the point
 	friend Vec3& operator*(Mat4& l, Vec3& r)
 	{
 		Vec3 result;
 
-		result.x =r.x*l.m[0] + r.y*l.m[1] + r.z*l.m[2]  + l.m[3];
-		result.y =r.x*l.m[4] + r.y*l.m[5] + r.z*l.m[6]  + l.m[7];
-		result.z =r.x*l.m[8] + r.y*l.m[9] + r.z*l.m[10] + l.m[11];
+		result.x =r.x*l.m[0] + r.y*l.m[4] + r.z*l.m[8]  + l.m[12];
+		result.y =r.x*l.m[1] + r.y*l.m[5] + r.z*l.m[9]  + l.m[13];
+		result.z =r.x*l.m[2] + r.y*l.m[6] + r.z*l.m[10] + l.m[14];
 		return result;
 	}
 
@@ -196,9 +199,9 @@ struct Mat4
 	static Mat4 TRANSLATE(float x,float y,float z)
 	{
 		Mat4 result = IDENTITY();
-		result.m[3] = x;
-		result.m[7] = y;
-		result.m[11] = z;
+		result.m[12] = x;
+		result.m[13] = y;
+		result.m[14] = z;
 		return result;
 	}
 
@@ -210,10 +213,19 @@ struct Mat4
 		result.m[5] = y;
 		result.m[10] = z;
 		result.m[15] = 1.0f;
+		return result;
 	}
 	//TODO:
 	// rotation matrix
 	// projection matrix
+
+	//Additional methods to perhaps implement (depending on if I ever find the need for them)
+	//Scalar multiplication / division of a matrix
+	//addition / subtraction of a matrices
+	//Transpose Matrix
+	//Inverse Matrix
+	//Determinant of a matrix
+	//Eigen vectors / values (very doubtful I'll find myself in need of these)
 };
 
 #endif //ENGINE_MATH_H
