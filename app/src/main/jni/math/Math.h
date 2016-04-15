@@ -72,6 +72,12 @@ struct Vec3
 		return *this/len();
 	}
 
+	static Vec3 cross(Vec3 a, Vec3 b)
+	{
+		Vec3 res(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
+		return res;
+	}
+
 
 	static Vec3 FRONT()
 	{
@@ -112,6 +118,27 @@ struct Mat4
 		m[4] = m[5] = m[6] = m[7] =
 		m[8] = m[9] = m[10] = m[11] =
 		m[12] = m[13] = m[14] = m[15] = 0.0f;
+	}
+
+	Mat4(float a0,  float a1,  float a2,  float a3,	float a4,  float a5,  float a6,  float a7,
+		float a8,  float a9,  float a10, float a11,	float a12, float a13, float a14, float a15)
+	{
+		m[0] = a0;
+		m[1] = a1;
+		m[2] = a2;
+		m[3] = a3;
+		m[4] = a4;
+		m[5] = a5;
+		m[6] = a6;
+		m[7] = a7;
+		m[8] = a8;
+		m[9] = a9;
+		m[10] = a10;
+		m[11] = a11;
+		m[12] = a12;
+		m[13] = a13;
+		m[14] = a14;
+		m[15] = a15;
 	}
 
 	Mat4& operator =(const Mat4& other)
@@ -217,6 +244,7 @@ struct Mat4
 	}
 	//TODO:
 	// rotation matrix
+	// view matrix
 	// projection matrix
 
 	//Additional methods to perhaps implement (depending on if I ever find the need for them)
