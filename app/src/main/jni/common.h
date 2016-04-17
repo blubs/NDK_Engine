@@ -28,6 +28,10 @@ extern "C" {
 #include <stdint.h>
 #include <math.h>
 #include <stdio.h>
+#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
+//#include <SLES/OpenSLES_AndroidConfiguration.h>
+
 //#include <errno.h>
 //#include <unistd.h>
 }
@@ -38,6 +42,7 @@ extern "C" {
 #include "Engine.h"
 #include "File_Utils.h"
 #include "GL_Utils.h"
+#include "SL_Utils.h"
 #include "Misc.h"
 #include "math/Math.h"
 
