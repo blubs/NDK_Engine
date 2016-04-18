@@ -33,6 +33,9 @@ public:
 	int load_assets();
 	void unload_assets();
 
+	int init_sl();
+	void term_sl();
+
 	int load_shaders();
 	void unload_shaders();
 

@@ -60,14 +60,6 @@ void SL_Utils::test_function()
 
 	//============================================= Setting up Audio Player ================================
 
-
-	//======= define these =======
-	int SBC_AUDIO_OUT_CHANNELS = 8;
-	int SBC_AUDIO_OUT_BUFFER_SIZE = 256;
-	int SBC_AUDIO_OUT_SAMPLE_RATE = 11025;
-	//============================
-
-
 	//Setting buffers as not in use
 	for(int i = 0; i < SBC_AUDIO_OUT_CHANNELS; i++)
 	{
@@ -130,7 +122,7 @@ void SL_Utils::test_function()
 		LOGE("Getting sound_player interface failed.");
 	result = (*osl_engine.sound_player_object)->GetInterface(osl_engine.sound_player_object, SL_IID_BUFFERQUEUE, &osl_engine.sound_queue);
 	if(result != SL_RESULT_SUCCESS)
-		LOGE("Getting soud_queue interface failed.");
+		LOGE("Getting sound_queue interface failed.");
 	result = (*osl_engine.sound_player_object)->GetInterface(osl_engine.sound_player_object, SL_IID_VOLUME, &osl_engine.sound_volume);
 	if(result != SL_RESULT_SUCCESS)
 		LOGE("Getting sound_volume interface failed.");
@@ -167,7 +159,7 @@ void SL_Utils::test_function()
 	if(mActiveAudioSoundBuffer == mAudioSoundData1)
 		mActiveAudioSoundBuffer = mAudioSoundData2;
 	else
-		mActiveAudioSoundBuffer = mAudioSoundData2;
+		mActiveAudioSoundBuffer = mAudioSoundData1;
 	//}
 
 	//	sendSoundBuffer();
@@ -177,11 +169,47 @@ void SL_Utils::test_function()
 	if(result != SL_RESULT_SUCCESS)
 		LOGE("Failed to set play state as SL_PLAYSTATE_PLAYING.");
 
+	//this is deinit code:
+	//Stop the sound player
+
+	if(osl_engine.sound_player_object != NULL)
+	{
+		SLuint32 sound_player_state;
+		(*osl_engine.sound_player_object)->GetState(osl_engine.sound_player_object,&sound_player_state);
+
+		if(sound_player_state == SL_OBJECT_STATE_REALIZED)
+		{
+			(*osl_engine.sound_queue)->Clear(osl_engine.sound_queue);
+			(*osl_engine.sound_player_object)->AbortAsyncOperation(osl_engine.sound_player_object);
+			(*osl_engine.sound_player_object)->Destroy(osl_engine.sound_player_object);
+			osl_engine.sound_player_object = NULL;
+			osl_engine.sound_player = NULL;
+			osl_engine.sound_queue = NULL;
+			osl_engine.sound_volume = NULL;
+		}
+	}
+	//stop_sound_player();
+	//Destroying the output mix object
+	if(osl_engine.output_mix_object != NULL)
+	{
+		(*osl_engine.output_mix_object)->Destroy(osl_engine.output_mix_object);
+		osl_engine.output_mix_object = NULL;
+	}
+
+	//Destroying the sound engine
+	if(osl_engine.audio_interface != NULL)
+	{
+		(*osl_engine.audio_interface)->Destroy(osl_engine.audio_interface);
+		osl_engine.audio_interface = NULL;
+		osl_engine.audio_engine = NULL;
+	}
 }
 
 void SL_Utils::test_deinit()
 {
 	//Stop
+	//Clearing the sound player
+
 }
 
 //Code not utilized for getting native device sample rate, buffer size, and frame count

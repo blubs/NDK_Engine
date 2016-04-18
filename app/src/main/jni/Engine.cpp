@@ -237,6 +237,17 @@ void Engine::term_display()
 
 }
 
+int Engine::init_sl()
+{
+	//What variables do we need to hold?
+	//How are we going to hold this data?
+}
+
+void Engine::term_sl()
+{
+	//What variables do I need to free?
+}
+
 int Engine::init_gl()
 {
 	//Init gl state
