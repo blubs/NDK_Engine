@@ -39,9 +39,9 @@ extern "C" {
 //This is the internal data value for opengl to recognize ETC1 compressed textures
 #define ETC1_RGB8 0x8D64
 
-#define SBC_AUDIO_OUT_CHANNELS 8
-#define SBC_AUDIO_OUT_BUFFER_SIZE 256
-#define SBC_AUDIO_OUT_SAMPLE_RATE 11025
+#define SND_AUDIO_CHANNELS 8
+#define SND_AUDIO_BUFFER_SIZE 256
+#define SND_AUDIO_SAMPLE_RATE 11025
 
 #include "Engine.h"
 #include "File_Utils.h"

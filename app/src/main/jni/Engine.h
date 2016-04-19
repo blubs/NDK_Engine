@@ -35,6 +35,26 @@ public:
 
 	int init_sl();
 	void term_sl();
+	//OSL Sound Engine Data
+	SLObjectItf sl_engine = NULL;
+	SLEngineItf sl_engine_interface = NULL;
+	SLObjectItf sl_output_mix = NULL;
+	SLObjectItf sl_audio_player = NULL;
+	SLPlayItf sl_audio_player_interface = NULL;
+	SLBufferQueueItf sl_buffer_queue_interface = NULL;
+	SLVolumeItf sl_volume_interface = NULL;
+	//void sl_buffer_callback(SLBufferQueueItf snd_queue, void* context);
+	void start_audio();
+	void stop_audio();
+	void pause_audio();
+
+	//Engine Sound Data
+	//TODO: make sounds played be handled per entity
+	short audio_buffer1[SND_AUDIO_BUFFER_SIZE];
+	short audio_buffer2[SND_AUDIO_BUFFER_SIZE];
+	short* active_audio_buffer;
+	//Sound playing_sound[8];
+
 
 	int load_shaders();
 	void unload_shaders();

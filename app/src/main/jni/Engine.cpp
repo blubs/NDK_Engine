@@ -164,6 +164,10 @@ int Engine::init_display()
 	if(!init_gl())
 		return -1;
 
+	//Resume audio if it was paued previously
+	if(sl_audio_player_interface != NULL)
+		start_audio();
+
 	return 0;
 }
 
@@ -214,6 +218,8 @@ void Engine::term_display()
 	LOGI("LIFECYCLE: DISPLAY TERMINATED\n");
 #endif
 
+	//Need to run code that stops the executing code
+	pause_audio();
 	//====== GL termination code ======
 	term_gl();
 	//=================================
@@ -237,15 +243,247 @@ void Engine::term_display()
 
 }
 
+//Callback for swapping audio buffers
+void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
+{
+	Engine* e = ((Engine*)c);
+	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+	//Swap the audio buffers
+	if(e->active_audio_buffer == e->audio_buffer1)
+	{
+		e->active_audio_buffer = e->audio_buffer2;
+	}
+	else
+	{
+		e->active_audio_buffer = e->audio_buffer1;
+	}
+}
+
 int Engine::init_sl()
 {
-	//What variables do we need to hold?
-	//How are we going to hold this data?
+
+	//=================================== Creating the SL Sound Engine ======================================
+	const SLuint32 eng_mix_iid_count = 1;
+	const SLInterfaceID eng_mix_iids[] = {SL_IID_ENGINE};
+	const SLboolean eng_mix_reqs[] = {SL_BOOLEAN_TRUE};
+
+	SLresult result;
+	result = slCreateEngine(&sl_engine, 0, NULL, eng_mix_iid_count, eng_mix_iids, eng_mix_reqs);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("slCreateEngine failed");
+		return 0;
+	}
+
+	result = (*sl_engine)->Realize(sl_engine, SL_BOOLEAN_FALSE);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_engine Realize failed");
+		return 0;
+	}
+
+	result = (*sl_engine)->GetInterface(sl_engine, SL_IID_ENGINE, &sl_engine_interface);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_engine GetInterface failed");
+		return 0;
+	}
+	//======================================================================================================
+
+	//======================================= Creating the Output Mix object ===============================
+
+	const SLuint32 out_mix_iid_count = 0;
+	const SLInterfaceID out_mix_iid[] = {};
+	const SLboolean out_mix_req[] = {};
+
+	result = (*sl_engine_interface)->CreateOutputMix(sl_engine_interface, &sl_output_mix, out_mix_iid_count, out_mix_iid,
+										    out_mix_req);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_engine CreatOutputMix failed");
+		return 0;
+	}
+	result = (*sl_output_mix)->Realize(sl_output_mix, SL_BOOLEAN_FALSE);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_engine output_mix_object Realize failed");
+		return 0;
+	}
+
+	//======================================================================================================
+
+
+	//============================================= Setting up Audio Player ================================
+
+	//============================ Setting up data sources =================================================
+
+	SLDataLocator_AndroidSimpleBufferQueue bufq_loc;
+	bufq_loc.locatorType = SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE;
+	bufq_loc.numBuffers = 2;
+
+	//Format of the audio data
+	SLDataFormat_PCM format_pcm;
+	format_pcm.formatType = SL_DATAFORMAT_PCM;
+	format_pcm.numChannels = 1;// mono audio, 2 for stereo audio
+	format_pcm.samplesPerSec = SL_SAMPLINGRATE_11_025;
+	format_pcm.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
+	format_pcm.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
+	format_pcm.channelMask = SL_SPEAKER_FRONT_CENTER;// SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_LEFT for stereo audio
+	format_pcm.endianness = SL_BYTEORDER_LITTLEENDIAN;
+
+	//Setting up the audio data source input
+	SLDataSource audio_source = {&bufq_loc, &format_pcm};
+	audio_source.pLocator = &bufq_loc;
+	audio_source.pFormat = &format_pcm;
+
+	//Setting up the audio data source output
+	SLDataLocator_OutputMix data_locator_out;
+	data_locator_out.locatorType = SL_DATALOCATOR_OUTPUTMIX;
+	data_locator_out.outputMix = sl_output_mix;
+
+	SLDataSink data_sink;
+	data_sink.pLocator = &data_locator_out;
+	data_sink.pFormat = NULL;
+	//=================================================================================================
+
+	//================================== Creating the Sound player ====================================
+	const SLuint32 snd_plyr_iid_count = 3;
+	const SLInterfaceID snd_plyr_iids[] = {SL_IID_PLAY, SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
+	const SLboolean snd_plyr_reqs[] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
+
+
+	result = (*sl_engine_interface)->CreateAudioPlayer(sl_engine_interface, &sl_audio_player, &audio_source, &data_sink,
+											 snd_plyr_iid_count, snd_plyr_iids, snd_plyr_reqs);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_engine CreateAudioPlayer failed");
+		return 0;
+	}
+	result = (*sl_audio_player)->Realize(sl_audio_player, SL_BOOLEAN_FALSE);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_audio_player Realize failed");
+	}
+	//Getting the three interfaces we requested above
+
+	result = (*sl_audio_player)->GetInterface(sl_audio_player, SL_IID_PLAY, &sl_audio_player_interface);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_audio_player GetInterface play failed");
+		return 0;
+	}
+	result = (*sl_audio_player)->GetInterface(sl_audio_player, SL_IID_BUFFERQUEUE, &sl_buffer_queue_interface);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_audio_player GetInterface buffer queue failed");
+		return 0;
+	}
+	result = (*sl_audio_player)->GetInterface(sl_audio_player, SL_IID_VOLUME, &sl_volume_interface);
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_audio_player GetInterface volume failed");
+		return 0;
+	}
+	//===========================================================================================================
+	//=============== Setting the Buffer Swapping Callback ======================================================
+	// called when current buffer is done playing to prepare the next buffer
+	result =
+		(*sl_buffer_queue_interface)->RegisterCallback(sl_buffer_queue_interface, sl_buffer_callback, this);//(void*)&osl_engine
+	if(result != SL_RESULT_SUCCESS)
+	{
+		LOGE("sl_buffer_queue_interface RegisterCallback failed");
+		return 0;
+	}
+	//===========================================================================================================
+
+
+	//===================================== Everything after this is for testing ================================
+	//Filling audio buffers with all 0s
+	memset(audio_buffer1, 0, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+	memset(audio_buffer2, 0, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+
+	//Putting a test sine wave on the buffers.
+	for(int i = 0; i < SND_AUDIO_BUFFER_SIZE; i++)
+	{
+		audio_buffer1[i] = (short) (15000 * sin(i * 0.4));
+		//Setting the second buffer to have a sine wave that begins at the end of the first buffer's
+		audio_buffer2[i] = (short) (15000 * sin((i + SND_AUDIO_BUFFER_SIZE) * 0.4));
+	}
+
+	//Point to the first buffer
+	active_audio_buffer = audio_buffer1;
+
+	//this is where buffer is wiped to all 0's, audio clips are placed in buffer, etc.
+	//Send first audio buffer to the audio player
+	(*sl_buffer_queue_interface)->Enqueue(sl_buffer_queue_interface, active_audio_buffer, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+	//Swap the audio buffers
+	if(active_audio_buffer == audio_buffer1)
+	{
+		active_audio_buffer = audio_buffer2;
+	}
+	else
+		active_audio_buffer = audio_buffer1;
+
+	start_audio();
+
+	//	sendSoundBuffer();
+	//	sendSoundBuffer();
+
+	//TODO: iterate through sound structs setting used to false
+	//Setting buffers as not in use
+	//	for(int i = 0; i < SND_AUDIO_CHANNELS; i++)
+	//	{
+	//		osl_engine.mSounds[i].mUsed = false;
+	//	}
 }
 
 void Engine::term_sl()
 {
-	//What variables do I need to free?
+	stop_audio();
+	if(sl_audio_player != NULL)
+	{
+		SLuint32 sound_player_state;
+		(*sl_audio_player)->GetState(sl_audio_player,&sound_player_state);
+
+		if(sound_player_state == SL_OBJECT_STATE_REALIZED)
+		{
+			(*sl_buffer_queue_interface)->Clear(sl_buffer_queue_interface);
+			(*sl_audio_player)->AbortAsyncOperation(sl_audio_player);
+			(*sl_audio_player)->Destroy(sl_audio_player);
+			sl_audio_player = NULL;
+			sl_audio_player_interface = NULL;
+			sl_buffer_queue_interface = NULL;
+			sl_volume_interface = NULL;
+		}
+	}
+	//Destroying the output mix object
+	if(sl_output_mix != NULL)
+	{
+		(*sl_output_mix)->Destroy(sl_output_mix);
+		sl_output_mix = NULL;
+	}
+
+	//Destroying the sound engine
+	if(sl_engine != NULL)
+	{
+		(*sl_engine)->Destroy(sl_engine);
+		sl_engine = NULL;
+		sl_engine_interface = NULL;
+	}
+}
+
+void Engine::start_audio()
+{
+	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface,SL_PLAYSTATE_PLAYING);
+}
+
+void Engine::stop_audio()
+{
+	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface,SL_PLAYSTATE_STOPPED);
+}
+void Engine::pause_audio()
+{
+	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface, SL_PLAYSTATE_PAUSED);
 }
 
 int Engine::init_gl()
@@ -357,6 +595,8 @@ void Engine::term_gl()
 int Engine::init_data()
 {
 	LOGI("init_data...\n");
+	if(!init_sl())
+		return 0;
 	if(!load_shaders())
 		return 0;
 	if(!load_assets())
@@ -370,6 +610,7 @@ void Engine::term_data()
 {
 	unload_shaders();
 	unload_assets();
+	term_sl();
 	data_initialized = false;
 }
 

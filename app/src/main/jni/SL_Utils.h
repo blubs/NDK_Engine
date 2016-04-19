@@ -7,15 +7,10 @@
 
 #include "common.h"
 
-void test_sound_callback(SLBufferQueueItf aSoundQueue,void* context)
-{
-	//send the next sound buffer
-}
-
 //==== Wrap this elsewhere =====
-struct SoundInfo
+struct Sound
 {
-	int mSoundID;
+//	int mSoundID;
 	bool mUsed;
 	char mPriority;
 	char* mData;
@@ -28,25 +23,13 @@ struct SoundInfo
 
 struct Audio_Engine_Data
 {
-	SLObjectItf audio_interface;
-	SLEngineItf audio_engine;
-	SLObjectItf output_mix_object;
 
-	//FIXME msounds should not be here
-	SoundInfo mSounds[8];
-	SLObjectItf sound_player_object;
-
-	SLPlayItf sound_player;
-	SLBufferQueueItf sound_queue;
-	SLVolumeItf sound_volume;
 };
 
 
 class SL_Utils
 {
-	void test_function();
 
-	void test_deinit();
 };
 
 
