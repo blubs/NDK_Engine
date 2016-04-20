@@ -5,12 +5,17 @@
 #ifndef ENGINE_SL_UTILS_H
 #define ENGINE_SL_UTILS_H
 
-#include "common.h"
 
-//==== Wrap this elsewhere =====
+
+struct Stereo_Sample
+{
+	short l;
+	short r;
+};
+
 struct Sound
 {
-//	int mSoundID;
+	//	int mSoundID;
 	bool mUsed;
 	char mPriority;
 	char* mData;
@@ -21,10 +26,9 @@ struct Sound
 };
 
 
-struct Audio_Engine_Data
-{
 
-};
+//#include "common.h"
+
 
 
 class SL_Utils

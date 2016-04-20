@@ -324,11 +324,11 @@ int Engine::init_sl()
 	//Format of the audio data
 	SLDataFormat_PCM format_pcm;
 	format_pcm.formatType = SL_DATAFORMAT_PCM;
-	format_pcm.numChannels = 1;// mono audio, 2 for stereo audio
+	format_pcm.numChannels = 2;//1 for mono audio, 2 for stereo audio
 	format_pcm.samplesPerSec = SL_SAMPLINGRATE_11_025;
 	format_pcm.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
 	format_pcm.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
-	format_pcm.channelMask = SL_SPEAKER_FRONT_CENTER;// SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_LEFT for stereo audio
+	format_pcm.channelMask = SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_LEFT;//SL_SPEAKER_FRONT_CENTER for mono audio
 	format_pcm.endianness = SL_BYTEORDER_LITTLEENDIAN;
 
 	//Setting up the audio data source input
@@ -399,15 +399,20 @@ int Engine::init_sl()
 
 	//===================================== Everything after this is for testing ================================
 	//Filling audio buffers with all 0s
-	memset(audio_buffer1, 0, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
-	memset(audio_buffer2, 0, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+	memset(audio_buffer1, 0, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
+	memset(audio_buffer2, 0, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
 
 	//Putting a test sine wave on the buffers.
 	for(int i = 0; i < SND_AUDIO_BUFFER_SIZE; i++)
 	{
-		audio_buffer1[i] = (short) (15000 * sin(i * 0.4));
+		audio_buffer1[i].l = (short) (15000 * sin(i * 0.4));
 		//Setting the second buffer to have a sine wave that begins at the end of the first buffer's
-		audio_buffer2[i] = (short) (15000 * sin((i + SND_AUDIO_BUFFER_SIZE) * 0.4));
+		audio_buffer2[i].l = (short) (15000 * sin((i + SND_AUDIO_BUFFER_SIZE) * 0.4));
+
+		//Giving the right channel a different sine wave
+		audio_buffer1[i].r = (short) (15000 * sin(i * 0.6));
+		//Setting the second buffer to have a sine wave that begins at the end of the first buffer's
+		audio_buffer2[i].r = (short) (15000 * sin((i + SND_AUDIO_BUFFER_SIZE) * 0.6));
 	}
 
 	//Point to the first buffer

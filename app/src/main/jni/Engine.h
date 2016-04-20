@@ -15,7 +15,6 @@ struct saved_state
 	int32_t y = 0;
 };
 
-
 class Engine
 {
 public:
@@ -50,9 +49,9 @@ public:
 
 	//Engine Sound Data
 	//TODO: make sounds played be handled per entity
-	short audio_buffer1[SND_AUDIO_BUFFER_SIZE];
-	short audio_buffer2[SND_AUDIO_BUFFER_SIZE];
-	short* active_audio_buffer;
+	Stereo_Sample audio_buffer1[SND_AUDIO_BUFFER_SIZE];
+	Stereo_Sample audio_buffer2[SND_AUDIO_BUFFER_SIZE];
+	Stereo_Sample* active_audio_buffer;
 	//Sound playing_sound[8];
 
 

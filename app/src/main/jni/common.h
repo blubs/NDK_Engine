@@ -42,11 +42,12 @@ extern "C" {
 #define SND_AUDIO_CHANNELS 8
 #define SND_AUDIO_BUFFER_SIZE 256
 #define SND_AUDIO_SAMPLE_RATE 11025
+#include "SL_Utils.h"
+
 
 #include "Engine.h"
 #include "File_Utils.h"
 #include "GL_Utils.h"
-#include "SL_Utils.h"
 #include "Misc.h"
 #include "math/Math.h"
 
