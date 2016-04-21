@@ -1,5 +1,6 @@
 #include "engine_main.h"
 
+
 void android_main(struct android_app *app)
 {
 	//Making sure glue is not stripped
@@ -41,21 +42,22 @@ void android_main(struct android_app *app)
 			{
 				source->process(app,source);
 			}
+			//Unused accelerometer update handling
 			//If sensor has data, process it
-			if(ident == LOOPER_ID_USER)
-			{
-				if(engine.accelerometer_sensor != NULL)
-				{
-					ASensorEvent event;
-					while(ASensorEventQueue_getEvents(engine.sensor_event_queue,&event,1) > 0)
-					{
-						//do nothing
-						app_dummy();
-						//LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x,
-						//	event.acceleration.y, event.acceleration.z);
-					}
-				}
-			}
+			//if(ident == LOOPER_ID_USER)
+			//{
+			//	//if(engine.accelerometer_sensor != NULL)
+			//	//{
+			//		ASensorEvent event;
+			//		while(ASensorEventQueue_getEvents(engine.sensor_event_queue,&event,1) > 0)
+			//		{
+			//			//do nothing
+			//			app_dummy();
+			//			//LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x,
+			//			//	event.acceleration.y, event.acceleration.z);
+			//		}
+			//	//}
+			//}
 
 			//Check if exiting
 			if(app->destroyRequested != 0)

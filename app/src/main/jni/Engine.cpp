@@ -15,7 +15,8 @@ Engine::Engine(struct android_app* mApp)
 
 	//Setting up accelerometer stuff
 	sensor_manager = ASensorManager_getInstance();
-	accelerometer_sensor = ASensorManager_getDefaultSensor(sensor_manager,ASENSOR_TYPE_ACCELEROMETER);
+	//Unused accelerometer sensor reference
+	//accelerometer_sensor = ASensorManager_getDefaultSensor(sensor_manager,ASENSOR_TYPE_ACCELEROMETER);
 	sensor_event_queue = ASensorManager_createEventQueue(sensor_manager, mApp->looper, LOOPER_ID_USER,NULL,NULL);
 
 	//Restore from a saved state
@@ -67,19 +68,19 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 			break;
 			//App gained focus, start monitoring accelerometer
 		case APP_CMD_GAINED_FOCUS:
-			if(eng->accelerometer_sensor != NULL)
-			{
-				ASensorEventQueue_enableSensor(eng->sensor_event_queue,eng->accelerometer_sensor);
+			//if(eng->accelerometer_sensor != NULL)
+			//{
+			//	ASensorEventQueue_enableSensor(eng->sensor_event_queue,eng->accelerometer_sensor);
 				//60 samples per second
-				ASensorEventQueue_setEventRate(eng->sensor_event_queue,eng->accelerometer_sensor, (1000L/60)*1000);
-			}
+			//	ASensorEventQueue_setEventRate(eng->sensor_event_queue,eng->accelerometer_sensor, (1000L/60)*1000);
+			//}
 			break;
 			//App lost focus, stop monitoring acceleromter, and stop animating
 		case APP_CMD_LOST_FOCUS:
-			if(eng->accelerometer_sensor != NULL)
-			{
-				ASensorEventQueue_disableSensor(eng->sensor_event_queue,eng->accelerometer_sensor);
-			}
+			//if(eng->accelerometer_sensor != NULL)
+			//{
+			//	ASensorEventQueue_disableSensor(eng->sensor_event_queue,eng->accelerometer_sensor);
+			//}
 			eng->animating = 0;
 			eng->draw_frame();
 			break;

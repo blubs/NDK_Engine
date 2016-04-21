@@ -91,7 +91,8 @@ public:
 	struct android_app *app;
 
 	ASensorManager *sensor_manager;
-	const ASensor *accelerometer_sensor;
+	//Unused accelerometer reference
+	//const ASensor *accelerometer_sensor;
 	ASensorEventQueue *sensor_event_queue;
 
 	int32_t width;
