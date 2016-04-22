@@ -104,8 +104,21 @@ struct Vec3
 	// angle to vec
 };
 
+//Quaternion struct
+struct Quat
+{
+	float w,x,y,z;//x,y,z being the i,j,k components
+
+	//TODO: a lot of functions for quaternions
+
+};
 
 //This implementation is a column major-matrix (as OGL expects them)
+//The following shows the mapping from index to matrix element
+//[ 0  4  8  12 ]
+//[ 1  5  9  13 ]
+//[ 2  6  10 14 ]
+//[ 3  7  11 15 ]
 struct Mat4
 {
 	float m[16];
@@ -240,6 +253,36 @@ struct Mat4
 		result.m[5] = y;
 		result.m[10] = z;
 		result.m[15] = 1.0f;
+		return result;
+	}
+
+	//Static method that returns a rotation matrix given a unit quaternion rotation
+	static Mat4 QUAT_TO_MAT4(Quat q)
+	{
+		Mat4 result = IDENTITY();
+		//Precomputing floating point multiplications
+		//TODO: test runtime of this versus not precomputing, is there any benefit?
+		float xx2,yy2,zz2,xy2,xz2,yz2,wx2,wy2,wz2;
+		xx2 = 2.0f * q.x * q.x;
+		yy2 = 2.0f * q.y * q.y;
+		zz2 = 2.0f * q.z * q.z;
+		xz2 = 2.0f * q.x * q.z;
+		xy2 = 2.0f * q.x * q.y;
+		yz2 = 2.0f * q.y * q.z;
+		wx2 = 2.0f * q.w * q.x;
+		wy2 = 2.0f * q.w * q.y;
+		wz2 = 2.0f * q.w * q.z;
+
+		result.m[0] = 1.0f - yy2 - zz2;
+		result.m[1] = xy2 + wz2;
+		result.m[2] = xz2 - wy2;
+		result.m[4] = xy2 - wz2;
+		result.m[5] = 1.0f - xx2 - zz2;
+		result.m[6] = yz2 + wx2;
+		result.m[8] = xz2 + wy2;
+		result.m[9] = yz2 - wx2;
+		result.m[10] = 1.0f - xx2 - yy2;
+
 		return result;
 	}
 	//TODO:
