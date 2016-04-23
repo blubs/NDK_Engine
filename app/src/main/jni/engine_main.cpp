@@ -25,6 +25,16 @@ void android_main(struct android_app *app)
 	free((char*)data);
 	File_Utils::write_savedata("test.dat");
 
+	//Test audio file loading
+	const Asset_File* test_sound_file = File_Utils::load_asset("raw_1000_10_5_sec_sweep_stereo.raw");
+	engine.snd_ch.data = (char*)test_sound_file->data;
+	engine.snd_ch.length = test_sound_file->len;
+	engine.snd_ch.used = false;
+	//Only needed the Asset_File to get the length
+	free((void*)test_sound_file);
+
+	engine.play_sound();
+
 	//run the engine loop
 	while(1)
 	{

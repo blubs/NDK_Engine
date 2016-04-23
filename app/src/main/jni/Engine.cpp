@@ -5,9 +5,9 @@
 #include "Engine.h"
 
 
-Engine::Engine(struct android_app* mApp)
+Engine::Engine(struct android_app* droid_app)
 {
-	app = mApp;
+	app = droid_app;
 
 	app->userData = this;
 	app->onAppCmd = Engine::handle_cmd;
@@ -17,14 +17,14 @@ Engine::Engine(struct android_app* mApp)
 	sensor_manager = ASensorManager_getInstance();
 	//Unused accelerometer sensor reference
 	//accelerometer_sensor = ASensorManager_getDefaultSensor(sensor_manager,ASENSOR_TYPE_ACCELEROMETER);
-	sensor_event_queue = ASensorManager_createEventQueue(sensor_manager, mApp->looper, LOOPER_ID_USER,NULL,NULL);
+	sensor_event_queue = ASensorManager_createEventQueue(sensor_manager, droid_app->looper, LOOPER_ID_USER,NULL,NULL);
 
 	//Restore from a saved state
-	if(mApp->savedState != NULL)
+	if(droid_app->savedState != NULL)
 	{
 		//Really not sure when this is running, I'll add debug code so I can be informed when
 		LOGE("NOT AN ERROR: notifying that previous saved state was not null, set state to prev state.\n");
-		state = *(struct saved_state*) mApp->savedState;
+		state = *(struct saved_state*) droid_app->savedState;
 	}
 }
 
@@ -178,8 +178,8 @@ int Engine::load_shaders()
 {
 	vert_shader_name = "minimal.vert";
 	frag_shader_name = "minimal.frag";
-	frag_shader_src = File_Utils::load_asset("minimal.frag");
-	vert_shader_src = File_Utils::load_asset("minimal.vert");
+	frag_shader_src = File_Utils::load_raw_asset("minimal.frag");
+	vert_shader_src = File_Utils::load_raw_asset("minimal.vert");
 
 	return 1;
 }
@@ -190,7 +190,7 @@ int Engine::load_shaders()
 int Engine::load_assets()
 {
 	//Loading the test texture.
-	const char* tex_file = File_Utils::load_asset("tex.pkm");
+	const char* tex_file = File_Utils::load_raw_asset("tex.pkm");
 	test_tex = (GLuint) tex_file;
 	return 1;
 }
@@ -247,17 +247,54 @@ void Engine::term_display()
 //Callback for swapping audio buffers
 void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
 {
-	Engine* e = ((Engine*)c);
-	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+	Engine *e = ((Engine *) c);
+
 	//Swap the audio buffers
-	if(e->active_audio_buffer == e->audio_buffer1)
+	Stereo_Sample *other_buffer = e->active_audio_buffer;
+	e->active_audio_buffer = e->inactive_audio_buffer;
+	e->inactive_audio_buffer = other_buffer;
+
+	//Wipe the current audio buffer
+	memset(e->active_audio_buffer, 0, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
+
+	//Populate the current audio buffer with the whatever sounds that are playing.
+	if(e->snd_ch.used)
 	{
-		e->active_audio_buffer = e->audio_buffer2;
+		//Calculate "distance" falloff (our fingers x coordinate)
+		//Capping falloff between 0 and 1
+		//Distance emulated between 0 and 50 meters
+		//float falloff = 1.0f/( 50.0f * ((float)e->state.x)  /  ((float)e->width)  );
+		//falloff = fminf(1.0f,falloff);
+		//falloff = fmaxf(0.0f, falloff);
+
+		//Need file length, and audio
+		int len_to_cp = SND_AUDIO_BUFFER_SIZE < (e->snd_ch.length - e->snd_ch.position) ? SND_AUDIO_BUFFER_SIZE : (e->snd_ch.length - e->snd_ch.position);
+
+		LOGE("Copying audio from %d to %d, (length = %d)\n",e->snd_ch.position,e->snd_ch.position + len_to_cp, e->snd_ch.length);
+		for(int i = 0; i < len_to_cp; i++)
+		{
+			Stereo_Sample smp = *(Stereo_Sample*) (e->snd_ch.data + (sizeof(Stereo_Sample))*((4*i) + e->snd_ch.position));
+			//smp.l *= falloff;
+			//smp.r *= falloff;
+			e->active_audio_buffer[i] = smp;
+		}
+		e->snd_ch.position += len_to_cp-1;
+		if(4*(e->snd_ch.position) > e->snd_ch.length)
+		{
+			e->snd_ch.used = false;
+		}
 	}
-	else
-	{
-		e->active_audio_buffer = e->audio_buffer1;
-	}
+	//Send the prepared audio buffer
+	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+}
+
+void Engine::play_sound()
+{
+	if(snd_ch.data == NULL)
+		return;
+
+	snd_ch.used = true;
+	snd_ch.position = 0;
 }
 
 int Engine::init_sl()
@@ -404,7 +441,7 @@ int Engine::init_sl()
 	memset(audio_buffer2, 0, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
 
 	//Putting a test sine wave on the buffers.
-	for(int i = 0; i < SND_AUDIO_BUFFER_SIZE; i++)
+	/*for(int i = 0; i < SND_AUDIO_BUFFER_SIZE; i++)
 	{
 		audio_buffer1[i].l = (short) (15000 * sin(i * 0.4));
 		//Setting the second buffer to have a sine wave that begins at the end of the first buffer's
@@ -414,26 +451,21 @@ int Engine::init_sl()
 		audio_buffer1[i].r = (short) (15000 * sin(i * 0.6));
 		//Setting the second buffer to have a sine wave that begins at the end of the first buffer's
 		audio_buffer2[i].r = (short) (15000 * sin((i + SND_AUDIO_BUFFER_SIZE) * 0.6));
-	}
+	}*/
 
 	//Point to the first buffer
 	active_audio_buffer = audio_buffer1;
+	inactive_audio_buffer = audio_buffer2;
 
 	//this is where buffer is wiped to all 0's, audio clips are placed in buffer, etc.
 	//Send first audio buffer to the audio player
 	(*sl_buffer_queue_interface)->Enqueue(sl_buffer_queue_interface, active_audio_buffer, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
 	//Swap the audio buffers
-	if(active_audio_buffer == audio_buffer1)
-	{
-		active_audio_buffer = audio_buffer2;
-	}
-	else
-		active_audio_buffer = audio_buffer1;
+	Stereo_Sample* other_buffer = active_audio_buffer;
+	active_audio_buffer = inactive_audio_buffer;
+	inactive_audio_buffer = other_buffer;
 
 	start_audio();
-
-	//	sendSoundBuffer();
-	//	sendSoundBuffer();
 
 	//TODO: iterate through sound structs setting used to false
 	//Setting buffers as not in use

@@ -9,21 +9,25 @@
 
 struct Vec3
 {
-	float x,y,z;
+	float x, y, z;
 
-	Vec3()
+	Vec3 ()
 	{
 		x = y = z = 0.0f;
 	}
-	Vec3(float a, float b, float c)
+
+	Vec3 (float a, float b, float c)
 	{
 		x = a;
 		y = b;
 		z = c;
 	}
-	~Vec3(){};
+
+	~Vec3 ()
+	{};
+
 	//Dot product
-	friend float operator*(Vec3& l, Vec3& r)
+	friend float operator* (Vec3 &l, Vec3 &r)
 	{
 		return l.x*r.x + l.y*r.y + l.z*r.z;
 	}
@@ -109,12 +113,12 @@ struct Quat
 {
 	float w,x,y,z;//x,y,z being the i,j,k components
 
-	//TODO: a lot of functions for quaternions
+	//TODO: functions/operators for quaternions
 
 };
 
 //This implementation is a column major-matrix (as OGL expects them)
-//The following shows the mapping from index to matrix element
+//The following shows the mapping between index and matrix element
 //[ 0  4  8  12 ]
 //[ 1  5  9  13 ]
 //[ 2  6  10 14 ]

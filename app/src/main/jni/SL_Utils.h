@@ -13,18 +13,16 @@ struct Stereo_Sample
 	short r;
 };
 
-struct Sound
+struct Sound_Channel
 {
-	//	int mSoundID;
-	bool mUsed;
-	char mPriority;
-	char* mData;
+	bool used;
+	char* data;
 
-	int mLength;
-	int mPosition;
-	int mStarted;
+	int length;
+	int position;
+	//priority
+	//started
 };
-
 
 
 //#include "common.h"
