@@ -40,8 +40,8 @@ extern "C" {
 #define ETC1_RGB8 0x8D64
 
 #define SND_AUDIO_CHANNELS 8
-#define SND_AUDIO_BUFFER_SIZE 256
-#define SND_AUDIO_SAMPLE_RATE 11025
+#define SND_AUDIO_BUFFER_SIZE 512
+#define SND_AUDIO_SAMPLE_RATE 44100
 #include "SL_Utils.h"
 
 

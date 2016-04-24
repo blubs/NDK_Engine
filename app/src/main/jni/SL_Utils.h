@@ -20,6 +20,8 @@ struct Sound_Channel
 
 	int length;
 	int position;
+
+	int ofs;//offset to data (skip header data)
 	//priority
 	//started
 };

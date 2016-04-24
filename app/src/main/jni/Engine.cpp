@@ -74,6 +74,7 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 				//60 samples per second
 			//	ASensorEventQueue_setEventRate(eng->sensor_event_queue,eng->accelerometer_sensor, (1000L/60)*1000);
 			//}
+			eng->start_audio();
 			break;
 			//App lost focus, stop monitoring acceleromter, and stop animating
 		case APP_CMD_LOST_FOCUS:
@@ -81,6 +82,7 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 			//{
 			//	ASensorEventQueue_disableSensor(eng->sensor_event_queue,eng->accelerometer_sensor);
 			//}
+			eng->pause_audio();
 			eng->animating = 0;
 			eng->draw_frame();
 			break;
@@ -91,15 +93,17 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 }
 int32_t Engine::handle_input(struct android_app *app, AInputEvent *event)
 {
-	Engine* eng = (Engine*)app->userData;
+	Engine *eng = (Engine *) app->userData;
+	int type = AInputEvent_getType(event);
 
-	if(AInputEvent_getType(event)== AINPUT_EVENT_TYPE_MOTION)
+
+	if(type == AINPUT_EVENT_TYPE_MOTION)
 	{
 		eng->animating = 1;
 		//eng->state->x = (int32_t)AMotionEvent_getX(event,0);
 		//eng->state->y = (int32_t)AMotionEvent_getY(event,0);
-		eng->state.x = (int32_t)AMotionEvent_getX(event,0);
-		eng->state.y = (int32_t)AMotionEvent_getY(event,0);
+		eng->state.x = (int32_t) AMotionEvent_getX(event, 0);
+		eng->state.y = (int32_t) AMotionEvent_getY(event, 0);
 		return 1;
 	}
 	return 0;
@@ -261,31 +265,29 @@ void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
 	if(e->snd_ch.used)
 	{
 		//Calculate "distance" falloff (our fingers x coordinate)
-		//Capping falloff between 0 and 1
 		//Distance emulated between 0 and 50 meters
-		//float falloff = 1.0f/( 50.0f * ((float)e->state.x)  /  ((float)e->width)  );
-		//falloff = fminf(1.0f,falloff);
-		//falloff = fmaxf(0.0f, falloff);
+		float falloff = 1.0f/( 50.0f * ((float)e->state.x)  /  ((float)e->width)  );
+		falloff = fminf(1.0f,falloff);
+		falloff = fmaxf(0.0f, falloff);
 
 		//Need file length, and audio
-		int len_to_cp = SND_AUDIO_BUFFER_SIZE < (e->snd_ch.length - e->snd_ch.position) ? SND_AUDIO_BUFFER_SIZE : (e->snd_ch.length - e->snd_ch.position);
+		int smpls_cp = SND_AUDIO_BUFFER_SIZE < (e->snd_ch.length - e->snd_ch.position) ? SND_AUDIO_BUFFER_SIZE : (e->snd_ch.length - e->snd_ch.position);
 
-		LOGE("Copying audio from %d to %d, (length = %d)\n",e->snd_ch.position,e->snd_ch.position + len_to_cp, e->snd_ch.length);
-		for(int i = 0; i < len_to_cp; i++)
+		for(int i = 0; i < smpls_cp; i++)
 		{
-			Stereo_Sample smp = *(Stereo_Sample*) (e->snd_ch.data + (sizeof(Stereo_Sample))*((4*i) + e->snd_ch.position));
-			//smp.l *= falloff;
-			//smp.r *= falloff;
+			Stereo_Sample smp = *((Stereo_Sample*) (e->snd_ch.data + e->snd_ch.ofs) + (i + e->snd_ch.position));
+			smp.l *= falloff;
+			smp.r *= falloff;
 			e->active_audio_buffer[i] = smp;
 		}
-		e->snd_ch.position += len_to_cp-1;
-		if(4*(e->snd_ch.position) > e->snd_ch.length)
+		e->snd_ch.position += smpls_cp;
+		if((e->snd_ch.position) >= e->snd_ch.length)
 		{
 			e->snd_ch.used = false;
 		}
 	}
 	//Send the prepared audio buffer
-	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
+	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
 }
 
 void Engine::play_sound()
@@ -363,7 +365,7 @@ int Engine::init_sl()
 	SLDataFormat_PCM format_pcm;
 	format_pcm.formatType = SL_DATAFORMAT_PCM;
 	format_pcm.numChannels = 2;//1 for mono audio, 2 for stereo audio
-	format_pcm.samplesPerSec = SL_SAMPLINGRATE_11_025;
+	format_pcm.samplesPerSec = SL_SAMPLINGRATE_44_1;
 	format_pcm.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
 	format_pcm.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
 	format_pcm.channelMask = SL_SPEAKER_FRONT_RIGHT | SL_SPEAKER_FRONT_LEFT;//SL_SPEAKER_FRONT_CENTER for mono audio
