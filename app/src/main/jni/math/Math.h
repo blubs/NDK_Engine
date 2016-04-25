@@ -114,6 +114,16 @@ struct Quat
 	float w,x,y,z;//x,y,z being the i,j,k components
 
 	//TODO: functions/operators for quaternions
+	//Creates a quaternion from direction and angle about the direction
+	Quat (float theta, Vec3 dir)
+	{
+		float half_theta = theta * 0.5f;
+		w = cosf(half_theta);
+		float sin_half_theta = sinf(half_theta);
+		x = x * sin_half_theta;
+		y = y * sin_half_theta;
+		z = z * sin_half_theta;
+	}
 
 };
 
