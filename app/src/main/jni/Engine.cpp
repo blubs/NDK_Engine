@@ -275,7 +275,7 @@ void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
 
 		for(int i = 0; i < smpls_cp; i++)
 		{
-			Stereo_Sample smp = *((Stereo_Sample*) (e->snd_ch.data + e->snd_ch.ofs) + (i + e->snd_ch.position));
+			Stereo_Sample smp = *((Stereo_Sample*) (e->snd_ch.data) + (i + e->snd_ch.position));
 			smp.l *= falloff;
 			smp.r *= falloff;
 			e->active_audio_buffer[i] = smp;
@@ -541,7 +541,6 @@ int Engine::init_gl()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	gl_program = glCreateProgram();
-	LOGI("gl program is: %d.\n", gl_program);
 	if(!gl_program)
 	{
 		LOGE("Error: failed to create gl program.\n");
@@ -549,10 +548,8 @@ int Engine::init_gl()
 	}
 
 	test_vert_shader = GL_Utils::load_shader(vert_shader_src,vert_shader_name,GL_VERTEX_SHADER);
-	LOGI("vertex shader: %d\n",(int) test_vert_shader);
 
 	test_frag_shader = GL_Utils::load_shader(frag_shader_src,frag_shader_name,GL_FRAGMENT_SHADER);
-	LOGI("fragment shader: %d\n",(int) test_frag_shader);
 
 	glAttachShader(gl_program, test_vert_shader);
 	glAttachShader(gl_program, test_frag_shader);
@@ -593,7 +590,6 @@ int Engine::init_gl()
 	//======================
 	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex_id);
-	LOGI("Texture id before binding: %u\n", tex_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -602,7 +598,6 @@ int Engine::init_gl()
 	glBindTexture(GL_TEXTURE_2D,0);
 
 
-	LOGI("Texture id after binding: %u\n", tex_id);
 	texture_id = tex_id;
 	//========================================================================
 	glViewport(0, 0, width, height);

@@ -21,7 +21,11 @@ struct Sound_Channel
 	int length;
 	int position;
 
-	int ofs;//offset to data (skip header data)
+	//NOTE: we are using headless wav files, so ofs field is not needed
+	//int ofs;//offset to data (skip header data) //this should be set to 44 for wav files
+	// in case we opt to use this again
+	// make sure we use this value when reading the sound data from the audio playing routine.
+
 	//priority
 	//started
 };
