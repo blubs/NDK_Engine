@@ -2,7 +2,7 @@
 // Created by F1 on 3/23/2016.
 //
 
-#include "Engine.h"
+#include "Engine.h" #include "SL_Utils.h"
 
 
 Engine::Engine(struct android_app* droid_app)
@@ -261,20 +261,33 @@ void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
 	//Wipe the current audio buffer
 	memset(e->active_audio_buffer, 0, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
 
+	//For sound effect interpolation
+	//Last value to current value in SND_AUDIO_BUFFER_SIZE.
+	//equation: lerped_effect = i*((cur_effect - last_effect)/SND_AUDIO_BUFFER_SIZE) + last_effect
+
+
 	//Populate the current audio buffer with the whatever sounds that are playing.
 	if(e->snd_ch.used)
 	{
-		//Calculate "distance" falloff (our fingers x coordinate)
-		//Distance emulated between 0 and 50 meters
 		float falloff = 1.0f/( 50.0f * ((float)e->state.x)  /  ((float)e->width)  );
 		falloff = fminf(1.0f,falloff);
 		falloff = fmaxf(0.0f, falloff);
+		float last_falloff = e->snd_ch.last_falloff;
+		e->snd_ch.last_falloff = falloff;
+
+		float faloff_slope = (falloff - last_falloff) / SND_AUDIO_BUFFER_SIZE;
+		//Calculate "distance" falloff (our fingers x coordinate)
+		//Distance emulated between 0 and 50 meters
 
 		//Need file length, and audio
 		int smpls_cp = SND_AUDIO_BUFFER_SIZE < (e->snd_ch.length - e->snd_ch.position) ? SND_AUDIO_BUFFER_SIZE : (e->snd_ch.length - e->snd_ch.position);
 
+
 		for(int i = 0; i < smpls_cp; i++)
 		{
+			//Calculating current lerped falloff
+			falloff = faloff_slope*i + last_falloff;
+
 			Stereo_Sample smp = *((Stereo_Sample*) (e->snd_ch.data) + (i + e->snd_ch.position));
 			smp.l *= falloff;
 			smp.r *= falloff;

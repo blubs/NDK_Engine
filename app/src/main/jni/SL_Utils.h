@@ -28,6 +28,9 @@ struct Sound_Channel
 
 	//priority
 	//started
+
+	//Used for interpolation of effects
+	float last_falloff;
 };
 
 
