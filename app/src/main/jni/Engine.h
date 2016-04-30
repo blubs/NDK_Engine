@@ -105,6 +105,8 @@ public:
 	struct saved_state state;
 	//struct saved_state* state;
 	int animating;
+
+	Camera* camera;
 };
 
 

@@ -26,6 +26,10 @@ Engine::Engine(struct android_app* droid_app)
 		LOGE("NOT AN ERROR: notifying that previous saved state was not null, set state to prev state.\n");
 		state = *(struct saved_state*) droid_app->savedState;
 	}
+
+	///... how do I want to hold game structs?
+	camera = (Camera*) malloc(sizeof(Camera));
+	camera->set_view_attributes(90.0f,ASPECT_16_9,0.1f,10f);
 }
 
 void Engine::handle_cmd(struct android_app *app, int32_t cmd)

@@ -7,6 +7,10 @@
 
 #include "../common.h"
 
+#define PI 3.14159265359f
+#define HALF_PI 1.57079632679f
+#define TWO_PI 6.28318530718f
+
 struct Vec3
 {
 	float x, y, z;
@@ -16,7 +20,7 @@ struct Vec3
 		x = y = z = 0.0f;
 	}
 
-	Vec3 (float a, float b, float c)
+	Vec3 (const float a,const float b,const float c)
 	{
 		x = a;
 		y = b;
@@ -27,56 +31,56 @@ struct Vec3
 	{};
 
 	//Dot product
-	friend float operator* (Vec3 &l, Vec3 &r)
+	friend float operator* (const Vec3& l,const Vec3& r)
 	{
 		return l.x*r.x + l.y*r.y + l.z*r.z;
 	}
 	//Vector Addition
-	friend Vec3 operator+(Vec3& l, Vec3& r)
+	friend Vec3 operator+(const Vec3& l,const Vec3& r)
 	{
 		return Vec3(l.x + r.x, l.y + r.y, l.z + r.z);
 	}
 	//Vector Subtraction
-	friend Vec3 operator-(Vec3& l, Vec3& r)
+	friend Vec3 operator-(const Vec3& l,const Vec3& r)
 	{
 		return Vec3(l.x - r.x, l.y - r.y, l.z - r.z);
 	}
 	//Scalar Multiplication
-	friend Vec3 operator*(float l, Vec3& r)
+	friend Vec3 operator*(const float l,const Vec3& r)
 	{
 		return Vec3(l*r.x, l*r.y, l*r.z);
 	}
-	friend Vec3 operator*(Vec3& l, float r)
+	friend Vec3 operator*(const Vec3& l,const float r)
 	{
 		return Vec3(l.x*r, l.y*r, l.z*r);
 	}
 
 	//Scalar Division
-	friend Vec3 operator/(float l, Vec3& r)
+	friend Vec3 operator/(const float l, const Vec3& r)
 	{
 		return Vec3(l/r.x, l/r.y, l/r.z);
 	}
-	friend Vec3 operator/(Vec3& l, float r)
+	friend Vec3 operator/(const Vec3& l,const float r)
 	{
 		return Vec3(l.x/r, l.y/r, l.z/r);
 	}
 
 
-	float len()
+	float len() const
 	{
 		return (float)sqrt(x*x + y*y + z*z);
 	}
-	float len_squared()
+	float len_squared() const
 	{
 		return x*x + y*y + z*z;
 	}
 
-	Vec3 normalize()
+	Vec3 normalize() const
 	{
 		return *this/len();
 	}
 
-	static Vec3 cross(Vec3 a, Vec3 b)
+	static Vec3 cross(const Vec3& a,const Vec3& b)
 	{
 		Vec3 res(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
 		return res;
@@ -111,19 +115,55 @@ struct Vec3
 //Quaternion struct
 struct Quat
 {
-	float w,x,y,z;//x,y,z being the i,j,k components
+	float w;//x,y,z being the i,j,k components
+	Vec3 v;
+	//i,j,k components
+	Quat()
+	{
+		w = 1.0f;
+	}
 
 	//TODO: functions/operators for quaternions
 	//Creates a quaternion from direction and angle about the direction
-	Quat (float theta, Vec3 dir)
+	Quat(const float theta,const Vec3& dir)
 	{
 		float half_theta = theta * 0.5f;
 		w = cosf(half_theta);
 		float sin_half_theta = sinf(half_theta);
-		x = x * sin_half_theta;
-		y = y * sin_half_theta;
-		z = z * sin_half_theta;
+		v = dir * sin_half_theta;
 	}
+	//Multiplies two quaternions
+	friend Quat& operator*(const Quat& l,const Quat& r)
+	{
+		Quat result;
+		result.w = l.w * r.w - l.v*r.v;
+		result.v = l.v * r.w + r.v * l.w + Vec3::cross(l.v,r.v);
+
+		return result;
+	}
+	//Returns the inverted quaternion
+	Quat& inverted() const
+	{
+		Quat result;
+		result.w = w;
+		result.v = v*-1.0f;
+		return result;
+	}
+
+	//Multiplies a quaternion and a vector (applies a rotation)
+	//The code is functionally equivalent to (q * p * q.invert()).v, where p.w = 0, p.v = r
+	friend Vec3 operator*(const Quat& l, const Vec3& r)
+	{
+		Vec3 vXr = Vec3::cross(l.v,r);
+		return r + vXr*(2.0f*l.w) + Vec3::cross(l.v,vXr)*2.0f;
+	}
+
+	//The following is pseudo code for SLERPING quaternions,
+	// 	implementation will be unclear until we figure out how we are going to call it
+	// let t be the interpolation scalar ranging from 0 to 1
+	// let temp1 = final * initial.invert();
+	// let temp2 = ( temp1.w * sin(  (t*theta)/2  ), temp1.v * sin (  (t*theta)/2  ));
+	// current = initial * temp2;
 
 };
 
@@ -147,8 +187,10 @@ struct Mat4
 		m[12] = m[13] = m[14] = m[15] = 0.0f;
 	}
 
-	Mat4(float a0,  float a1,  float a2,  float a3,	float a4,  float a5,  float a6,  float a7,
-		float a8,  float a9,  float a10, float a11,	float a12, float a13, float a14, float a15)
+	Mat4(const float a0,const float a1,const float a2,const float a3,
+		const float a4,const float a5,const float a6,const float a7,
+		const float a8,const float a9,const float a10,const float a11,
+		const float a12,const float a13,const float a14,const float a15)
 	{
 		m[0] = a0;
 		m[1] = a1;
@@ -189,7 +231,7 @@ struct Mat4
 		return *this;
 	}
 
-	friend Mat4& operator*(Mat4& l, Mat4& r)
+	friend Mat4& operator*(const Mat4& l, const Mat4& r)
 	{
 		Mat4 result;
 
@@ -219,7 +261,7 @@ struct Mat4
 	//Left multiplying Vec3
 	//Treating vec3 as row vector, treating 4th component of vector (w) as 1
 	//if w = 1, full transformation, if w = 0, only rotate the point
-	friend Vec3& operator*(Vec3& l, Mat4& r)
+	friend Vec3& operator*(const Vec3& l,const Mat4& r)
 	{
 		Vec3 result;
 
@@ -232,7 +274,7 @@ struct Mat4
 	//Right multiplying Vec3
 	//Treating vec3 as column vector, treating 4th component of vector (w) as 1
 	//if w = 1, full transformation, if w = 0, only rotate the point
-	friend Vec3& operator*(Mat4& l, Vec3& r)
+	friend Vec3& operator*(const Mat4& l,const Vec3& r)
 	{
 		Vec3 result;
 
@@ -250,7 +292,7 @@ struct Mat4
 		return result;
 	}
 	//Static method that returns a translation transform matrix given points.
-	static Mat4 TRANSLATE(float x,float y,float z)
+	static Mat4 TRANSLATE(const float x,const float y,const float z)
 	{
 		Mat4 result = IDENTITY();
 		result.m[12] = x;
@@ -260,7 +302,7 @@ struct Mat4
 	}
 
 	//Static method that returns a scale transform matrix.
-	static Mat4 SCALE(float x, float y, float z)
+	static Mat4 SCALE(const float x,const float y,const float z)
 	{
 		Mat4 result;
 		result.m[0] = x;
@@ -271,21 +313,21 @@ struct Mat4
 	}
 
 	//Static method that returns a rotation matrix given a unit quaternion rotation
-	static Mat4 QUAT_TO_MAT4(Quat q)
+	static Mat4 ROTATE(const Quat& q)
 	{
 		Mat4 result = IDENTITY();
 		//Precomputing floating point multiplications
 		//TODO: test runtime of this versus not precomputing, is there any benefit?
 		float xx2,yy2,zz2,xy2,xz2,yz2,wx2,wy2,wz2;
-		xx2 = 2.0f * q.x * q.x;
-		yy2 = 2.0f * q.y * q.y;
-		zz2 = 2.0f * q.z * q.z;
-		xz2 = 2.0f * q.x * q.z;
-		xy2 = 2.0f * q.x * q.y;
-		yz2 = 2.0f * q.y * q.z;
-		wx2 = 2.0f * q.w * q.x;
-		wy2 = 2.0f * q.w * q.y;
-		wz2 = 2.0f * q.w * q.z;
+		xx2 = 2.0f * q.v.x * q.v.x;
+		yy2 = 2.0f * q.v.y * q.v.y;
+		zz2 = 2.0f * q.v.z * q.v.z;
+		xz2 = 2.0f * q.v.x * q.v.z;
+		xy2 = 2.0f * q.v.x * q.v.y;
+		yz2 = 2.0f * q.v.y * q.v.z;
+		wx2 = 2.0f * q.w * q.v.x;
+		wy2 = 2.0f * q.w * q.v.y;
+		wz2 = 2.0f * q.w * q.v.z;
 
 		result.m[0] = 1.0f - yy2 - zz2;
 		result.m[1] = xy2 + wz2;
@@ -301,8 +343,53 @@ struct Mat4
 	}
 	//TODO:
 	// rotation matrix
-	// view matrix
-	// projection matrix
+
+	// Constructs a view matrix from camera direction vectors and position vector
+	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
+	{
+		Mat4 result;
+		result.m[0] = right.x;
+		result.m[1] = right.y;
+		result.m[2] = right.z;
+
+		result.m[4] = up.x;
+		result.m[5] = up.y;
+		result.m[6] = up.z;
+
+		result.m[8] = forward.x;
+		result.m[9] = forward.y;
+		result.m[10] = forward.z;
+
+		result.m[12] = pos.x;
+		result.m[13] = pos.y;
+		result.m[14] = pos.z;
+		result.m[15] = 1.0f;
+		return result;
+	}
+
+	// Constructs a projection matrix given near plane, far plane, aspect ratio, and fov
+	static Mat4 PROJECT(const float near,const float far,const float aspect,const float fov)
+	{
+		//Doing some precalculations
+		float top = near * tanf(HALF_PI * fov*0.5f);
+		float bottom = -top;
+		float right = top * aspect;
+		float left = -right;
+
+		Mat4 result;
+		float inv_top_minus_bottom = 1.0f/(top - bottom);
+		float inv_right_minus_left = 1.0f/(right - left);
+		float inv_far_minus_near = 1.0f/(far - near);
+		result.m[0] = 2 * near * inv_right_minus_left;
+		result.m[5] = 2 * near * inv_top_minus_bottom;
+		result.m[8] = (right + left) * inv_right_minus_left;
+		result.m[9] = (top + bottom) * inv_top_minus_bottom;
+		result.m[10] = -(far + near) * inv_far_minus_near;
+		result.m[11] = -1.0f;
+		result.m[14] = -2.0f * far * near * inv_far_minus_near;
+
+		return result;
+	}
 
 	//Additional methods to perhaps implement (depending on if I ever find the need for them)
 	//Scalar multiplication / division of a matrix

@@ -44,11 +44,15 @@ extern "C" {
 #define SND_AUDIO_SAMPLE_RATE 44100
 #include "SL_Utils.h"
 
+#define ASPECT_16_9 1.7777778f
+
 
 #include "Engine.h"
 #include "File_Utils.h"
 #include "GL_Utils.h"
 #include "Misc.h"
 #include "math/Math.h"
+#include "Camera.h"
+#include "Player.h"
 
 #endif //ENGINE_COMMON_H
