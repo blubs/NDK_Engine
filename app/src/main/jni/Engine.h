@@ -6,6 +6,13 @@
 #define ENGINE_ENGINE_H
 
 #include "common.h"
+#include "SL_Utils.h"
+#include "File_Utils.h"
+#include "GL_Utils.h"
+#include "Camera.h"
+#include "Player.h"
+
+
 
 // Saved State Data
 struct saved_state

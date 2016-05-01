@@ -10,6 +10,8 @@
 #define PI 3.14159265359f
 #define HALF_PI 1.57079632679f
 #define TWO_PI 6.28318530718f
+#define DEG_TO_RAD 0.01745329251f
+#define RAD_TO_DEG 57.2957795131f
 
 struct Vec3
 {
@@ -106,10 +108,38 @@ struct Vec3
 		return result;
 	}
 
+	//For these rotations, we first apply yaw, then pitch, then roll
+	//Given pitch yaw and roll as a Vec3, returns the forward vector (no roll)
+	/*static Vec3 ANGLES_TO_FORWARD(Vec3 angles)
+	{
+		Vec3 result;
+		float cos_pitch = cosf(angles.x);
+		result.x = cos_pitch * cosf(angles.y);
+		result.y = cos_pitch * sinf(angles.y);
+		result.z = sinf(angles.x);
+		return result;
+	}
+	//Given pitch yaw and roll as a Vec3, returns the right vector
+	static Vec3 ANGLES_TO_RIGHT(Vec3 angles)
+	{
+		Vec3 result;
+		result.x = cosf(angles.x) +
+		return result;
+	}
+
+	//Given pitch yaw and roll as a Vec3, returns the up vector
+	static Vec3 ANGLES_TO_UP(Vec3 angles)
+	{
+		Vec3 result;
+		result.x = cosf(angles.x) +
+		return result;
+	}*/ //wait a sec, I may be able to do this with quaternions instead
+
 	//TODO:
 	// cross product
 	// vec to angle
 	// angle to vec
+
 };
 
 //Quaternion struct

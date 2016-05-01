@@ -29,7 +29,7 @@ Engine::Engine(struct android_app* droid_app)
 
 	///... how do I want to hold game structs?
 	camera = (Camera*) malloc(sizeof(Camera));
-	camera->set_view_attributes(90.0f,ASPECT_16_9,0.1f,10f);
+	camera->set_view_attributes(90.0f,ASPECT_16_9,0.1f,10.0f);
 }
 
 void Engine::handle_cmd(struct android_app *app, int32_t cmd)
