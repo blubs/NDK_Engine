@@ -32,6 +32,13 @@ struct Vec3
 	~Vec3 ()
 	{};
 
+	Vec3& operator =(const Vec3& other)
+	{
+		x = other.x;
+		y = other.y;
+		z = other.z;
+	}
+
 	//Dot product
 	friend float operator* (const Vec3& l,const Vec3& r)
 	{
@@ -107,6 +114,11 @@ struct Vec3
 		result.z = 1.0f;
 		return result;
 	}
+	static Vec3 ZERO()
+	{
+		Vec3 result;
+		return result;
+	}
 
 	//For these rotations, we first apply yaw, then pitch, then roll
 	//Given pitch yaw and roll as a Vec3, returns the forward vector (no roll)
@@ -151,6 +163,7 @@ struct Quat
 	Quat()
 	{
 		w = 1.0f;
+		v.x = v.y = v.z = 0.0f;
 	}
 
 	//TODO: functions/operators for quaternions
@@ -162,10 +175,18 @@ struct Quat
 		float sin_half_theta = sinf(half_theta);
 		v = dir * sin_half_theta;
 	}
+	Quat& operator =(const Quat& other)
+	{
+		w = other.w;
+		v.x = other.v.x;
+		v.y = other.v.y;
+		v.z = other.v.z;
+	}
 	//Multiplies two quaternions
 	friend Quat& operator*(const Quat& l,const Quat& r)
 	{
 		Quat result;
+
 		result.w = l.w * r.w - l.v*r.v;
 		result.v = l.v * r.w + r.v * l.w + Vec3::cross(l.v,r.v);
 
@@ -321,17 +342,17 @@ struct Mat4
 		result.m[0] = result.m[5] = result.m[10] = result.m[15] = 1.0f;
 		return result;
 	}
-	//Static method that returns a translation transform matrix given points.
-	static Mat4 TRANSLATE(const float x,const float y,const float z)
+	//Static method that returns a translation transform matrix given point
+	static Mat4 TRANSLATE(const Vec3& pos)
 	{
 		Mat4 result = IDENTITY();
-		result.m[12] = x;
-		result.m[13] = y;
-		result.m[14] = z;
+		result.m[12] = pos.x;
+		result.m[13] = pos.y;
+		result.m[14] = pos.z;
 		return result;
 	}
 
-	//Static method that returns a scale transform matrix.
+	//Static method that returns a scale transform matrix
 	static Mat4 SCALE(const float x,const float y,const float z)
 	{
 		Mat4 result;
@@ -379,15 +400,15 @@ struct Mat4
 	{
 		Mat4 result;
 		result.m[0] = right.x;
-		result.m[1] = right.y;
-		result.m[2] = right.z;
+		result.m[4] = right.y;
+		result.m[8] = right.z;
 
-		result.m[4] = up.x;
+		result.m[1] = up.x;
 		result.m[5] = up.y;
-		result.m[6] = up.z;
+		result.m[9] = up.z;
 
-		result.m[8] = forward.x;
-		result.m[9] = forward.y;
+		result.m[2] = forward.x;
+		result.m[6] = forward.y;
 		result.m[10] = forward.z;
 
 		result.m[12] = pos.x;
@@ -401,7 +422,7 @@ struct Mat4
 	static Mat4 PROJECT(const float near,const float far,const float aspect,const float fov)
 	{
 		//Doing some precalculations
-		float top = near * tanf(HALF_PI * fov*0.5f);
+		/*float top = near * tanf(HALF_PI * fov*0.5f);
 		float bottom = -top;
 		float right = top * aspect;
 		float left = -right;
@@ -412,11 +433,44 @@ struct Mat4
 		float inv_far_minus_near = 1.0f/(far - near);
 		result.m[0] = 2 * near * inv_right_minus_left;
 		result.m[5] = 2 * near * inv_top_minus_bottom;
-		result.m[8] = (right + left) * inv_right_minus_left;
-		result.m[9] = (top + bottom) * inv_top_minus_bottom;
-		result.m[10] = -(far + near) * inv_far_minus_near;
+		result.m[8] = (right + left) * inv_right_minus_left;*/
+
+		//[ 0  4  8  12 ]
+		//[ 1  5  9  13 ]
+		//[ 2  6  10 14 ]
+		//[ 3  7  11 15 ]
+
+		//float top = near * tanf(HALF_PI * fov*0.5f);
+		//float bottom = -top;
+		//float right = top * aspect;
+		//float left = -right;
+
+		Mat4 result;
+		//float inv_top_minus_bottom = 1.0f/(top - bottom);
+		//float inv_right_minus_left = 1.0f/(right - left);
+		//float inv_far_minus_near = 1.0f/(far - near);
+
+		float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
+
+		result.m[0] = inv_tan_fov / aspect;
+		result.m[5] = inv_tan_fov;
+		result.m[10] = -(far + near) / (far - near);
 		result.m[11] = -1.0f;
-		result.m[14] = -2.0f * far * near * inv_far_minus_near;
+		result.m[14] = (-2.0f * far * near)/(far - near);
+
+
+		//Alternate setting for 0 5 and 8
+	//	float aspect_ratio = 9.0f/16.0f;
+	//	float h = 1/tanf(0.5f * fov);
+	//	float w = h * aspect_ratio;
+	//	result.m[0] = w;
+	//	result.m[5] = h;
+
+
+		//result.m[9] = (top + bottom) * inv_top_minus_bottom;
+		//result.m[10] = -(far + near) * inv_far_minus_near;
+		//result.m[11] = -1.0f;
+		//result.m[14] = -2.0f * far * near * inv_far_minus_near;
 
 		return result;
 	}

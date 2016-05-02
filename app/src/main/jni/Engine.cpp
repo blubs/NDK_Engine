@@ -29,7 +29,7 @@ Engine::Engine(struct android_app* droid_app)
 
 	///... how do I want to hold game structs?
 	camera = (Camera*) malloc(sizeof(Camera));
-	camera->set_view_attributes(90.0f,ASPECT_16_9,0.1f,10.0f);
+	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,0.01f,1000.0f);
 }
 
 void Engine::handle_cmd(struct android_app *app, int32_t cmd)
@@ -100,14 +100,37 @@ int32_t Engine::handle_input(struct android_app *app, AInputEvent *event)
 	Engine *eng = (Engine *) app->userData;
 	int type = AInputEvent_getType(event);
 
-
 	if(type == AINPUT_EVENT_TYPE_MOTION)
 	{
+		int32_t motion_action = AMotionEvent_getAction(event);
+		unsigned int motion_type = motion_action & AMOTION_EVENT_ACTION_MASK;
+		float x = 0;
+		float y = 0;
+		switch(motion_type)
+		{
+			case AMOTION_EVENT_ACTION_DOWN:
+				x = AMotionEvent_getX(event,0) /eng->width;
+				y = AMotionEvent_getY(event,0) /eng->height;//0 being pointer index
+				//LOGI("Amotion event action down: (%.4f,%.4f)\n",x,y);
+				break;
+			case AMOTION_EVENT_ACTION_UP:
+				x = AMotionEvent_getX(event,0) /eng->width;
+				y = AMotionEvent_getY(event,0) /eng->height;//0 being pointer index
+				//LOGI("Amotion event action up: (%.4f,%.4f)\n",x,y);
+				break;
+			case AMOTION_EVENT_ACTION_MOVE:
+				x = AMotionEvent_getX(event,0) /eng->width;
+				y = AMotionEvent_getY(event,0) /eng->height;//0 being pointer index
+				//LOGI("Amotion event action move: (%.4f,%.4f)\n",x,y);
+				break;
+			default:
+				break;
+		}
+
+
 		eng->animating = 1;
-		//eng->state->x = (int32_t)AMotionEvent_getX(event,0);
-		//eng->state->y = (int32_t)AMotionEvent_getY(event,0);
-		eng->state.x = (int32_t) AMotionEvent_getX(event, 0);
-		eng->state.y = (int32_t) AMotionEvent_getY(event, 0);
+		eng->state.x =  AMotionEvent_getX(event, 0) / eng->width;
+		eng->state.y =  AMotionEvent_getY(event, 0) / eng->height;
 		return 1;
 	}
 	return 0;
@@ -600,7 +623,7 @@ int Engine::init_gl()
 	shader_vert_pos_loc = glGetAttribLocation(gl_program, "vert_pos");
 	shader_uv_loc = glGetAttribLocation(gl_program, "src_tex_coord");
 	shader_tex_loc = glGetUniformLocation(gl_program, "tex");
-
+	shader_mvp_loc = glGetUniformLocation(gl_program,"mvp");
 	//==================================== Loading texture ===================
 	GLuint tex_id;
 	glGenTextures(1, &tex_id);
@@ -639,6 +662,7 @@ void Engine::term_gl()
 	shader_fill_color_loc = -1;
 	shader_uv_loc = -1;
 	shader_tex_loc = -1;
+	shader_mvp_loc = -1;
 	texture_id = 0;
 	test_frag_shader = 0;
 	test_vert_shader = 0;
@@ -697,11 +721,15 @@ void Engine::draw_frame()
 		return;
 	}
 
+	//Triangle is in the xy plane, facing the negative y direction
 	const float triangleVertices[] =
 	{
-		-0.5f, 0.5f, 0.0f,
+		-0.5f, 0.0f, 0.5f,
+		0.0f, 0.0f, -0.5f,
+		0.5f, 0.0f, 0.5f, //For triangle in 3 space
+		/*-0.5f, 0.5f, 0.0f,
 		0.0f, -0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,*/ //For triangle in 2 space
 	};
 	const float triangleUVs[] =
 	{
@@ -716,13 +744,39 @@ void Engine::draw_frame()
 		0.0, 0.0, 1.0, 1.0,
 	};
 
+	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
+	Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
+	Quat pitch(((state.y*2.0f)-1.0f) * HALF_PI*0.5f,(yaw*Vec3::RIGHT()));
 
+	Quat rot = pitch*yaw;
+
+	Mat4 model_rot = Mat4::ROTATE(rot);
+	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT()*0.3f);//considering position to be at point (0,1,0)
+
+	Mat4 model_transform = model_pos * model_rot;
+
+	camera->pos = Vec3::ZERO();
+	camera->angles = Vec3::ZERO();
+	camera->update_view_matrix();
+	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+	//Mat4 mvp = camera->view_m * model_transform;
+
+	//FIXME: projection matrix doesn't seem to work
+//	Mat4 mvp = camera->view_m * model_transform;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
 
 	//Filling the screen with a color
-	glClearColor(((float)state.x)/width, 0.0f/*state.angle*/, ((float)state.y)/height,1);
+	glClearColor(state.x, 0.0f/*state.angle*/, state.y,1);
 	//glClear(GL_COLOR_BUFFER_BIT);
+
+	glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+
+	Vec3 test_pt(triangleVertices[0],triangleVertices[1],triangleVertices[2]);
+	Vec3 res = mvp*test_pt;
+
+	LOGE("(%.2f, %.2f, %.2f) -> (%.2f, %.2f, %.2f)\n",test_pt.x,test_pt.y,test_pt.z,res.x,res.y,res.z);
+
 
 	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, triangleVertices);
 	glEnableVertexAttribArray(shader_vert_pos_loc);

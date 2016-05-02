@@ -18,8 +18,8 @@
 struct saved_state
 {
 	float angle = 0.0f;
-	int32_t x = 0;
-	int32_t y = 0;
+	float x = 0.0f;
+	float y = 0.0f;
 };
 
 class Engine
@@ -90,6 +90,7 @@ public:
 		GLint shader_fill_color_loc = -1;
 		GLint shader_tex_loc = -1;
 		GLint shader_uv_loc = -1;
+		GLint shader_mvp_loc = -1;
 	GLuint gl_program = 0;
 	GLuint test_tex = 0;
 	GLuint texture_id = 0;

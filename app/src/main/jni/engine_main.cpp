@@ -20,10 +20,10 @@ void android_main(struct android_app *app)
 	LOGI("LIFECYCLE: ANDROID_MAIN RAN\n");
 #endif
 
-	const char* data = File_Utils::read_savedata("test.dat");
-	LOGI("Read file: %s.\n",data);
-	free((char*)data);
-	File_Utils::write_savedata("test.dat");
+	//const char* data = File_Utils::read_savedata("test.dat");
+	//LOGI("Read file: %s.\n",data);
+	//free((char*)data);
+	//File_Utils::write_savedata("test.dat");
 
 	//Test audio file loading
 	const Asset_File* test_sound_file = File_Utils::load_asset("raw_1000_10_5_sec_sweep_stereo.raw");
@@ -88,6 +88,11 @@ void android_main(struct android_app *app)
 				engine.state.angle = 0;
 			}
 			//Drawing throttled by screen update rate, no timing code needed here
+			static long frame = 0;
+			if(frame % 60 == 0)
+				LOGE("60 frames passed\n");
+			//LOGE("Frame: %ld, frame mod 60 = %ld\n",frame,(frame % 60));
+			frame++;
 			engine.draw_frame();
 		}
 	}
