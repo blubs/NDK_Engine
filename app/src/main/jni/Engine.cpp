@@ -751,14 +751,16 @@ void Engine::draw_frame()
 	Quat rot = pitch*yaw;
 
 	Mat4 model_rot = Mat4::ROTATE(rot);
-	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT()*0.3f);//considering position to be at point (0,1,0)
+	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT() * 0.3f);//considering position to be at point (0,0.3,0)
 
 	Mat4 model_transform = model_pos * model_rot;
 
-	camera->pos = Vec3::ZERO();
+	camera->pos = Vec3::ZERO();//(Vec3::UP() * -1.0f) + (Vec3::RIGHT() * 0.5f);
+	//Currently, offsetting it by the z axis moves it up, (y axis should move it up)
 	camera->angles = Vec3::ZERO();
 	camera->update_view_matrix();
-	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+	Mat4 mvp = camera->view_m * model_transform;
 	//Mat4 mvp = camera->view_m * model_transform;
 
 	//FIXME: projection matrix doesn't seem to work

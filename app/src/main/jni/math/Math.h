@@ -400,21 +400,38 @@ struct Mat4
 	{
 		Mat4 result;
 		result.m[0] = right.x;
+		result.m[1] = right.y;
+		result.m[2] = right.z;
+
+		result.m[4] = forward.x;
+		result.m[5] = forward.y;
+		result.m[6] = forward.z;
+
+		result.m[8] = up.x;
+		result.m[9] = up.y;
+		result.m[10] = up.z;
+
+		result.m[12] = -pos.x;
+		result.m[13] = -pos.y;
+		result.m[14] = -pos.z;
+
+		result.m[15] = 1.0f;
+		/*result.m[0] = right.x;
 		result.m[4] = right.y;
 		result.m[8] = right.z;
 
-		result.m[1] = up.x;
-		result.m[5] = up.y;
-		result.m[9] = up.z;
+		result.m[1] = forward.x;
+		result.m[5] = forward.y;
+		result.m[9] = forward.z;
 
-		result.m[2] = forward.x;
-		result.m[6] = forward.y;
-		result.m[10] = forward.z;
+		result.m[2] = up.x;
+		result.m[6] = up.y;
+		result.m[10] = up.z;
 
-		result.m[12] = pos.x;
-		result.m[13] = pos.y;
-		result.m[14] = pos.z;
-		result.m[15] = 1.0f;
+		result.m[3] = -pos.x;
+		result.m[7] = -pos.y;
+		result.m[11] = -pos.z;
+		result.m[15] = 1.0f;*/
 		return result;
 	}
 
