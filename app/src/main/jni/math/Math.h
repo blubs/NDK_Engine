@@ -183,7 +183,7 @@ struct Quat
 		v.z = other.v.z;
 	}
 	//Multiplies two quaternions
-	friend Quat& operator*(const Quat& l,const Quat& r)
+	friend Quat operator*(const Quat& l,const Quat& r)
 	{
 		Quat result;
 
@@ -193,7 +193,7 @@ struct Quat
 		return result;
 	}
 	//Returns the inverted quaternion
-	Quat& inverted() const
+	Quat inverted() const
 	{
 		Quat result;
 		result.w = w;
@@ -261,7 +261,7 @@ struct Mat4
 		m[15] = a15;
 	}
 
-	Mat4& operator =(const Mat4& other)
+	Mat4 operator =(const Mat4& other)
 	{
 		m[0] = other.m[0];
 		m[1] = other.m[1];
@@ -282,7 +282,7 @@ struct Mat4
 		return *this;
 	}
 
-	friend Mat4& operator*(const Mat4& l, const Mat4& r)
+	friend Mat4 operator*(const Mat4& l, const Mat4& r)
 	{
 		Mat4 result;
 
@@ -312,7 +312,7 @@ struct Mat4
 	//Left multiplying Vec3
 	//Treating vec3 as row vector, treating 4th component of vector (w) as 1
 	//if w = 1, full transformation, if w = 0, only rotate the point
-	friend Vec3& operator*(const Vec3& l,const Mat4& r)
+	friend Vec3 operator*(const Vec3& l,const Mat4& r)
 	{
 		Vec3 result;
 
@@ -325,7 +325,7 @@ struct Mat4
 	//Right multiplying Vec3
 	//Treating vec3 as column vector, treating 4th component of vector (w) as 1
 	//if w = 1, full transformation, if w = 0, only rotate the point
-	friend Vec3& operator*(const Mat4& l,const Vec3& r)
+	friend Vec3 operator*(const Mat4& l,const Vec3& r)
 	{
 		Vec3 result;
 
@@ -411,9 +411,9 @@ struct Mat4
 		result.m[9] = up.y;
 		result.m[10] = up.z;
 
-		result.m[12] = -pos.x;
-		result.m[13] = -pos.y;
-		result.m[14] = -pos.z;
+		result.m[12] = pos.x;
+		result.m[13] = pos.y;
+		result.m[14] = pos.z;
 
 		result.m[15] = 1.0f;
 		/*result.m[0] = right.x;
@@ -470,11 +470,10 @@ struct Mat4
 		float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
 
 		result.m[0] = inv_tan_fov / aspect;
-		result.m[5] = inv_tan_fov;
-		result.m[10] = -(far + near) / (far - near);
-		result.m[11] = -1.0f;
-		result.m[14] = (-2.0f * far * near)/(far - near);
-
+		result.m[9/*5*/] = inv_tan_fov;
+		result.m[6/*10*/] = (far + near) / (near - far);
+		result.m[7/*11*/] = -1.0f;
+		result.m[14] = (2.0f * far * near)/(near - far);
 
 		//Alternate setting for 0 5 and 8
 	//	float aspect_ratio = 9.0f/16.0f;

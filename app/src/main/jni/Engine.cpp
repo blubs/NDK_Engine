@@ -29,7 +29,7 @@ Engine::Engine(struct android_app* droid_app)
 
 	///... how do I want to hold game structs?
 	camera = (Camera*) malloc(sizeof(Camera));
-	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,0.01f,1000.0f);
+	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,-0.01f,-10.0f);
 }
 
 void Engine::handle_cmd(struct android_app *app, int32_t cmd)
@@ -751,7 +751,7 @@ void Engine::draw_frame()
 	Quat rot = pitch*yaw;
 
 	Mat4 model_rot = Mat4::ROTATE(rot);
-	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT() * 0.3f);//considering position to be at point (0,0.3,0)
+	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT() * 1.0f);//considering position to be at point (0,0.3,0)
 
 	Mat4 model_transform = model_pos * model_rot;
 
@@ -760,7 +760,7 @@ void Engine::draw_frame()
 	camera->angles = Vec3::ZERO();
 	camera->update_view_matrix();
 	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-	Mat4 mvp = camera->view_m * model_transform;
+	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 	//Mat4 mvp = camera->view_m * model_transform;
 
 	//FIXME: projection matrix doesn't seem to work
@@ -774,10 +774,16 @@ void Engine::draw_frame()
 
 	glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
 
-	Vec3 test_pt(triangleVertices[0],triangleVertices[1],triangleVertices[2]);
-	Vec3 res = mvp*test_pt;
+	Vec3 test_pt1(triangleVertices[0],triangleVertices[1],triangleVertices[2]);
+	Vec3 test_pt = camera->view_m * model_transform * test_pt1;
+	Vec3 res = camera->projection_m * test_pt;
 
 	LOGE("(%.2f, %.2f, %.2f) -> (%.2f, %.2f, %.2f)\n",test_pt.x,test_pt.y,test_pt.z,res.x,res.y,res.z);
+
+	Vec3 a(1.0f,2.0f,3.0f);
+	Vec3 b = camera->view_m * model_transform * a;
+	LOGE("a=(%.2f,%.2f,%.2f),  b=(%.2f,%.2f,%.2f) \n",a.x,a.y,a.z,b.x,b.y,b.z);
+
 
 
 	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, triangleVertices);
