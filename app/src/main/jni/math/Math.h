@@ -399,39 +399,23 @@ struct Mat4
 	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
 	{
 		Mat4 result;
-		result.m[0] = right.x;
-		result.m[1] = right.y;
-		result.m[2] = right.z;
+		result.m[0] = -right.x;
+		result.m[1] = -right.y;
+		result.m[2] = -right.z;
 
-		result.m[4] = forward.x;
-		result.m[5] = forward.y;
-		result.m[6] = forward.z;
+		result.m[4] = up.x;
+		result.m[5] = up.z;
+		result.m[6] = up.y;
 
-		result.m[8] = up.x;
-		result.m[9] = up.y;
-		result.m[10] = up.z;
+		result.m[8] = -forward.x;
+		result.m[9] = -forward.z;
+		result.m[10] = -forward.y;
 
 		result.m[12] = pos.x;
 		result.m[13] = pos.y;
 		result.m[14] = pos.z;
 
 		result.m[15] = 1.0f;
-		/*result.m[0] = right.x;
-		result.m[4] = right.y;
-		result.m[8] = right.z;
-
-		result.m[1] = forward.x;
-		result.m[5] = forward.y;
-		result.m[9] = forward.z;
-
-		result.m[2] = up.x;
-		result.m[6] = up.y;
-		result.m[10] = up.z;
-
-		result.m[3] = -pos.x;
-		result.m[7] = -pos.y;
-		result.m[11] = -pos.z;
-		result.m[15] = 1.0f;*/
 		return result;
 	}
 
@@ -470,9 +454,9 @@ struct Mat4
 		float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
 
 		result.m[0] = inv_tan_fov / aspect;
-		result.m[9/*5*/] = inv_tan_fov;
-		result.m[6/*10*/] = (far + near) / (near - far);
-		result.m[7/*11*/] = -1.0f;
+		result.m[9/*9*//*5*/] = inv_tan_fov;
+		result.m[6/*6*//*10*/] = (far + near) / (near - far);
+		result.m[7/*7*//*11*/] = -1.0f;
 		result.m[14] = (2.0f * far * near)/(near - far);
 
 		//Alternate setting for 0 5 and 8

@@ -751,13 +751,18 @@ void Engine::draw_frame()
 	Quat rot = pitch*yaw;
 
 	Mat4 model_rot = Mat4::ROTATE(rot);
-	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT() * 1.0f);//considering position to be at point (0,0.3,0)
+	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT() * 4.0f);//considering position to be at point (0,0.3,0)
 
-	Mat4 model_transform = model_pos * model_rot;
+	Mat4 model_transform = model_pos /** model_rot*/; //don't rotate for now
 
 	camera->pos = Vec3::ZERO();//(Vec3::UP() * -1.0f) + (Vec3::RIGHT() * 0.5f);
+	camera->pos.y = 3.0f * state.y;
+	camera->pos.x = 5.0f * ((state.x * 2.0f) - 1.0f);
 	//Currently, offsetting it by the z axis moves it up, (y axis should move it up)
 	camera->angles = Vec3::ZERO();
+	float yaw_angle = -atanf(camera->pos.x / (4.0f - camera->pos.y));
+	LOGE("yaw angle = %.2f\n",yaw_angle);
+	camera->angles.y = yaw_angle;
 	camera->update_view_matrix();
 	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
