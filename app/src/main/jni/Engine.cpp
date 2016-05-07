@@ -721,6 +721,10 @@ void Engine::draw_frame()
 		return;
 	}
 
+	//Filling the screen with a color
+	glClearColor(state.x, 0.0f/*state.angle*/, state.y,1);
+	//glClear(GL_COLOR_BUFFER_BIT);
+
 	//Triangle is in the xy plane, facing the negative y direction
 	const float triangleVertices[] =
 	{
@@ -751,12 +755,9 @@ void Engine::draw_frame()
 	Quat rot = pitch*yaw;
 
 	Mat4 model_rot = Mat4::ROTATE(rot);
-	Mat4 model_pos = Mat4::TRANSLATE(Vec3::FRONT() * 4.0f);//considering position to be at point (0,0.3,0)
-
-	Mat4 model_transform = model_pos /** model_rot*/; //don't rotate for now
 
 	camera->pos = Vec3::ZERO();//(Vec3::UP() * -1.0f) + (Vec3::RIGHT() * 0.5f);
-	camera->pos.y = 3.0f * state.y;
+	camera->pos.y = 20.0f * state.y;
 	camera->pos.x = 5.0f * ((state.x * 2.0f) - 1.0f);
 	//Currently, offsetting it by the z axis moves it up, (y axis should move it up)
 	camera->angles = Vec3::ZERO();
@@ -765,35 +766,15 @@ void Engine::draw_frame()
 	camera->angles.y = yaw_angle;
 	camera->update_view_matrix();
 	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-	//Mat4 mvp = camera->view_m * model_transform;
 
-	//FIXME: projection matrix doesn't seem to work
-//	Mat4 mvp = camera->view_m * model_transform;
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
 
-	//Filling the screen with a color
-	glClearColor(state.x, 0.0f/*state.angle*/, state.y,1);
-	//glClear(GL_COLOR_BUFFER_BIT);
-
-	glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
 
 	Vec3 test_pt1(triangleVertices[0],triangleVertices[1],triangleVertices[2]);
-	Vec3 test_pt = camera->view_m * model_transform * test_pt1;
-	Vec3 res = camera->projection_m * test_pt;
-
-	LOGE("(%.2f, %.2f, %.2f) -> (%.2f, %.2f, %.2f)\n",test_pt.x,test_pt.y,test_pt.z,res.x,res.y,res.z);
-
-	Vec3 a(1.0f,2.0f,3.0f);
-	Vec3 b = camera->view_m * model_transform * a;
-	LOGE("a=(%.2f,%.2f,%.2f),  b=(%.2f,%.2f,%.2f) \n",a.x,a.y,a.z,b.x,b.y,b.z);
-
-
-
 	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, triangleVertices);
 	glEnableVertexAttribArray(shader_vert_pos_loc);
-
 	//Pass the fill color info
 	if(shader_fill_color_loc != -1)
 	{
@@ -813,7 +794,23 @@ void Engine::draw_frame()
 	else
 		LOGE("texture not set, abort binding tex.\n");
 
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	for(int i = 0; i < 10; i++)
+	{
+		for(int j = 0; j < 10; j++)
+		{
+			for(int k = 0; k < 10; k++)
+			{
+				//Drawing of a single triangle
+				Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
+				Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
+				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate for now
+				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+				glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+			}
+		}
+	}
+
 
 	eglSwapBuffers(egl_display, egl_surface);
 }
