@@ -147,6 +147,7 @@ int Engine::init_display()
 		   EGL_BLUE_SIZE, 8,
 		   EGL_GREEN_SIZE, 8,
 		   EGL_RED_SIZE, 8,
+		   EGL_DEPTH_SIZE, 24,
 		   EGL_NONE
 	};
 	EGLint w,h,num_configs;
@@ -161,7 +162,6 @@ int Engine::init_display()
 		LOGW("eglGetDisplay returned NULL");
 		return -1;
 	}*/
-
 	eglInitialize(display,0,0);
 
 	//Choosing first config that matches our criteria
@@ -747,7 +747,6 @@ void Engine::draw_frame()
 		0.0, 1.0, 0.0, 1.0,
 		0.0, 0.0, 1.0, 1.0,
 	};
-
 	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
 	Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
 	Quat pitch(((state.y*2.0f)-1.0f) * HALF_PI*0.5f,(yaw*Vec3::RIGHT()));
@@ -758,12 +757,16 @@ void Engine::draw_frame()
 
 	camera->pos = Vec3::ZERO();//(Vec3::UP() * -1.0f) + (Vec3::RIGHT() * 0.5f);
 	camera->pos.y = 20.0f * state.y;
-	camera->pos.x = 5.0f * ((state.x * 2.0f) - 1.0f);
+	//camera->pos.x = 5.0f * ((state.x * 2.0f) - 1.0f);
 	//Currently, offsetting it by the z axis moves it up, (y axis should move it up)
 	camera->angles = Vec3::ZERO();
-	float yaw_angle = -atanf(camera->pos.x / (4.0f - camera->pos.y));
+	//float yaw_angle = -atanf(camera->pos.x / (21.0 - camera->pos.y));
+	float yaw_angle = ((state.x * 2.0f) - 1.0f) * HALF_PI*0.5f;
+	LOGE("Camera pos = (%.2f,%.2f,%.2f)\n",camera->pos.x,camera->pos.y,camera->pos.z);
 	LOGE("yaw angle = %.2f\n",yaw_angle);
+	camera->angles.x = 0.0f;
 	camera->angles.y = yaw_angle;
+	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
 	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 
