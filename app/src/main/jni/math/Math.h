@@ -396,9 +396,10 @@ struct Mat4
 	// rotation matrix
 
 	// Constructs a view matrix from camera direction vectors and position vector
-	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
+	//static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
+	static Mat4 VIEW(const Vec3 angles, const Vec3 pos)
 	{
-		Mat4 result;
+		/*Mat4 result;
 		result.m[0] = -right.x;
 		result.m[1] = -right.y;
 		result.m[2] = -right.z;
@@ -415,7 +416,64 @@ struct Mat4
 		result.m[13] = pos.y;
 		result.m[14] = pos.z;
 
-		result.m[15] = 1.0f;
+		result.m[15] = 1.0f;*/
+
+		//[ 0  4  8  12 ]
+		//[ 1  5  9  13 ]
+		//[ 2  6  10 14 ]
+		//[ 3  7  11 15 ]
+
+		//Mat4 result;
+		/*result.m[0] = right.x;
+		result.m[4] = right.y;
+		result.m[8] = right.z;
+
+		result.m[2] = forward.x;
+		result.m[6] = forward.z;
+		result.m[10] = forward.y;
+
+		result.m[1] = up.x;
+		result.m[5] = up.z;
+		result.m[9] = up.y;
+
+		Vec3 inv_pos = -1.0f * pos;
+		//Dot products
+		result.m[12] = right * inv_pos;
+		result.m[13] = up * inv_pos;
+		result.m[14] = forward * inv_pos;
+
+		result.m[15] = 1.0f;*/
+		//Trying Quake's method of calculating the view matrix
+		Mat4 result = Mat4::IDENTITY();
+
+		//Placing the z-axis upwards
+		Quat z_up1(-HALF_PI,Vec3::RIGHT());
+		result = result * Mat4::ROTATE(z_up1);
+		Quat z_up2(HALF_PI,Vec3::UP());
+		result = result * Mat4::ROTATE(z_up1);
+
+		float pitch, yaw, roll;
+
+		pitch = angles.x;
+		yaw = angles.y;
+		roll = angles.z;
+
+		//Handling rotation of camera
+		//Undoing roll
+		Quat undo_roll(-roll,Vec3::FRONT());
+		result = result * Mat4::ROTATE(undo_roll);
+		//Undoing pitch
+		Quat undo_pitch(-pitch,Vec3::RIGHT());
+		result = result * Mat4::ROTATE(undo_pitch);
+		//Undoing yaw
+		Quat undo_yaw(-yaw,Vec3::UP());
+		result = result * Mat4::ROTATE(undo_yaw);
+
+		//Undoing position
+		//FIXME: quake puts negative signs on all of these?
+		Vec3 undo_pos(-pos.x,-pos.y,-pos.z);
+		result = result * Mat4::TRANSLATE(undo_pos);
+
 		return result;
 	}
 

@@ -2,7 +2,7 @@
 // Created by F1 on 3/23/2016.
 //
 
-#include "Engine.h" #include "SL_Utils.h"
+#include "Engine.h"
 
 
 Engine::Engine(struct android_app* droid_app)
@@ -571,7 +571,7 @@ int Engine::init_gl()
 	//Init gl state
 	//At this stage, all of the shaders have already been loaded.
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	//glDisable(GL_DEPTH_TEST);
 
 
@@ -748,28 +748,31 @@ void Engine::draw_frame()
 		0.0, 0.0, 1.0, 1.0,
 	};
 	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
-	Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
-	Quat pitch(((state.y*2.0f)-1.0f) * HALF_PI*0.5f,(yaw*Vec3::RIGHT()));
+	//Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
+	//Quat pitch(((state.y*2.0f)-1.0f) * HALF_PI*0.5f,(yaw*Vec3::RIGHT()));
 
-	Quat rot = pitch*yaw;
+	//Quat rot = pitch*yaw;
 
-	Mat4 model_rot = Mat4::ROTATE(rot);
+	//Mat4 model_rot = Mat4::ROTATE(rot);
 
 	camera->pos = Vec3::ZERO();//(Vec3::UP() * -1.0f) + (Vec3::RIGHT() * 0.5f);
-	camera->pos.y = 20.0f * state.y;
+	camera->pos.y = camera->pos.x = camera->pos.z = 20.0f * state.y;//for moving forward / backward
+	//camera->pos.y = 6.0f;//yields good results when drawing axes
 	//camera->pos.x = 5.0f * ((state.x * 2.0f) - 1.0f);
 	//Currently, offsetting it by the z axis moves it up, (y axis should move it up)
 	camera->angles = Vec3::ZERO();
 	//float yaw_angle = -atanf(camera->pos.x / (21.0 - camera->pos.y));
-	float yaw_angle = ((state.x * 2.0f) - 1.0f) * HALF_PI*0.5f;
+	//float yaw_angle = ((state.x * 2.0f) - 1.0f) * HALF_PI*0.5f;
 	LOGE("Camera pos = (%.2f,%.2f,%.2f)\n",camera->pos.x,camera->pos.y,camera->pos.z);
-	LOGE("yaw angle = %.2f\n",yaw_angle);
+	//LOGE("yaw angle = %.2f\n",yaw_angle * RAD_TO_DEG);
 	camera->angles.x = 0.0f;
-	camera->angles.y = yaw_angle;
+	camera->angles.y = ((state.x) * TWO_PI);
 	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
-	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 
+	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+	LOGE("Camera view matrix: ");
+	print_mat4(camera->view_m);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
@@ -797,22 +800,74 @@ void Engine::draw_frame()
 	else
 		LOGE("texture not set, abort binding tex.\n");
 
-	for(int i = 0; i < 10; i++)
+	//Rendering a single model
+	//int i = 5;
+	int j = 5;
+	int k = 5;
+	//for(int i = 0; i < 10; i++)
 	{
-		for(int j = 0; j < 10; j++)
+	//	for(int j = 0; j < 10; j++)
 		{
-			for(int k = 0; k < 10; k++)
+	//		for(int k = 0; k < 10; k++)
 			{
 				//Drawing of a single triangle
-				Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
-				Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
-				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate for now
-				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-				glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
+				//Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
+	//			Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
+
+	//			Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
+	//			Mat4 model_transform = model_pos /** model_rot*/; //don't rotate for now
+	//			Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+	//			glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+	//			glDrawArrays(GL_TRIANGLES, 0, 3);
 			}
 		}
 	}
+
+	//Drawing axis of triangles
+	//Currently tris are facing y axis
+	//Drawing the X axis
+	for(int i = 0; i < 20; i++)
+	{
+		//Rotating 90 degrees to face x axis
+		Quat rot(HALF_PI,Vec3::UP());
+		Mat4 model_rot = Mat4::ROTATE(rot);
+
+		//Drawing of a single triangle
+		Vec3 pos(2.0f*i, 0.0f, 0.0f);
+		Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
+		Mat4 model_transform = model_pos * model_rot;
+		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
+		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+	//Drawing the y axis
+	for(int i = 0; i < 20; i++)
+	{
+		//No rotation, already facing y axis
+		//Drawing of a single triangle
+		Vec3 pos(0.0f, 2.0f*i, 0.0f);
+		Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
+		Mat4 model_transform = model_pos;
+		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
+		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+	//Drawing the Z axis
+	for(int i = 0; i < 20; i++)
+	{
+		//Rotating 90 degrees to face x axis
+		Quat rot(HALF_PI,Vec3::RIGHT());
+		Mat4 model_rot = Mat4::ROTATE(rot);
+
+		//Drawing of a single triangle
+		Vec3 pos(0.0f, 0.0f, 2.0f*i);
+		Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
+		Mat4 model_transform = model_pos * model_rot;
+		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
+		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
 
 
 	eglSwapBuffers(egl_display, egl_surface);

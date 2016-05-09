@@ -17,7 +17,7 @@ public:
 
 
 	Vec3 pos;
-	//Pitch, roll, yaw
+	//Pitch, yaw, roll
 	Vec3 angles;
 
 	Vec3 up;
@@ -45,7 +45,7 @@ public:
 	void update_view_matrix()
 	{
 		//Rotating angles.z about UP vector for yaw
-		Quat yaw(angles.z, Vec3::UP());
+		/*Quat yaw(angles.z, Vec3::UP());
 		//Rotating angles.x about RIGHT vector for pitch
 		Quat pitch(angles.x, yaw*Vec3::RIGHT());
 
@@ -59,7 +59,10 @@ public:
 		right = rot * Vec3::RIGHT();
 		//Vec3 up = result * Vec3::UP(); // has the same result as line below
 		up = Vec3::cross(right,forward);
-		view_m = Mat4::VIEW(right,up,forward,pos);
+		//Previously I needed this... BUT
+		//view_m = Mat4::VIEW(right,up,forward,pos);*/
+		//going to test this
+		view_m = Mat4::VIEW(angles,pos);
 	}
 };
 
