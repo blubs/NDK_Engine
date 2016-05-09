@@ -1,0 +1,114 @@
+//okay, so I need to design the architecture of this engine
+//This text file will be my playground, I will decide on pseudo structs (really actual structs with some preliminary variables)
+//and I will play with connecting these structs and linking them together, to see what issues arise and need to be fixed.
+
+//The super class that holds EVERYTHING
+class Engine
+{
+	Camera* camera;
+	Player* player;
+	//Building array
+	Building* buildings;
+}
+
+//I need 3 layers of things to design
+//GameObjects / Entities
+//Transform / handling the parenting of objects
+//Skeletons and animations
+class Camera
+{
+}
+class Player
+{
+	Player_Model* player_model;
+}
+class Building
+{
+	//Array of exterior window models
+	Model* exterior_models
+}
+class Floor
+{
+	//Array of floor models
+	Model* floor_models
+}
+
+class Model
+{
+	//Whether the static animation-less model format, or the skeleton-rigged model type (need names for these types)
+	int type;
+	//then data (doesn't matter how we segment this, because reading it will be unique based on type)
+	char* data;
+}
+
+class Player_Model
+{
+	//Array of models
+	Model* models;
+	//each model has to work with the same player skeleton
+	Bone* root;
+}
+
+class Transform
+{
+	Transform* parent_transform;
+	Transform* global_transform;
+	Mat4 transform;
+}
+class Bone_Transform extends Transform
+{
+	
+}
+
+class Bone
+{
+	//up to 6 children
+	Bone* child0,child1, child2, child3, child4, child5;
+	Transform* transform;
+}
+
+//Skeleton is an array of transform matrices, we point to each frames worth of arrays.
+
+//============================================================================================================================
+//						Bones
+I want each frame to be stored as an array of matrices, which correspond to bones by index in the array.
+	such that, to reference a frame, I merely have to reference the frame matrix array, thereby making it so each bone can merely index to the array to obtain its (GLOBAL) transform matrix 
+I need to store the structure of bones as a linked list that that objects can link to....
+MAYBE
+class Bone_Transform extends Transform
+{
+	//includes a reference to a skeleton
+}
+
+class Armature_Rig //or Skeleton, or Bone_Rig
+{
+	//holds all animations for bone
+	//holds the structure of all bones (do we need this?)
+	void play_animation(int i)
+	{
+		//in a switch-case statement, jump to whichever animation and start playing it.
+	}
+	
+	//in update function, how do we handle this?
+	//how do we want to use and update animations?
+	
+	
+	I want to call a Armature play_anim function. With a starting frame, a frame rate, /* maybe an end frame */, a wrapping mode (for whatever function is currently playing), & fade time, 
+		, a end mode (loop, stop on last frame, or play another anim on last frame), 
+}
+class Animation
+{
+	char* name; //the name of the animation (I doubt we'll actually need it, just for debug purposes)
+	int length;//number of frames in animation
+	char* frames;
+	//array of animation frames
+	Animation_Frame* frame;
+}
+
+class Animation_Frame
+{
+	//array of matrices (one pertaining to each bone)
+	//	these matrices are contatinated, so that each transformation is already in model space (not local bone space)
+	Mat4* transforms;
+}
+
