@@ -29,6 +29,13 @@ struct Vec3
 		z = c;
 	}
 
+	Vec3 (const Vec3& other)
+	{
+		x = other.x;
+		y = other.y;
+		z = other.z;
+	}
+
 	~Vec3 ()
 	{};
 
@@ -84,9 +91,19 @@ struct Vec3
 		return x*x + y*y + z*z;
 	}
 
-	Vec3 normalize() const
+	//Returns a normalized version of this vector
+	Vec3 normalized() const
 	{
-		return *this/len();
+		Vec3 res(*this);
+		return res/len();
+	}
+	//Actually normalizes this vector
+	void normalize()
+	{
+		float inv_l = 1.0f/len();
+		x *= inv_l;
+		y *= inv_l;
+		z *= inv_l;
 	}
 
 	static Vec3 cross(const Vec3& a,const Vec3& b)
@@ -166,6 +183,12 @@ struct Quat
 		v.x = v.y = v.z = 0.0f;
 	}
 
+	Quat (const Quat& other)
+	{
+		v = other.v;
+		w = other.w;
+	}
+
 	//TODO: functions/operators for quaternions
 	//Creates a quaternion from direction and angle about the direction
 	Quat(const float theta,const Vec3& dir)
@@ -208,6 +231,35 @@ struct Quat
 		Vec3 vXr = Vec3::cross(l.v,r);
 		return r + vXr*(2.0f*l.w) + Vec3::cross(l.v,vXr)*2.0f;
 	}
+
+	//Returns a normalized version of this quaternion
+	Quat normalized() const
+	{
+		Quat res(*this);
+		float inv_mag = 1.0f/magnitude();
+		res.v = res.v / inv_mag;
+		res.w = res.w / inv_mag;
+		return res;
+	}
+	//Actually normalizes this quaternion
+	void normalize()
+	{
+		float inv_mag = 1.0f/magnitude();
+		v.x *= inv_mag;
+		v.y *= inv_mag;
+		v.x *= inv_mag;
+		w *= inv_mag;
+	}
+	float magnitude() const
+	{
+		return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z + w*w);
+	}
+	float magnitude_squared() const
+	{
+		return v.x*v.x + v.y*v.y + v.z*v.z + w*w;
+	}
+
+
 
 	//The following is pseudo code for SLERPING quaternions,
 	// 	implementation will be unclear until we figure out how we are going to call it
@@ -396,9 +448,69 @@ struct Mat4
 	// rotation matrix
 
 	// Constructs a view matrix from camera direction vectors and position vector
-	//static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
-	static Mat4 VIEW(const Vec3 angles, const Vec3 pos)
+	//static Mat4 VIEW(const Vec3 angles, const Vec3 pos)
+	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
 	{
+		//Jorge Rodriguez method of calculating matrix:
+
+		Mat4 R;
+		R.m[0] = right.x;
+		R.m[1] = right.y;
+		R.m[2] = right.z;
+		R.m[4] = up.x;
+		R.m[5] = up.y;
+		R.m[6] = up.z;
+
+		R.m[8] = -forward.x;
+		R.m[9] = -forward.y;
+		R.m[10] = -forward.z;
+
+		LOGE("Constructing View Matrix\n");
+		LOGE("Right: (%.2f,%.2f,%.2f\n",right.x,right.y,right.z);
+		LOGE("Forward: (%.2f,%.2f,%.2f\n",forward.x,forward.y,forward.z);
+		LOGE("Up: (%.2f,%.2f,%.2f\n",up.x,up.y,up.z);
+
+		LOGE("Position: (%.2f,%.2f,%.2f\n",pos.x,pos.y,pos.z);
+
+		Mat4 T = Mat4::TRANSLATE(pos);
+
+		//Method for inverting a translation / rotation matrix
+		Mat4 a = T*R;
+
+		//Transposing the upper left 3x3 of a
+		Mat4 b = Mat4::IDENTITY();
+
+
+		//[ 0  4  8  12 ]
+		//[ 1  5  9  13 ]
+		//[ 2  6  10 14 ]
+		//[ 3  7  11 15 ]
+
+		b.m[0] = a.m[0];
+		b.m[1] = a.m[4];
+		b.m[2] = a.m[8];
+
+		b.m[4] = a.m[1];
+		b.m[5] = a.m[5];
+		b.m[6] = a.m[9];
+
+		b.m[8] = a.m[2];
+		b.m[9] = a.m[6];
+		b.m[10] = a.m[10];
+
+		//The translation of the new matrix
+		Vec3 trans(a.m[12],a.m[13],a.m[14]);
+		Vec3 transB = (b * trans) * -1.0f;
+
+		b.m[12] = transB.x;
+		b.m[13] = transB.y;
+		b.m[14] = transB.z;
+
+		//FIXME, 12,13,14 are all 0 in built view matrix
+
+		return b;
+
+
 		/*Mat4 result;
 		result.m[0] = -right.x;
 		result.m[1] = -right.y;
@@ -444,13 +556,14 @@ struct Mat4
 
 		result.m[15] = 1.0f;*/
 		//Trying Quake's method of calculating the view matrix
+		/*
 		Mat4 result = Mat4::IDENTITY();
 
 		//Placing the z-axis upwards
 		Quat z_up1(-HALF_PI,Vec3::RIGHT());
 		result = result * Mat4::ROTATE(z_up1);
 		Quat z_up2(HALF_PI,Vec3::UP());
-		result = result * Mat4::ROTATE(z_up1);
+		result = result * Mat4::ROTATE(z_up2);
 
 		float pitch, yaw, roll;
 
@@ -473,17 +586,17 @@ struct Mat4
 		//FIXME: quake puts negative signs on all of these?
 		Vec3 undo_pos(-pos.x,-pos.y,-pos.z);
 		result = result * Mat4::TRANSLATE(undo_pos);
-
-		return result;
+		*/
+		//return result;
 	}
 
 	// Constructs a projection matrix given near plane, far plane, aspect ratio, and fov
 	static Mat4 PROJECT(const float near,const float far,const float aspect,const float fov)
 	{
 		//Doing some precalculations
-		/*float top = near * tanf(HALF_PI * fov*0.5f);
+		/*float top = near * tanf(fov*0.5f);
 		float bottom = -top;
-		float right = top * aspect;
+		float right = top * 1.0f;
 		float left = -right;
 
 		Mat4 result;
@@ -492,43 +605,61 @@ struct Mat4
 		float inv_far_minus_near = 1.0f/(far - near);
 		result.m[0] = 2 * near * inv_right_minus_left;
 		result.m[5] = 2 * near * inv_top_minus_bottom;
-		result.m[8] = (right + left) * inv_right_minus_left;*/
+		result.m[8] = (right + left) * inv_right_minus_left;
+		result.m[9] = (top + bottom) * inv_top_minus_bottom;
+		result.m[10] = -(far + near) * inv_far_minus_near;
+		result.m[11] = -1.0f;
+		result.m[14] = -2.0f * far * near * inv_far_minus_near;*/
+
 
 		//[ 0  4  8  12 ]
 		//[ 1  5  9  13 ]
 		//[ 2  6  10 14 ]
 		//[ 3  7  11 15 ]
+		//==============================================================
 
+		Mat4 result;
+
+		float x_scale = 1.0f / tanf(fov*0.5f);
+		float y_scale = aspect * x_scale;
+
+		float frustum_length = far - near;
+
+		result.m[0] = x_scale;
+		result.m[5] = y_scale;
+		result.m[10] = -((far + near) / frustum_length);
+		result.m[11] = -1.0f;
+		result.m[14] = -((2 * near * far) / frustum_length);
+		result.m[15] = 0.0f; //this isn't needed FIXME
+
+
+
+		//==============================================================
 		//float top = near * tanf(HALF_PI * fov*0.5f);
 		//float bottom = -top;
 		//float right = top * aspect;
 		//float left = -right;
 
-		Mat4 result;
+	//Mat4 result;
 		//float inv_top_minus_bottom = 1.0f/(top - bottom);
 		//float inv_right_minus_left = 1.0f/(right - left);
 		//float inv_far_minus_near = 1.0f/(far - near);
 
-		float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
+		//This is  a working projection matrix
+	//float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
 
-		result.m[0] = inv_tan_fov / aspect;
-		result.m[9/*9*//*5*/] = inv_tan_fov;
-		result.m[6/*6*//*10*/] = (far + near) / (near - far);
-		result.m[7/*7*//*11*/] = -1.0f;
-		result.m[14] = (2.0f * far * near)/(near - far);
+	//result.m[0] = inv_tan_fov / aspect;
+	//result.m[9/*5*/] = inv_tan_fov;
+	//result.m[6/*10*/] = (far + near) / (near - far);
+	//result.m[7/*11*/] = -1.0f;
+	//result.m[14] = (2.0f * far * near)/(near - far);
 
 		//Alternate setting for 0 5 and 8
-	//	float aspect_ratio = 9.0f/16.0f;
-	//	float h = 1/tanf(0.5f * fov);
-	//	float w = h * aspect_ratio;
-	//	result.m[0] = w;
-	//	result.m[5] = h;
-
-
-		//result.m[9] = (top + bottom) * inv_top_minus_bottom;
-		//result.m[10] = -(far + near) * inv_far_minus_near;
-		//result.m[11] = -1.0f;
-		//result.m[14] = -2.0f * far * near * inv_far_minus_near;
+		//	float aspect_ratio = 9.0f/16.0f;
+		//	float h = 1/tanf(0.5f * fov);
+		//	float w = h * aspect_ratio;
+		//	result.m[0] = w;
+		//	result.m[5] = h;
 
 		return result;
 	}

@@ -29,7 +29,8 @@ Engine::Engine(struct android_app* droid_app)
 
 	///... how do I want to hold game structs?
 	camera = (Camera*) malloc(sizeof(Camera));
-	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,-0.01f,-10.0f);
+	//FIXME: can't used width / height because they have not yet been assigned (assigned elsewhere)
+	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,0.1f,1000.0f);
 }
 
 void Engine::handle_cmd(struct android_app *app, int32_t cmd)
@@ -164,7 +165,7 @@ int Engine::init_display()
 	}*/
 	eglInitialize(display,0,0);
 
-	//Choosing first config that matches our criteria
+	//Choosing first config that matches our criteria)
 	eglChooseConfig(display, config_attribs, &config, 1, &num_configs);
 	surface = eglCreateWindowSurface(display, config, app->window, NULL);
 
@@ -196,7 +197,7 @@ int Engine::init_display()
 	if(!init_gl())
 		return -1;
 
-	//Resume audio if it was paued previously
+	//Resume audio if it was paused previously
 	if(sl_audio_player_interface != NULL)
 		start_audio();
 
@@ -690,6 +691,29 @@ void Engine::term_data()
 	data_initialized = false;
 }
 
+//Test function for debugging
+void apply_mat_and_print(char* msg, Vec3& vec, Mat4& mat, int do_w)
+{
+	//Applies a matrix to the vector, and divides by the w
+	if(do_w)
+	{
+		float w = mat.m[3] * vec.x + mat.m[7] * vec.y + mat.m[11] * vec.z + mat.m[15];
+		Vec3 bkup(vec);
+		vec = (mat * vec) / w;
+		LOGE("%s ( %.2f , %.2f , %.2f ) -> ( %.2f , %.2f , %.2f ), (w=%.2f)\n", msg, bkup.x, bkup.y, bkup.z, vec.x, vec.y,
+			vec.z, w);
+	}
+	else
+	{
+		Vec3 bkup(vec);
+		vec = (mat * vec);
+		LOGE("%s ( %.2f , %.2f , %.2f ) -> ( %.2f , %.2f , %.2f )\n", msg, bkup.x, bkup.y, bkup.z, vec.x, vec.y,
+			vec.z);
+	}
+};
+
+
+
 void Engine::draw_frame()
 {
 	//Need to initialize data before the screen context has been created.
@@ -720,6 +744,10 @@ void Engine::draw_frame()
 	{
 		return;
 	}
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_TRUE);
 
 	//Filling the screen with a color
 	glClearColor(state.x, 0.0f/*state.angle*/, state.y,1);
@@ -765,14 +793,22 @@ void Engine::draw_frame()
 	//float yaw_angle = ((state.x * 2.0f) - 1.0f) * HALF_PI*0.5f;
 	LOGE("Camera pos = (%.2f,%.2f,%.2f)\n",camera->pos.x,camera->pos.y,camera->pos.z);
 	//LOGE("yaw angle = %.2f\n",yaw_angle * RAD_TO_DEG);
+	//Pitch
 	camera->angles.x = 0.0f;
+	//Yaw
 	camera->angles.y = ((state.x) * TWO_PI);
+	//Roll
 	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
+
+	LOGE("Yaw angle: %.2f\n",DEG_TO_RAD * state.x * TWO_PI);
 
 	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 	LOGE("Camera view matrix: ");
 	print_mat4(camera->view_m);
+
+	LOGE("Camera projection matrix: ");
+	print_mat4(camera->projection_m);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
@@ -801,9 +837,9 @@ void Engine::draw_frame()
 		LOGE("texture not set, abort binding tex.\n");
 
 	//Rendering a single model
-	//int i = 5;
-	int j = 5;
-	int k = 5;
+	//int i = 0;
+	//int j = 0;
+	//int k = 0;
 	//for(int i = 0; i < 10; i++)
 	{
 	//	for(int j = 0; j < 10; j++)
@@ -826,7 +862,8 @@ void Engine::draw_frame()
 	//Drawing axis of triangles
 	//Currently tris are facing y axis
 	//Drawing the X axis
-	for(int i = 0; i < 20; i++)
+	//for(int i = 0; i < 1/*20*/; i++)
+	int i = 0;
 	{
 		//Rotating 90 degrees to face x axis
 		Quat rot(HALF_PI,Vec3::UP());
@@ -839,9 +876,27 @@ void Engine::draw_frame()
 		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
 		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		//Printing the 3 verts of this triangle
+		Vec3 vert1(-0.5f,0.0f,0.5f);
+		apply_mat_and_print((char*)"V1 VIEW: ",vert1,camera->view_m,0);
+		apply_mat_and_print((char*)"V1 PROJ: ",vert1,camera->projection_m,1);
+
+		Vec3 vert2(0.0f, 0.0f, -0.5f);
+		apply_mat_and_print((char*)"V2 VIEW: ",vert2,camera->view_m,0);
+		apply_mat_and_print((char*)"V2 PROJ: ",vert2,camera->projection_m,1);
+
+		Vec3 vert3(0.5f, 0.0f, 0.5f);
+		apply_mat_and_print((char*)"V3 VIEW: ",vert3,camera->view_m,0);
+		apply_mat_and_print((char*)"V3 PROJ: ",vert3,camera->projection_m,1);
 	}
+
+	Vec3 dir(0.707106f,0.707106f,0.0f);
+	Quat q1(90.0f * DEG_TO_RAD,dir);
+
+
 	//Drawing the y axis
-	for(int i = 0; i < 20; i++)
+	/*for(int i = 0; i < 20; i++)
 	{
 		//No rotation, already facing y axis
 		//Drawing of a single triangle
@@ -851,9 +906,9 @@ void Engine::draw_frame()
 		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
 		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}
+	}*/
 	//Drawing the Z axis
-	for(int i = 0; i < 20; i++)
+	/*for(int i = 0; i < 20; i++)
 	{
 		//Rotating 90 degrees to face x axis
 		Quat rot(HALF_PI,Vec3::RIGHT());
@@ -863,10 +918,27 @@ void Engine::draw_frame()
 		Vec3 pos(0.0f, 0.0f, 2.0f*i);
 		Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
 		Mat4 model_transform = model_pos * model_rot;
-		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
+		Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}
+	}*/
+
+	//Printing debug values for x-axis tri
+	/*
+	Vec3 x_axis_test(20.0f,0.5f,0.5f);
+	apply_mat_and_print((char*)"X-axis VIEW: ",x_axis_test,camera->view_m);
+	apply_mat_and_print((char*)"X-axis PROJ: ",x_axis_test,camera->projection_m);
+
+	Vec3 y_axis_test(0.5f,20.0f,0.5f);
+	apply_mat_and_print((char*)"Y-axis VIEW: ",y_axis_test,camera->view_m);
+	apply_mat_and_print((char*)"Y-axis PROJ: ",y_axis_test,camera->projection_m);
+
+	Vec3 z_axis_test(0.5f,0.5f,20.0f);
+	apply_mat_and_print((char*)"Z-axis VIEW: ",z_axis_test,camera->view_m);
+	apply_mat_and_print((char*)"Z-axis PROJ: ",z_axis_test,camera->projection_m);
+	*/
+
+	LOGE("============== End debug tri ================\n");
 
 
 

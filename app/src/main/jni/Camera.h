@@ -44,25 +44,37 @@ public:
 	//Converts angles to forward,right,and up vectors, and sets the view matrix
 	void update_view_matrix()
 	{
-		//Rotating angles.z about UP vector for yaw
-		/*Quat yaw(angles.z, Vec3::UP());
+		//Rotating angles.y about UP vector for yaw
+		Quat yaw(angles.y, Vec3::UP());
 		//Rotating angles.x about RIGHT vector for pitch
 		Quat pitch(angles.x, yaw*Vec3::RIGHT());
 
 		Quat rot = pitch*yaw;
 		forward = rot * Vec3::FRONT();
+		LOGE("FRONT VEC IS : (%.2f,%.2f,%.2f)\n",forward.x,forward.y,forward.z);
 
-		//Rotating angles.y about the forward vector for the roll
-		Quat roll(angles.y, forward);
+		//Right vector calculated forward cross global up
+		right = Vec3::cross(forward,Vec3::UP());
+		LOGE("RIGHT VEC IS : (%.2f,%.2f,%.2f)\n",right.x,right.y,right.z);
+
+		//Up vector calculated from right cross forward
+		up = Vec3::cross(right,forward);
+		LOGE("UP VEC IS : (%.2f,%.2f,%.2f)\n",up.x,up.y,up.z);
+
+		view_m = Mat4::VIEW(right,up,forward,pos);
+		/*
+
+		//Rotating angles.z about the forward vector for the roll
+		Quat roll(angles.z, forward);
 		//Adding roll to pitch * yaw
 		rot = roll * rot;
 		right = rot * Vec3::RIGHT();
 		//Vec3 up = result * Vec3::UP(); // has the same result as line below
 		up = Vec3::cross(right,forward);
 		//Previously I needed this... BUT
-		//view_m = Mat4::VIEW(right,up,forward,pos);*/
+		view_m = Mat4::VIEW(right,up,forward,pos);*/
 		//going to test this
-		view_m = Mat4::VIEW(angles,pos);
+		//view_m = Mat4::VIEW(angles,pos);
 	}
 };
 
