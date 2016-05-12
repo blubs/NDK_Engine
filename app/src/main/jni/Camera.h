@@ -44,6 +44,7 @@ public:
 	//Converts angles to forward,right,and up vectors, and sets the view matrix
 	void update_view_matrix()
 	{
+		/*
 		//Rotating angles.y about UP vector for yaw
 		Quat yaw(angles.y, Vec3::UP());
 		//Rotating angles.x about RIGHT vector for pitch
@@ -61,7 +62,7 @@ public:
 		up = Vec3::cross(right,forward);
 		LOGE("UP VEC IS : (%.2f,%.2f,%.2f)\n",up.x,up.y,up.z);
 
-		view_m = Mat4::VIEW(right,up,forward,pos);
+		view_m = Mat4::VIEW(right,up,forward,pos);*/
 		/*
 
 		//Rotating angles.z about the forward vector for the roll
@@ -74,7 +75,7 @@ public:
 		//Previously I needed this... BUT
 		view_m = Mat4::VIEW(right,up,forward,pos);*/
 		//going to test this
-		//view_m = Mat4::VIEW(angles,pos);
+		view_m = Mat4::VIEW(angles,pos);
 	}
 };
 

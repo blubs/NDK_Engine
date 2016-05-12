@@ -784,7 +784,10 @@ void Engine::draw_frame()
 	//Mat4 model_rot = Mat4::ROTATE(rot);
 
 	camera->pos = Vec3::ZERO();//(Vec3::UP() * -1.0f) + (Vec3::RIGHT() * 0.5f);
-	camera->pos.y = camera->pos.x = camera->pos.z = 20.0f * state.y;//for moving forward / backward
+	//camera->pos.y = camera->pos.x = camera->pos.z = 20.0f * state.y;//for moving forward / backward
+	camera->pos.y = -20.0f*state.y;
+	camera->pos.x = 0.0f;
+	camera->pos.z = 0.0f;
 	//camera->pos.y = 6.0f;//yields good results when drawing axes
 	//camera->pos.x = 5.0f * ((state.x * 2.0f) - 1.0f);
 	//Currently, offsetting it by the z axis moves it up, (y axis should move it up)
@@ -796,12 +799,14 @@ void Engine::draw_frame()
 	//Pitch
 	camera->angles.x = 0.0f;
 	//Yaw
-	camera->angles.y = ((state.x) * TWO_PI);
+	//camera->angles.y = (2.0f*(state.x-0.5f) * TWO_PI);
+	camera->angles.y = HALF_PI;
+	//camera->angles.y = 0.0f;
 	//Roll
 	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
 
-	LOGE("Yaw angle: %.2f\n",DEG_TO_RAD * state.x * TWO_PI);
+	LOGE("Yaw angle: %.2f\n",RAD_TO_DEG * camera->angles.y);
 
 	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 	LOGE("Camera view matrix: ");
@@ -866,7 +871,7 @@ void Engine::draw_frame()
 	int i = 0;
 	{
 		//Rotating 90 degrees to face x axis
-		Quat rot(HALF_PI,Vec3::UP());
+		Quat rot(0,Vec3::UP());
 		Mat4 model_rot = Mat4::ROTATE(rot);
 
 		//Drawing of a single triangle

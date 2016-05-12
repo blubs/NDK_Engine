@@ -401,6 +401,7 @@ struct Mat4
 		result.m[12] = pos.x;
 		result.m[13] = pos.y;
 		result.m[14] = pos.z;
+
 		return result;
 	}
 
@@ -418,7 +419,7 @@ struct Mat4
 	//Static method that returns a rotation matrix given a unit quaternion rotation
 	static Mat4 ROTATE(const Quat& q)
 	{
-		Mat4 result = IDENTITY();
+		Mat4 result;
 		//Precomputing floating point multiplications
 		//TODO: test runtime of this versus not precomputing, is there any benefit?
 		float xx2,yy2,zz2,xy2,xz2,yz2,wx2,wy2,wz2;
@@ -441,6 +442,7 @@ struct Mat4
 		result.m[8] = xz2 + wy2;
 		result.m[9] = yz2 - wx2;
 		result.m[10] = 1.0f - xx2 - yy2;
+		result.m[15] = 1.0f;
 
 		return result;
 	}
@@ -448,12 +450,14 @@ struct Mat4
 	// rotation matrix
 
 	// Constructs a view matrix from camera direction vectors and position vector
-	//static Mat4 VIEW(const Vec3 angles, const Vec3 pos)
-	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
+	//static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
+	static Mat4 VIEW(const Vec3 angles, const Vec3 pos)
 	{
+		//=================================================================
 		//Jorge Rodriguez method of calculating matrix:
 
-		Mat4 R;
+		//Doesn't work for me.
+		/*Mat4 R;
 		R.m[0] = right.x;
 		R.m[1] = right.y;
 		R.m[2] = right.z;
@@ -479,7 +483,7 @@ struct Mat4
 
 		//Transposing the upper left 3x3 of a
 		Mat4 b = Mat4::IDENTITY();
-
+		//=================================================================
 
 		//[ 0  4  8  12 ]
 		//[ 1  5  9  13 ]
@@ -505,10 +509,11 @@ struct Mat4
 		b.m[12] = transB.x;
 		b.m[13] = transB.y;
 		b.m[14] = transB.z;
+		//=================================================================
 
 		//FIXME, 12,13,14 are all 0 in built view matrix
 
-		return b;
+		return b;*/
 
 
 		/*Mat4 result;
@@ -556,14 +561,27 @@ struct Mat4
 
 		result.m[15] = 1.0f;*/
 		//Trying Quake's method of calculating the view matrix
-		/*
-		Mat4 result = Mat4::IDENTITY();
 
+		Mat4 result;
+
+		//Order of applied transformations:
+		//pitch about global RIGHT
+		//yaw about global UP
+		//roll about local FRONT
+		//then position
+
+
+		//undo position
+		//undo roll about local FRONT
+		//undo yaw about global UP
+		//undo pitch about global RIGHT
+/*
 		//Placing the z-axis upwards
-		Quat z_up1(-HALF_PI,Vec3::RIGHT());
-		result = result * Mat4::ROTATE(z_up1);
-		Quat z_up2(HALF_PI,Vec3::UP());
-		result = result * Mat4::ROTATE(z_up2);
+		//Quat z_up1(HALF_PI,Vec3::RIGHT());
+		//Quake says we should do this rotation FIXME ,check yaw and roll
+		Quat z_up2(-HALF_PI,Vec3::UP());
+
+		result = Mat4::ROTATE(z_up1) * Mat4::ROTATE(z_up2);
 
 		float pitch, yaw, roll;
 
@@ -571,23 +589,48 @@ struct Mat4
 		yaw = angles.y;
 		roll = angles.z;
 
-		//Handling rotation of camera
-		//Undoing roll
-		Quat undo_roll(-roll,Vec3::FRONT());
-		result = result * Mat4::ROTATE(undo_roll);
-		//Undoing pitch
-		Quat undo_pitch(-pitch,Vec3::RIGHT());
-		result = result * Mat4::ROTATE(undo_pitch);
-		//Undoing yaw
-		Quat undo_yaw(-yaw,Vec3::UP());
-		result = result * Mat4::ROTATE(undo_yaw);
-
+		//Undoing the camera transform
 		//Undoing position
-		//FIXME: quake puts negative signs on all of these?
 		Vec3 undo_pos(-pos.x,-pos.y,-pos.z);
-		result = result * Mat4::TRANSLATE(undo_pos);
-		*/
-		//return result;
+
+		//Undoing the camera rotation
+		//Undoing yaw about global up (+z)
+		Quat undo_yaw(-yaw,Vec3::UP());
+
+		//Undoing pitch about global right (+x)
+		Quat undo_pitch(-pitch,Vec3::FRONT());//RIGHT would make more sense, Quake says FRONT though?
+
+		//Undoing roll about global front (+y)
+		Quat undo_roll(-roll,Vec3::RIGHT());//FRONT would make more sense, Quake says RIGHT though?
+
+		result = result * Mat4::ROTATE(undo_roll) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_yaw) * Mat4::TRANSLATE(undo_pos);
+		//result = Mat4::TRANSLATE(undo_pos) * Mat4::ROTATE(undo_yaw) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_roll) * result;
+*/
+		//Undoing the camera transform
+		//Undoing position
+		Vec3 undo_pos(-pos.x,-pos.y,-pos.z);
+
+		float yaw,pitch,roll;
+		pitch = angles.x;
+		yaw = angles.y;
+		roll = angles.z;
+
+		//Undoing the camera rotation
+		//Undoing yaw about global up (+z)
+		Quat undo_yaw(-yaw,Vec3::UP());
+
+		//Undoing pitch about global right (+x)
+		Quat undo_pitch(-pitch,Vec3::RIGHT());//RIGHT would make more sense, Quake says FRONT though?
+
+		//Undoing roll about global front (+y)
+		Quat undo_roll(-roll,Vec3::FRONT());//FRONT would make more sense, Quake says RIGHT though?
+
+		//Making the z-axis point upwards (instead of backwards)(i.e. rotating it 90 degrees forward)
+		Quat rot_z(-HALF_PI,Vec3::RIGHT());
+
+		result = Mat4::ROTATE(rot_z) * Mat4::ROTATE(undo_roll) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_yaw) * Mat4::TRANSLATE(undo_pos);
+		//result = Mat4::TRANSLATE(undo_pos) * Mat4::ROTATE(undo_yaw) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_roll) * result;
+		return result;
 	}
 
 	// Constructs a projection matrix given near plane, far plane, aspect ratio, and fov
