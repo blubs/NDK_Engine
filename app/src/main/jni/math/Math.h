@@ -449,260 +449,44 @@ struct Mat4
 	//TODO:
 	// rotation matrix
 
-	// Constructs a view matrix from camera direction vectors and position vector
-	//static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
-	static Mat4 VIEW(const Vec3 angles, const Vec3 pos)
+	// Constructs a view matrix from normalized camera direction vectors and position vector
+	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)
 	{
-		//=================================================================
-		//Jorge Rodriguez method of calculating matrix:
-
-		//Doesn't work for me.
-		/*Mat4 R;
-		R.m[0] = right.x;
-		R.m[1] = right.y;
-		R.m[2] = right.z;
-		R.m[4] = up.x;
-		R.m[5] = up.y;
-		R.m[6] = up.z;
-
-		R.m[8] = -forward.x;
-		R.m[9] = -forward.y;
-		R.m[10] = -forward.z;
-
-		LOGE("Constructing View Matrix\n");
-		LOGE("Right: (%.2f,%.2f,%.2f\n",right.x,right.y,right.z);
-		LOGE("Forward: (%.2f,%.2f,%.2f\n",forward.x,forward.y,forward.z);
-		LOGE("Up: (%.2f,%.2f,%.2f\n",up.x,up.y,up.z);
-
-		LOGE("Position: (%.2f,%.2f,%.2f\n",pos.x,pos.y,pos.z);
-
-		Mat4 T = Mat4::TRANSLATE(pos);
-
-		//Method for inverting a translation / rotation matrix
-		Mat4 a = T*R;
-
-		//Transposing the upper left 3x3 of a
-		Mat4 b = Mat4::IDENTITY();
-		//=================================================================
-
-		//[ 0  4  8  12 ]
-		//[ 1  5  9  13 ]
-		//[ 2  6  10 14 ]
-		//[ 3  7  11 15 ]
-
-		b.m[0] = a.m[0];
-		b.m[1] = a.m[4];
-		b.m[2] = a.m[8];
-
-		b.m[4] = a.m[1];
-		b.m[5] = a.m[5];
-		b.m[6] = a.m[9];
-
-		b.m[8] = a.m[2];
-		b.m[9] = a.m[6];
-		b.m[10] = a.m[10];
-
-		//The translation of the new matrix
-		Vec3 trans(a.m[12],a.m[13],a.m[14]);
-		Vec3 transB = (b * trans) * -1.0f;
-
-		b.m[12] = transB.x;
-		b.m[13] = transB.y;
-		b.m[14] = transB.z;
-		//=================================================================
-
-		//FIXME, 12,13,14 are all 0 in built view matrix
-
-		return b;*/
-
-
-		/*Mat4 result;
-		result.m[0] = -right.x;
-		result.m[1] = -right.y;
-		result.m[2] = -right.z;
-
-		result.m[4] = up.x;
-		result.m[5] = up.z;
-		result.m[6] = up.y;
-
-		result.m[8] = -forward.x;
-		result.m[9] = -forward.z;
-		result.m[10] = -forward.y;
-
-		result.m[12] = pos.x;
-		result.m[13] = pos.y;
-		result.m[14] = pos.z;
-
-		result.m[15] = 1.0f;*/
-
-		//[ 0  4  8  12 ]
-		//[ 1  5  9  13 ]
-		//[ 2  6  10 14 ]
-		//[ 3  7  11 15 ]
-
-		//Mat4 result;
-		/*result.m[0] = right.x;
+		Mat4 result;
+		//Top row has right vec
+		result.m[0] = right.x;
 		result.m[4] = right.y;
 		result.m[8] = right.z;
 
-		result.m[2] = forward.x;
-		result.m[6] = forward.z;
-		result.m[10] = forward.y;
-
+		//2nd row has up vec
 		result.m[1] = up.x;
-		result.m[5] = up.z;
-		result.m[9] = up.y;
+		result.m[5] = up.y;
+		result.m[9] = up.z;
 
-		Vec3 inv_pos = -1.0f * pos;
-		//Dot products
-		result.m[12] = right * inv_pos;
-		result.m[13] = up * inv_pos;
-		result.m[14] = forward * inv_pos;
+		//3rd row has -forward vec
+		result.m[2] = -forward.x;
+		result.m[6] = -forward.y;
+		result.m[10] = -forward.z;
 
-		result.m[15] = 1.0f;*/
-		//Trying Quake's method of calculating the view matrix
-
-		Mat4 result;
-
-		//Order of applied transformations:
-		//pitch about global RIGHT
-		//yaw about global UP
-		//roll about local FRONT
-		//then position
-
-
-		//undo position
-		//undo roll about local FRONT
-		//undo yaw about global UP
-		//undo pitch about global RIGHT
-/*
-		//Placing the z-axis upwards
-		//Quat z_up1(HALF_PI,Vec3::RIGHT());
-		//Quake says we should do this rotation FIXME ,check yaw and roll
-		Quat z_up2(-HALF_PI,Vec3::UP());
-
-		result = Mat4::ROTATE(z_up1) * Mat4::ROTATE(z_up2);
-
-		float pitch, yaw, roll;
-
-		pitch = angles.x;
-		yaw = angles.y;
-		roll = angles.z;
-
-		//Undoing the camera transform
-		//Undoing position
-		Vec3 undo_pos(-pos.x,-pos.y,-pos.z);
-
-		//Undoing the camera rotation
-		//Undoing yaw about global up (+z)
-		Quat undo_yaw(-yaw,Vec3::UP());
-
-		//Undoing pitch about global right (+x)
-		Quat undo_pitch(-pitch,Vec3::FRONT());//RIGHT would make more sense, Quake says FRONT though?
-
-		//Undoing roll about global front (+y)
-		Quat undo_roll(-roll,Vec3::RIGHT());//FRONT would make more sense, Quake says RIGHT though?
-
-		result = result * Mat4::ROTATE(undo_roll) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_yaw) * Mat4::TRANSLATE(undo_pos);
-		//result = Mat4::TRANSLATE(undo_pos) * Mat4::ROTATE(undo_yaw) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_roll) * result;
-*/
-		//Undoing the camera transform
-		//Undoing position
-		Vec3 undo_pos(-pos.x,-pos.y,-pos.z);
-
-		float yaw,pitch,roll;
-		pitch = angles.x;
-		yaw = angles.y;
-		roll = angles.z;
-
-		//Undoing the camera rotation
-		//Undoing yaw about global up (+z)
-		Quat undo_yaw(-yaw,Vec3::UP());
-
-		//Undoing pitch about global right (+x)
-		Quat undo_pitch(-pitch,Vec3::RIGHT());//RIGHT would make more sense, Quake says FRONT though?
-
-		//Undoing roll about global front (+y)
-		Quat undo_roll(-roll,Vec3::FRONT());//FRONT would make more sense, Quake says RIGHT though?
-
-		//Making the z-axis point upwards (instead of backwards)(i.e. rotating it 90 degrees forward)
-		Quat rot_z(-HALF_PI,Vec3::RIGHT());
-
-		result = Mat4::ROTATE(rot_z) * Mat4::ROTATE(undo_roll) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_yaw) * Mat4::TRANSLATE(undo_pos);
-		//result = Mat4::TRANSLATE(undo_pos) * Mat4::ROTATE(undo_yaw) * Mat4::ROTATE(undo_pitch) * Mat4::ROTATE(undo_roll) * result;
-		return result;
+		//last column has undoing position
+		result.m[12] = -(right*pos);
+		result.m[13] = -(up*pos);
+		result.m[14] = forward*pos;
+		result.m[15] = 1.0f;
+		 return result;
 	}
 
 	// Constructs a projection matrix given near plane, far plane, aspect ratio, and fov
-	static Mat4 PROJECT(const float near,const float far,const float aspect,const float fov)
+	static Mat4 PROJECT_PERSPECTIVE(const float near,const float far,const float aspect,const float fov)
 	{
-		//Doing some precalculations
-		/*float top = near * tanf(fov*0.5f);
-		float bottom = -top;
-		float right = top * 1.0f;
-		float left = -right;
-
 		Mat4 result;
-		float inv_top_minus_bottom = 1.0f/(top - bottom);
-		float inv_right_minus_left = 1.0f/(right - left);
-		float inv_far_minus_near = 1.0f/(far - near);
-		result.m[0] = 2 * near * inv_right_minus_left;
-		result.m[5] = 2 * near * inv_top_minus_bottom;
-		result.m[8] = (right + left) * inv_right_minus_left;
-		result.m[9] = (top + bottom) * inv_top_minus_bottom;
-		result.m[10] = -(far + near) * inv_far_minus_near;
+		float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
+
+		result.m[0] = inv_tan_fov / aspect;
+		result.m[5] = inv_tan_fov;
+		result.m[10] = (far + near) / (near - far);
 		result.m[11] = -1.0f;
-		result.m[14] = -2.0f * far * near * inv_far_minus_near;*/
-
-
-		//[ 0  4  8  12 ]
-		//[ 1  5  9  13 ]
-		//[ 2  6  10 14 ]
-		//[ 3  7  11 15 ]
-		//==============================================================
-
-		Mat4 result;
-
-		float x_scale = 1.0f / tanf(fov*0.5f);
-		float y_scale = aspect * x_scale;
-
-		float frustum_length = far - near;
-
-		result.m[0] = x_scale;
-		result.m[5] = y_scale;
-		result.m[10] = -((far + near) / frustum_length);
-		result.m[11] = -1.0f;
-		result.m[14] = -((2 * near * far) / frustum_length);
-		result.m[15] = 0.0f; //this isn't needed FIXME
-
-
-
-		//==============================================================
-		//float top = near * tanf(HALF_PI * fov*0.5f);
-		//float bottom = -top;
-		//float right = top * aspect;
-		//float left = -right;
-
-	//Mat4 result;
-		//float inv_top_minus_bottom = 1.0f/(top - bottom);
-		//float inv_right_minus_left = 1.0f/(right - left);
-		//float inv_far_minus_near = 1.0f/(far - near);
-
-		//This is  a working projection matrix
-	//float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
-
-	//result.m[0] = inv_tan_fov / aspect;
-	//result.m[9/*5*/] = inv_tan_fov;
-	//result.m[6/*10*/] = (far + near) / (near - far);
-	//result.m[7/*11*/] = -1.0f;
-	//result.m[14] = (2.0f * far * near)/(near - far);
-
-		//Alternate setting for 0 5 and 8
-		//	float aspect_ratio = 9.0f/16.0f;
-		//	float h = 1/tanf(0.5f * fov);
-		//	float w = h * aspect_ratio;
-		//	result.m[0] = w;
-		//	result.m[5] = h;
+		result.m[14] = (2.0f * far * near)/(near - far);
 
 		return result;
 	}

@@ -642,6 +642,7 @@ int Engine::init_gl()
 	texture_id = tex_id;
 	//========================================================================
 	glViewport(0, 0, width, height);
+	//glDepthRangef(0.0f,1.0f); useless line
 	glClearColor(1, 1, 1, 1);
 	return 1;
 }
@@ -690,29 +691,6 @@ void Engine::term_data()
 	term_sl();
 	data_initialized = false;
 }
-
-//Test function for debugging
-void apply_mat_and_print(char* msg, Vec3& vec, Mat4& mat, int do_w)
-{
-	//Applies a matrix to the vector, and divides by the w
-	if(do_w)
-	{
-		float w = mat.m[3] * vec.x + mat.m[7] * vec.y + mat.m[11] * vec.z + mat.m[15];
-		Vec3 bkup(vec);
-		vec = (mat * vec) / w;
-		LOGE("%s ( %.2f , %.2f , %.2f ) -> ( %.2f , %.2f , %.2f ), (w=%.2f)\n", msg, bkup.x, bkup.y, bkup.z, vec.x, vec.y,
-			vec.z, w);
-	}
-	else
-	{
-		Vec3 bkup(vec);
-		vec = (mat * vec);
-		LOGE("%s ( %.2f , %.2f , %.2f ) -> ( %.2f , %.2f , %.2f )\n", msg, bkup.x, bkup.y, bkup.z, vec.x, vec.y,
-			vec.z);
-	}
-};
-
-
 
 void Engine::draw_frame()
 {
@@ -775,49 +753,29 @@ void Engine::draw_frame()
 		0.0, 1.0, 0.0, 1.0,
 		0.0, 0.0, 1.0, 1.0,
 	};
+
 	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
 	//Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
 	//Quat pitch(((state.y*2.0f)-1.0f) * HALF_PI*0.5f,(yaw*Vec3::RIGHT()));
-
 	//Quat rot = pitch*yaw;
-
 	//Mat4 model_rot = Mat4::ROTATE(rot);
 
-	camera->pos = Vec3::ZERO();//(Vec3::UP() * -1.0f) + (Vec3::RIGHT() * 0.5f);
-	//camera->pos.y = camera->pos.x = camera->pos.z = 20.0f * state.y;//for moving forward / backward
-	camera->pos.y = -20.0f*state.y;
+	camera->pos = Vec3::ZERO();
+	camera->pos.y = -9.8f;
 	camera->pos.x = 0.0f;
 	camera->pos.z = 0.0f;
-	//camera->pos.y = 6.0f;//yields good results when drawing axes
-	//camera->pos.x = 5.0f * ((state.x * 2.0f) - 1.0f);
-	//Currently, offsetting it by the z axis moves it up, (y axis should move it up)
+
 	camera->angles = Vec3::ZERO();
-	//float yaw_angle = -atanf(camera->pos.x / (21.0 - camera->pos.y));
-	//float yaw_angle = ((state.x * 2.0f) - 1.0f) * HALF_PI*0.5f;
-	LOGE("Camera pos = (%.2f,%.2f,%.2f)\n",camera->pos.x,camera->pos.y,camera->pos.z);
-	//LOGE("yaw angle = %.2f\n",yaw_angle * RAD_TO_DEG);
 	//Pitch
-	camera->angles.x = 0.0f;
+	camera->angles.x = ((0.5f-state.y)*TWO_PI);
 	//Yaw
-	//camera->angles.y = (2.0f*(state.x-0.5f) * TWO_PI);
-	camera->angles.y = HALF_PI;
-	//camera->angles.y = 0.0f;
+	camera->angles.y = (0.5f-state.x)*TWO_PI;
 	//Roll
 	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
 
-	LOGE("Yaw angle: %.2f\n",RAD_TO_DEG * camera->angles.y);
-
-	//Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-	LOGE("Camera view matrix: ");
-	print_mat4(camera->view_m);
-
-	LOGE("Camera projection matrix: ");
-	print_mat4(camera->projection_m);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
-
 
 	Vec3 test_pt1(triangleVertices[0],triangleVertices[1],triangleVertices[2]);
 	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, triangleVertices);
@@ -842,110 +800,26 @@ void Engine::draw_frame()
 		LOGE("texture not set, abort binding tex.\n");
 
 	//Rendering a single model
-	//int i = 0;
-	//int j = 0;
-	//int k = 0;
-	//for(int i = 0; i < 10; i++)
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	//Drawing a 3d array of triangles
+	for(int i = 0; i < 10; i++)
 	{
-	//	for(int j = 0; j < 10; j++)
+		for(int j = 0; j < 10; j++)
 		{
-	//		for(int k = 0; k < 10; k++)
+			for(int k = 0; k < 10; k++)
 			{
-				//Drawing of a single triangle
-				//Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
-	//			Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
+				Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
 
-	//			Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
-	//			Mat4 model_transform = model_pos /** model_rot*/; //don't rotate for now
-	//			Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-	//			glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
-	//			glDrawArrays(GL_TRIANGLES, 0, 3);
+				Mat4 model_pos = Mat4::TRANSLATE(pos);
+				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate
+				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+				glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
 			}
 		}
 	}
-
-	//Drawing axis of triangles
-	//Currently tris are facing y axis
-	//Drawing the X axis
-	//for(int i = 0; i < 1/*20*/; i++)
-	int i = 0;
-	{
-		//Rotating 90 degrees to face x axis
-		Quat rot(0,Vec3::UP());
-		Mat4 model_rot = Mat4::ROTATE(rot);
-
-		//Drawing of a single triangle
-		Vec3 pos(2.0f*i, 0.0f, 0.0f);
-		Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
-		Mat4 model_transform = model_pos * model_rot;
-		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
-		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		//Printing the 3 verts of this triangle
-		Vec3 vert1(-0.5f,0.0f,0.5f);
-		apply_mat_and_print((char*)"V1 VIEW: ",vert1,camera->view_m,0);
-		apply_mat_and_print((char*)"V1 PROJ: ",vert1,camera->projection_m,1);
-
-		Vec3 vert2(0.0f, 0.0f, -0.5f);
-		apply_mat_and_print((char*)"V2 VIEW: ",vert2,camera->view_m,0);
-		apply_mat_and_print((char*)"V2 PROJ: ",vert2,camera->projection_m,1);
-
-		Vec3 vert3(0.5f, 0.0f, 0.5f);
-		apply_mat_and_print((char*)"V3 VIEW: ",vert3,camera->view_m,0);
-		apply_mat_and_print((char*)"V3 PROJ: ",vert3,camera->projection_m,1);
-	}
-
-	Vec3 dir(0.707106f,0.707106f,0.0f);
-	Quat q1(90.0f * DEG_TO_RAD,dir);
-
-
-	//Drawing the y axis
-	/*for(int i = 0; i < 20; i++)
-	{
-		//No rotation, already facing y axis
-		//Drawing of a single triangle
-		Vec3 pos(0.0f, 2.0f*i, 0.0f);
-		Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
-		Mat4 model_transform = model_pos;
-		Mat4 mvp = camera->projection_m * (camera->view_m * model_transform);
-		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}*/
-	//Drawing the Z axis
-	/*for(int i = 0; i < 20; i++)
-	{
-		//Rotating 90 degrees to face x axis
-		Quat rot(HALF_PI,Vec3::RIGHT());
-		Mat4 model_rot = Mat4::ROTATE(rot);
-
-		//Drawing of a single triangle
-		Vec3 pos(0.0f, 0.0f, 2.0f*i);
-		Mat4 model_pos = Mat4::TRANSLATE(pos);//considering position to be at point (0,0.3,0)
-		Mat4 model_transform = model_pos * model_rot;
-		Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-		glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}*/
-
-	//Printing debug values for x-axis tri
-	/*
-	Vec3 x_axis_test(20.0f,0.5f,0.5f);
-	apply_mat_and_print((char*)"X-axis VIEW: ",x_axis_test,camera->view_m);
-	apply_mat_and_print((char*)"X-axis PROJ: ",x_axis_test,camera->projection_m);
-
-	Vec3 y_axis_test(0.5f,20.0f,0.5f);
-	apply_mat_and_print((char*)"Y-axis VIEW: ",y_axis_test,camera->view_m);
-	apply_mat_and_print((char*)"Y-axis PROJ: ",y_axis_test,camera->projection_m);
-
-	Vec3 z_axis_test(0.5f,0.5f,20.0f);
-	apply_mat_and_print((char*)"Z-axis VIEW: ",z_axis_test,camera->view_m);
-	apply_mat_and_print((char*)"Z-axis PROJ: ",z_axis_test,camera->projection_m);
-	*/
-
-	LOGE("============== End debug tri ================\n");
-
-
 
 	eglSwapBuffers(egl_display, egl_surface);
 }
