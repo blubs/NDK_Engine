@@ -51,7 +51,6 @@ public:
 
 		Quat rot = yaw*pitch;
 		forward = rot * Vec3::FRONT();
-		LOGE("FRONT VEC IS : (%.2f,%.2f,%.2f)\n",forward.x,forward.y,forward.z);
 
 		//Rotating angles.z about the forward vector for the roll
 		Quat roll(angles.z, forward);

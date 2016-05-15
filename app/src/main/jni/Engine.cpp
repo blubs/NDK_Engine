@@ -572,7 +572,7 @@ int Engine::init_gl()
 	//Init gl state
 	//At this stage, all of the shaders have already been loaded.
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	//glDisable(GL_DEPTH_TEST);
 
 
@@ -732,14 +732,14 @@ void Engine::draw_frame()
 	//glClear(GL_COLOR_BUFFER_BIT);
 
 	//Triangle is in the xy plane, facing the negative y direction
-	const float triangleVertices[] =
+	/*const float triangleVertices[] =
 	{
 		-0.5f, 0.0f, 0.5f,
 		0.0f, 0.0f, -0.5f,
 		0.5f, 0.0f, 0.5f, //For triangle in 3 space
-		/*-0.5f, 0.5f, 0.0f,
-		0.0f, -0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,*/ //For triangle in 2 space
+		//-0.5f, 0.5f, 0.0f,
+		//0.0f, -0.5f, 0.0f,
+		//0.5f, 0.5f, 0.0f, //For triangle in 2 space
 	};
 	const float triangleUVs[] =
 	{
@@ -752,7 +752,145 @@ void Engine::draw_frame()
 		1.0, 0.0, 0.0, 1.0,
 		0.0, 1.0, 0.0, 1.0,
 		0.0, 0.0, 1.0, 1.0,
+	};*/
+
+	const float cube_vertices[] =
+	{
+		//Front quad
+		-0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		-0.5f, 0.5f, -0.5f,
+		-0.5f, 0.5f, 0.5f,
+		//Back quad
+		0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f,
+		//Right quad
+		0.5f, 0.5f, 0.5f,
+		0.5f, -0.5f, 0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, 0.5f,
+		//Left quad
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, -0.5f,
+		-0.5f, 0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, 0.5f,
+		//Top quad
+		0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
+		0.5f, -0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
+		//Bottom quad
+		-0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, 0.5f, -0.5f,
 	};
+	const float cube_uvs[] =
+	{
+		//Front quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		//Back quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		//Right quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		//Left quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		//Top quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		//Bottom quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+	};
+	const float cube_colors[] =
+	{
+		//Front quad
+		0.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 1.0f, 1.0f,
+		//Back quad
+		1.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 1.0f,
+		//Right quad
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		//Left quad
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		//Top quad
+		1.0f, 1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		//Bottom quad
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+	};
+
+	int vert_count = 36;
 
 	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
 	//Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
@@ -777,17 +915,16 @@ void Engine::draw_frame()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
 
-	Vec3 test_pt1(triangleVertices[0],triangleVertices[1],triangleVertices[2]);
-	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, triangleVertices);
+	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, cube_vertices);
 	glEnableVertexAttribArray(shader_vert_pos_loc);
 	//Pass the fill color info
 	if(shader_fill_color_loc != -1)
 	{
-		glVertexAttribPointer(shader_fill_color_loc, 4, GL_FLOAT, GL_FALSE, 0, triangleColors);
+		glVertexAttribPointer(shader_fill_color_loc, 4, GL_FLOAT, GL_FALSE, 0, cube_colors);
 		glEnableVertexAttribArray(shader_fill_color_loc);
 	}
 	//Pass the uv coords
-	glVertexAttribPointer(shader_uv_loc,2, GL_FLOAT, GL_FALSE, 0, triangleUVs);
+	glVertexAttribPointer(shader_uv_loc,2, GL_FLOAT, GL_FALSE, 0, cube_uvs);
 	glEnableVertexAttribArray(shader_uv_loc);
 	//Binding the texture to use
 	if(texture_id)
@@ -816,7 +953,7 @@ void Engine::draw_frame()
 				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate
 				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 				glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
-				glDrawArrays(GL_TRIANGLES, 0, 3);
+				glDrawArrays(GL_TRIANGLES, 0, vert_count);
 			}
 		}
 	}
