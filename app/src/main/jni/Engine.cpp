@@ -760,44 +760,16 @@ void Engine::draw_frame()
 		-0.5f, 0.5f, 0.5f,
 		0.5f, 0.5f, 0.5f,
 		0.5f, 0.5f, -0.5f,
-		0.5f, 0.5f, -0.5f,
 		-0.5f, 0.5f, -0.5f,
-		-0.5f, 0.5f, 0.5f,
 		//Back quad
 		0.5f, -0.5f, 0.5f,
 		-0.5f, -0.5f, 0.5f,
 		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
 		0.5f, -0.5f, -0.5f,
-		0.5f, -0.5f, 0.5f,
 		//Right quad
-		0.5f, 0.5f, 0.5f,
-		0.5f, -0.5f, 0.5f,
-		0.5f, -0.5f, -0.5f,
-		0.5f, -0.5f, -0.5f,
-		0.5f, 0.5f, -0.5f,
-		0.5f, 0.5f, 0.5f,
 		//Left quad
-		-0.5f, -0.5f, 0.5f,
-		-0.5f, 0.5f, 0.5f,
-		-0.5f, 0.5f, -0.5f,
-		-0.5f, 0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, 0.5f,
 		//Top quad
-		0.5f, 0.5f, 0.5f,
-		-0.5f, 0.5f, 0.5f,
-		-0.5f, -0.5f, 0.5f,
-		-0.5f, -0.5f, 0.5f,
-		0.5f, -0.5f, 0.5f,
-		0.5f, 0.5f, 0.5f,
 		//Bottom quad
-		-0.5f, 0.5f, -0.5f,
-		0.5f, 0.5f, -0.5f,
-		0.5f, -0.5f, -0.5f,
-		0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, 0.5f, -0.5f,
 	};
 	const float cube_uvs[] =
 	{
@@ -805,92 +777,37 @@ void Engine::draw_frame()
 		1.0f, 0.0f,
 		0.0f, 0.0f,
 		0.0f, 1.0f,
-		0.0f, 1.0f,
 		1.0f, 1.0f,
-		1.0f, 0.0f,
 		//Back quad
 		1.0f, 0.0f,
 		0.0f, 0.0f,
 		0.0f, 1.0f,
-		0.0f, 1.0f,
 		1.0f, 1.0f,
-		1.0f, 0.0f,
 		//Right quad
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
 		//Left quad
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
 		//Top quad
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
 		//Bottom quad
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
 	};
 	const float cube_colors[] =
 	{
 		//Front quad
-		0.0f, 1.0f, 1.0f, 1.0f,
 		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
 		//Back quad
-		1.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
 		//Right quad
-		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
 		//Left quad
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
 		//Top quad
-		1.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
 		//Bottom quad
-		0.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
 	};
 
-	int vert_count = 36;
+	//int vert_count = 36;
+	int vert_count = 8;
 
 	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
 	//Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
@@ -914,6 +831,32 @@ void Engine::draw_frame()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gl_program);
+
+	//Referencing vertices by index
+	unsigned int cube_tris[] =
+	{
+		//Front quad
+		0,1,2, 2,3,0,
+		//Back quad
+		4,5,6, 6,7,4,
+		//Right quad
+		1,4,7, 7,2,1,
+		//Left quad
+		0,3,6, 6,5,0,
+		//Top quad
+		4,1,0, 0,5,4,
+		//Bottom quad
+		6,3,2, 2,7,6,
+	};
+
+	GLuint element_buffer;
+	glGenBuffers(1, &element_buffer);
+	//Bind the buffer to set the data
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,element_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,36 * sizeof(unsigned int)/*size of indices*/,cube_tris,GL_STATIC_DRAW);
+
+	//Have to bind the data before a call (taken care of above)
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
 	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, cube_vertices);
 	glEnableVertexAttribArray(shader_vert_pos_loc);
@@ -953,7 +896,8 @@ void Engine::draw_frame()
 				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate
 				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 				glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
-				glDrawArrays(GL_TRIANGLES, 0, vert_count);
+				//glDrawArrays(GL_TRIANGLES, 0, vert_count);
+				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
 			}
 		}
 	}
