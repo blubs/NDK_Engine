@@ -11,77 +11,37 @@
 //FIXME: all of this code is placeholder code that will be replaced as I figure out the implementation details
 class Shader
 {
-	//We only use these structs to pass pointers, so dealloc these structs (but not their pointed data) immediately after creating the shader
-	struct shader_data
-	{
-		const char* name;
-		const char* src;
-	};
-
-	struct texture_data
-	{
-		const char* name;
-		const char* identifier;
-		int file_size;
-		const char* data;
-		int resolution;
-	};
-
-		//we construct a shader by passing in the shader source files
+public:
+	//we construct a shader by passing in the shader source files
 	GLuint gl_program = 0;
 
 	GLuint vert_shader;
 	GLuint frag_shader;
 
+
 	//TODO: modularize this a bit (how do we arbitrarily specify what attributes a shader needs?)
 
 	//Static types for parameters
-	static const int PARAM_VERT_SHADER = 1;
-	static const int PARAM_FRAG_SHADER = 2;
-	//static const int PARAM_VERT_ATTRIBUTE = 3; these 3 are too vague, replace with purpose-defining parameter types
-	//static const int PARAM_UNIFORM = 4;
-	//static const int PARAM_TEXTURE = 5;
-	static const int PARAM_VERTICES = 3;
-	//static const int PARAM_NORMALS = 4; TODO: later.
-	static const int PARAM_VERT_COLORS = 5;
-	static const int PARAM_VERT_UV1 = 6;
-	//static const int PARAM_VERT_UV2 = 7; TODO: later
-	static const int PARAM_MVP_MATRIX = 8;
-	static const int PARAM_TEXTURE = 9;//this one can be left vague, because whatever the identifier, it just goes there & shouldn't change.
+	static const int PARAM_VERTICES = 1;
+	//static const int PARAM_NORMALS = 2; TODO: later.
+	static const int PARAM_VERT_COLORS = 3;
+	static const int PARAM_VERT_UV1 = 4;
+	//static const int PARAM_VERT_UV2 = 5; TODO: later
+	static const int PARAM_MVP_MATRIX = 6;
+	static const int PARAM_TEXTURE = 7;//this one can be left vague, because whatever the identifier, it just goes there & shouldn't change.
 	//TODO: skeleton list of matrices
 	//Any other parameter types I can think of?
 
-	//FIXME: how do we distinguish the fields?
-	//i.e. how does the binding function know where to place the vertex buffer, the uv buffer, the vert color buffer, and the matrix buffer...?
-	//we have to have some sort of standardized language of where things go...
-	//but if we know where things go, then we know what parameter type they are, so I'm not sure the above parameter type defs are required..
-
-	//Explicit shader value definitions
-/*
-	GLint shader_vert_pos_loc = -1;
-	GLint shader_fill_color_loc = -1;
-	GLint shader_tex_loc = -1;
-	GLint shader_uv_loc = -1;
-	GLint shader_mvp_loc = -1;
-
-	GLuint test_tex = 0;
-	GLuint texture_id = 0;
- */
-
-	//Test handling of multiple parameters...
-	//If we want to handle arbitrary parameter types and values, we can't explicitly specify parameters. (as the code above and what we did before)
-	GLuint param_location[];
-	GLuint param_type[];
-	GLuint param_data[];
-	//problem: certain parameters require more than one piece of information...
-	//i.e. images require at least the data, name of the texture in the shader, resolution, & file size, unless I pass in an image struct that has all of this stuff
-	//we pass this one into the initializer
-	const char* param_name[];
+	//Arrays that hold arbitrary types of parameters
+	GLint* param_location;
+	GLuint* param_type;
+	int param_count;
 
 
 	//has a function for initializing a shader (accepts vert & frag shader source code)
 	//int initialize(char* vert_shader_src,char* vert_shader_name,char* frag_shader_src,char* frag_shader_name)
-	int initialize(int* param_types, int* params, int param_count)
+	int initialize(const char* vshader_src, const char* vshader_name, const char* fshader_src, const char* fshader_name,
+				GLuint* param_types, const char** param_identifiers, int params_count)
 	{
 		//Creating the gl program
 		gl_program = glCreateProgram();
@@ -91,33 +51,9 @@ class Shader
 			return 0;
 		}
 
-		for(int i = 0; i < param_count; i++)
-		{
-			switch(param_types[i])
-			{
-				case PARAM_VERT_SHADER:
-					break;
-				case PARAM_FRAG_SHADER:
-					break;
-				case PARAM_VERTICES:
-					break;
-				case PARAM_VERT_COLORS:
-					break;
-				case PARAM_VERT_UV1:
-					break;
-				case PARAM_MVP_MATRIX:
-					break;
-				case PARAM_TEXTURE:
-					break;
-				default:
-					break;
-			}
-		}
-
-		//Compiling the shaders
-		vert_shader = GL_Utils::load_shader(vert_shader_src,vert_shader_name,GL_VERTEX_SHADER);
-		frag_shader = GL_Utils::load_shader(frag_shader_src,frag_shader_name,GL_FRAGMENT_SHADER);
+		vert_shader = GL_Utils::load_shader(vshader_src,vshader_name,GL_VERTEX_SHADER);
 		glAttachShader(gl_program, vert_shader);
+		frag_shader = GL_Utils::load_shader(fshader_src,fshader_name,GL_FRAGMENT_SHADER);
 		glAttachShader(gl_program, frag_shader);
 		glLinkProgram(gl_program);
 
@@ -136,41 +72,50 @@ class Shader
 			LOGE("   linker log: %s.\n", info_log);
 			free(info_log);
 
+			if(vert_shader)
+				GL_Utils::unload_shader(vert_shader);
+			if(frag_shader)
+				GL_Utils::unload_shader(frag_shader);
 			glDeleteProgram(gl_program);
 			gl_program = 0;
 			return 0;
 		}
 		glUseProgram(gl_program);
 
-		shader_fill_color_loc = glGetAttribLocation(gl_program, "fill_color");
-		shader_vert_pos_loc = glGetAttribLocation(gl_program, "vert_pos");
-		shader_uv_loc = glGetAttribLocation(gl_program, "src_tex_coord");
-		shader_tex_loc = glGetUniformLocation(gl_program, "tex");
-		shader_mvp_loc = glGetUniformLocation(gl_program,"mvp");
 
+		//Create arrays with room for param_count entries
+		param_type = (GLuint*) malloc(sizeof(GLuint*) * params_count);
+		param_location = (GLint*) malloc(sizeof(GLint*) * params_count);
+		param_count = params_count;
 
-		//==================================== Loading texture ===============================
-		GLuint tex_id;
-		glGenTextures(1, &tex_id);
+		for(int i = 0; i < param_count; i++)
+		{
+			param_location[i] = -1;
+		}
 
-		//how do we pass in the texture?
-		//I wonder if we should just hold an array of structs
-		//======================
-		//glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex_id);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8, 512, 512, 0, 131072, (const void *) test_tex/**/);//need a way to pass in shader parameters
-		glBindTexture(GL_TEXTURE_2D,0);
-
-		texture_id = tex_id;
+		for(int i = 0; i < param_count; i++)
+		{
+			param_type[i] = param_types[i];
+			switch(param_types[i])
+			{
+				case PARAM_VERTICES:
+				case PARAM_VERT_COLORS:
+				case PARAM_VERT_UV1:
+					param_location[i] = glGetAttribLocation(gl_program, param_identifiers[i]);
+					break;
+				case PARAM_MVP_MATRIX:
+				case PARAM_TEXTURE:
+					param_location[i] = glGetUniformLocation(gl_program, param_identifiers[i]);
+					break;
+				default:
+					break;
+			}
+		}
+		return 0;
 	}
 
 	void term()
 	{
-		glDeleteTextures(1, &texture_id);
 		glDeleteProgram(gl_program);
 		if(frag_shader)
 			GL_Utils::unload_shader(frag_shader);
@@ -178,16 +123,66 @@ class Shader
 			GL_Utils::unload_shader(vert_shader);
 
 		gl_program = 0;
-		shader_vert_pos_loc = -1;
-		shader_fill_color_loc = -1;
-		shader_uv_loc = -1;
-		shader_tex_loc = -1;
-		shader_mvp_loc = -1;
-		texture_id = 0;
 		frag_shader = 0;
 		vert_shader = 0;
+
+		if(param_location)
+			free(param_location);
+		if(param_type)
+			free(param_type);
+		param_count = 0;
 	}
-	//has a function for binding a shader, accepting any required vertex data, and matrix data
-	//has a function for terminating a shader
+
+	int bind_shader()
+	{
+		glUseProgram(gl_program);
+	}
+	//Accepted an array of all of the required data? or some other method of binding the data?
+	int bind_shader_value(GLuint type,void* data)
+	{
+		int used_textures = 0;
+		//Iterate through all parameters until we find the one we're looking for
+		for(int i = 0; i < param_count; i++)
+		{
+			if(param_type[i] == type)
+			{
+				if(param_location[i] == -1)
+					continue;
+
+				switch(type)
+				{
+					case PARAM_VERTICES:
+						glVertexAttribPointer(param_location[i], 3, GL_FLOAT, GL_FALSE, 0, (float *) data);
+						glEnableVertexAttribArray(param_location[i]);
+						break;
+					case PARAM_VERT_COLORS:
+						glVertexAttribPointer(param_location[i], 4, GL_FLOAT, GL_FALSE, 0, (float*) data);
+						glEnableVertexAttribArray(param_location[i]);
+						break;
+					case PARAM_VERT_UV1:
+						glVertexAttribPointer(param_location[i],2, GL_FLOAT, GL_FALSE, 0, (float*) data);
+						glEnableVertexAttribArray(param_location[i]);
+						break;
+					case PARAM_MVP_MATRIX:
+						glUniformMatrix4fv(param_location[i],1,GL_FALSE,((Mat4*)data)->m);
+						break;
+					case PARAM_TEXTURE:
+						//FIXME: this will not work with more than one texture
+						//	need to do a switch case to get appropriate texture slot
+						glActiveTexture(GL_TEXTURE0);
+						glBindTexture(GL_TEXTURE_2D, (GLuint) data);
+						glUniform1i(param_location[i], used_textures);
+						used_textures++;
+						break;
+					default:
+						break;
+				}
+				break;
+			}
+		}
+		//need to somehow get the actual values of the parameters, recognize what is what using type:
+		//then bind them using functions
+
+	}
 };
 #endif //ENGINE_SHADER_H

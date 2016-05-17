@@ -31,6 +31,8 @@ Engine::Engine(struct android_app* droid_app)
 	camera = (Camera*) malloc(sizeof(Camera));
 	//FIXME: can't used width / height because they have not yet been assigned (assigned elsewhere)
 	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,0.1f,1000.0f);
+
+	test_shader = (Shader*) malloc(sizeof(Shader));
 }
 
 void Engine::handle_cmd(struct android_app *app, int32_t cmd)
@@ -239,8 +241,8 @@ void Engine::unload_shaders()
 
 void Engine::unload_assets()
 {
-	if(test_tex)
-		free((char*)test_tex);
+	if(test_texture)
+		free((char*)test_texture);
 }
 //=================================================================================================
 
@@ -581,6 +583,15 @@ int Engine::init_gl()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
+	//Initializing shader
+	//Populating parameter arrays
+
+	GLuint param_types[] = {Shader::PARAM_VERTICES,Shader::PARAM_VERT_COLORS,Shader::PARAM_VERT_UV1,Shader::PARAM_TEXTURE,Shader::PARAM_MVP_MATRIX};
+	const char* param_names[] = {"vert_pos","fill_color","src_tex_coord","tex","mvp"};
+	int param_count = 5;
+
+	test_shader->initialize(vert_shader_src,vert_shader_name,frag_shader_src,frag_shader_name,param_types,param_names,param_count);
+
 	//FIXME remove this
 	/*gl_program = glCreateProgram();
 	if(!gl_program)
@@ -625,7 +636,8 @@ int Engine::init_gl()
 	shader_vert_pos_loc = glGetAttribLocation(gl_program, "vert_pos");
 	shader_uv_loc = glGetAttribLocation(gl_program, "src_tex_coord");
 	shader_tex_loc = glGetUniformLocation(gl_program, "tex");
-	shader_mvp_loc = glGetUniformLocation(gl_program,"mvp");
+	shader_mvp_loc = glGetUniformLocation(gl_program,"mvp");*/
+
 	//==================================== Loading texture ===================
 	GLuint tex_id;
 	glGenTextures(1, &tex_id);
@@ -636,11 +648,11 @@ int Engine::init_gl()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8, 512, 512, 0, 131072, (const void *) test_tex);
+	glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8, 512, 512, 0, 131072, (const void *) test_texture);
 	glBindTexture(GL_TEXTURE_2D,0);
 
 
-	texture_id = tex_id;*/
+	texture_id = tex_id;
 	//========================================================================
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
@@ -652,10 +664,13 @@ void Engine::term_gl()
 	//Terminating all loaded shaders
 	//Unloading all loaded shaders
 
-	//FIXME remove the following code
-	/*
+
 	glDeleteTextures(1, &texture_id);
-	glDeleteProgram(gl_program);
+	texture_id = 0;
+	//FIXME remove the following code
+	test_shader->term();
+
+	/*glDeleteProgram(gl_program);
 	if(test_frag_shader)
 		GL_Utils::unload_shader(test_frag_shader);
 	if(test_vert_shader)
@@ -667,7 +682,7 @@ void Engine::term_gl()
 	shader_uv_loc = -1;
 	shader_tex_loc = -1;
 	shader_mvp_loc = -1;
-	texture_id = 0;
+
 	test_frag_shader = 0;
 	test_vert_shader = 0;
 	*/
@@ -833,7 +848,9 @@ void Engine::draw_frame()
 	camera->update_view_matrix();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(gl_program);
+	//glUseProgram(gl_program);
+
+
 
 	//Referencing vertices by index
 	unsigned int cube_tris[] =
@@ -861,26 +878,11 @@ void Engine::draw_frame()
 	//Have to bind the data before a call (taken care of above)
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
-	glVertexAttribPointer(shader_vert_pos_loc, 3, GL_FLOAT, GL_FALSE, 0, cube_vertices);
-	glEnableVertexAttribArray(shader_vert_pos_loc);
-	//Pass the fill color info
-	if(shader_fill_color_loc != -1)
-	{
-		glVertexAttribPointer(shader_fill_color_loc, 4, GL_FLOAT, GL_FALSE, 0, cube_colors);
-		glEnableVertexAttribArray(shader_fill_color_loc);
-	}
-	//Pass the uv coords
-	glVertexAttribPointer(shader_uv_loc,2, GL_FLOAT, GL_FALSE, 0, cube_uvs);
-	glEnableVertexAttribArray(shader_uv_loc);
-	//Binding the texture to use
-	if(texture_id)
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_id);
-		glUniform1i(shader_tex_loc, 0);
-	}
-	else
-		LOGE("texture not set, abort binding tex.\n");
+	test_shader->bind_shader();
+	test_shader->bind_shader_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
+	test_shader->bind_shader_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
+	test_shader->bind_shader_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
+	test_shader->bind_shader_value(Shader::PARAM_TEXTURE,(void*)texture_id);
 
 	//Rendering a single model
 	int i = 0;
@@ -898,7 +900,7 @@ void Engine::draw_frame()
 				Mat4 model_pos = Mat4::TRANSLATE(pos);
 				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate
 				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-				glUniformMatrix4fv(shader_mvp_loc,1,GL_FALSE,mvp.m);
+				test_shader->bind_shader_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
 				//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
 			}

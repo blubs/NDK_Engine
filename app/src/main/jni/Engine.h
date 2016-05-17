@@ -12,6 +12,7 @@
 #include "GL_Utils.h"
 #include "Camera.h"
 #include "Player.h"
+#include "Shader.h"
 
 
 
@@ -97,9 +98,10 @@ public:
 		GLint shader_uv_loc = -1;
 		GLint shader_mvp_loc = -1;
 	GLuint gl_program = 0;
-	GLuint test_tex = 0;
-	GLuint texture_id = 0;
 */
+	Shader* test_shader;
+	//This is independent from shader
+	GLuint texture_id = 0;
 	const char* test_texture = 0;
 	void draw_frame();
 
