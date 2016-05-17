@@ -81,12 +81,16 @@ public:
 	bool data_initialized = false;
 
 
-	GLuint test_frag_shader = 0;
 	const char* frag_shader_src = 0;
 	const char* frag_shader_name = 0;
-	GLuint test_vert_shader = 0;
+
 	const char* vert_shader_src = 0;
 	const char* vert_shader_name = 0;
+
+	//FIXME remove this after shader.h is done
+/*
+	GLuint test_frag_shader = 0;
+	GLuint test_vert_shader = 0;
 		GLint shader_vert_pos_loc = -1;
 		GLint shader_fill_color_loc = -1;
 		GLint shader_tex_loc = -1;
@@ -95,7 +99,8 @@ public:
 	GLuint gl_program = 0;
 	GLuint test_tex = 0;
 	GLuint texture_id = 0;
-
+*/
+	const char* test_texture = 0;
 	void draw_frame();
 
 	EGLDisplay egl_display = 0;

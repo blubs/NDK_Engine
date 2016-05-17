@@ -222,8 +222,7 @@ int Engine::load_shaders()
 int Engine::load_assets()
 {
 	//Loading the test texture.
-	const char* tex_file = File_Utils::load_raw_asset("tex.pkm");
-	test_tex = (GLuint) tex_file;
+	test_texture = (char*) File_Utils::load_raw_asset("tex.pkm");
 	return 1;
 }
 
@@ -581,7 +580,9 @@ int Engine::init_gl()
 	//set blend function
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	gl_program = glCreateProgram();
+
+	//FIXME remove this
+	/*gl_program = glCreateProgram();
 	if(!gl_program)
 	{
 		LOGE("Error: failed to create gl program.\n");
@@ -639,7 +640,7 @@ int Engine::init_gl()
 	glBindTexture(GL_TEXTURE_2D,0);
 
 
-	texture_id = tex_id;
+	texture_id = tex_id;*/
 	//========================================================================
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
@@ -648,12 +649,13 @@ int Engine::init_gl()
 }
 void Engine::term_gl()
 {
-	glDeleteTextures(1, &texture_id);
-
-	glDeleteProgram(gl_program);
-
-
+	//Terminating all loaded shaders
 	//Unloading all loaded shaders
+
+	//FIXME remove the following code
+	/*
+	glDeleteTextures(1, &texture_id);
+	glDeleteProgram(gl_program);
 	if(test_frag_shader)
 		GL_Utils::unload_shader(test_frag_shader);
 	if(test_vert_shader)
@@ -668,6 +670,7 @@ void Engine::term_gl()
 	texture_id = 0;
 	test_frag_shader = 0;
 	test_vert_shader = 0;
+	*/
 }
 
 int Engine::init_data()
