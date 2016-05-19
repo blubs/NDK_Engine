@@ -18,17 +18,15 @@ public:
 	GLuint vert_shader;
 	GLuint frag_shader;
 
-
-	//TODO: modularize this a bit (how do we arbitrarily specify what attributes a shader needs?)
-
 	//Static types for parameters
 	static const int PARAM_VERTICES = 1;
-	//static const int PARAM_NORMALS = 2; TODO: later.
+	//static const int PARAM_NORMALS = 2; TODO: later
 	static const int PARAM_VERT_COLORS = 3;
 	static const int PARAM_VERT_UV1 = 4;
 	//static const int PARAM_VERT_UV2 = 5; TODO: later
 	static const int PARAM_MVP_MATRIX = 6;
-	static const int PARAM_TEXTURE = 7;//this one can be left vague, because whatever the identifier, it just goes there & shouldn't change.
+	static const int PARAM_TEXTURE_DIFFUSE = 7;//this one can be left vague, because whatever the identifier, it just goes there & shouldn't change.
+	//TODO: different texture types
 	//TODO: skeleton list of matrices
 	//Any other parameter types I can think of?
 
@@ -37,6 +35,8 @@ public:
 	GLuint* param_type;
 	int param_count;
 
+	//Running count of how many textures we have bound. Resets every time bind is initiated.
+	int bound_textures;
 
 	//has a function for initializing a shader (accepts vert & frag shader source code)
 	//int initialize(char* vert_shader_src,char* vert_shader_name,char* frag_shader_src,char* frag_shader_name)
@@ -104,7 +104,7 @@ public:
 					param_location[i] = glGetAttribLocation(gl_program, param_identifiers[i]);
 					break;
 				case PARAM_MVP_MATRIX:
-				case PARAM_TEXTURE:
+				case PARAM_TEXTURE_DIFFUSE:
 					param_location[i] = glGetUniformLocation(gl_program, param_identifiers[i]);
 					break;
 				default:
@@ -136,11 +136,14 @@ public:
 	int bind_shader()
 	{
 		glUseProgram(gl_program);
+		bound_textures = 0;
+		return 1;
 	}
 	//Accepted an array of all of the required data? or some other method of binding the data?
 	int bind_shader_value(GLuint type,void* data)
 	{
 		int used_textures = 0;
+		GLuint loc;//used for vertex attributes that require the locations to be unsigned ints
 		//Iterate through all parameters until we find the one we're looking for
 		for(int i = 0; i < param_count; i++)
 		{
@@ -148,31 +151,46 @@ public:
 			{
 				if(param_location[i] == -1)
 					continue;
+				loc = 0;
+				//Handle parameter locations that expect unsigned int values
+				switch(type)
+				{
+					case PARAM_VERTICES:
+					case PARAM_VERT_COLORS:
+					case PARAM_VERT_UV1:
+						if(param_location[i] > INT_MAX)
+						{
+							LOGE("Error: unsigned int parameter location in shader is greater than the capacity of int.\n");
+							return 0;
+						}
+						loc = (GLuint) param_location[i];
+						break;
+					default:
+						break;
+				}
 
 				switch(type)
 				{
 					case PARAM_VERTICES:
-						glVertexAttribPointer(param_location[i], 3, GL_FLOAT, GL_FALSE, 0, (float *) data);
-						glEnableVertexAttribArray(param_location[i]);
+						glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, (float*) data);
+						glEnableVertexAttribArray(loc);
 						break;
 					case PARAM_VERT_COLORS:
-						glVertexAttribPointer(param_location[i], 4, GL_FLOAT, GL_FALSE, 0, (float*) data);
-						glEnableVertexAttribArray(param_location[i]);
+						glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, (float*) data);
+						glEnableVertexAttribArray(loc);
 						break;
 					case PARAM_VERT_UV1:
-						glVertexAttribPointer(param_location[i],2, GL_FLOAT, GL_FALSE, 0, (float*) data);
-						glEnableVertexAttribArray(param_location[i]);
+						glVertexAttribPointer(loc,2, GL_FLOAT, GL_FALSE, 0, (float*) data);
+						glEnableVertexAttribArray(loc);
 						break;
 					case PARAM_MVP_MATRIX:
 						glUniformMatrix4fv(param_location[i],1,GL_FALSE,((Mat4*)data)->m);
 						break;
-					case PARAM_TEXTURE:
-						//FIXME: this will not work with more than one texture
-						//	need to do a switch case to get appropriate texture slot
-						glActiveTexture(GL_TEXTURE0);
+					case PARAM_TEXTURE_DIFFUSE:
+						glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
 						glBindTexture(GL_TEXTURE_2D, (GLuint) data);
 						glUniform1i(param_location[i], used_textures);
-						used_textures++;
+						bound_textures++;
 						break;
 					default:
 						break;
@@ -180,9 +198,7 @@ public:
 				break;
 			}
 		}
-		//need to somehow get the actual values of the parameters, recognize what is what using type:
-		//then bind them using functions
-
+		return 1;
 	}
 };
 #endif //ENGINE_SHADER_H

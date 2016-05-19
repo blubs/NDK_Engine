@@ -89,8 +89,8 @@ void android_main(struct android_app *app)
 			}
 			//Drawing throttled by screen update rate, no timing code needed here
 			static long frame = 0;
-		//	if(frame % 60 == 0)
-		//		LOGE("60 frames passed\n");
+			//if(frame % 60 == 0)
+			//	LOGE("60 frames passed\n");
 			//LOGE("Frame: %ld, frame mod 60 = %ld\n",frame,(frame % 60));
 			frame++;
 			engine.draw_frame();

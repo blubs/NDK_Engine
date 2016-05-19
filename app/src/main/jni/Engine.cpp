@@ -586,7 +586,7 @@ int Engine::init_gl()
 	//Initializing shader
 	//Populating parameter arrays
 
-	GLuint param_types[] = {Shader::PARAM_VERTICES,Shader::PARAM_VERT_COLORS,Shader::PARAM_VERT_UV1,Shader::PARAM_TEXTURE,Shader::PARAM_MVP_MATRIX};
+	GLuint param_types[] = {Shader::PARAM_VERTICES,Shader::PARAM_VERT_COLORS,Shader::PARAM_VERT_UV1,Shader::PARAM_TEXTURE_DIFFUSE,Shader::PARAM_MVP_MATRIX};
 	const char* param_names[] = {"vert_pos","fill_color","src_tex_coord","tex","mvp"};
 	int param_count = 5;
 
@@ -638,7 +638,7 @@ int Engine::init_gl()
 	shader_tex_loc = glGetUniformLocation(gl_program, "tex");
 	shader_mvp_loc = glGetUniformLocation(gl_program,"mvp");*/
 
-	//==================================== Loading texture ===================
+	//==================================== Loading textures =======================================
 	GLuint tex_id;
 	glGenTextures(1, &tex_id);
 	//======================
@@ -882,7 +882,7 @@ void Engine::draw_frame()
 	test_shader->bind_shader_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
 	test_shader->bind_shader_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
 	test_shader->bind_shader_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
-	test_shader->bind_shader_value(Shader::PARAM_TEXTURE,(void*)texture_id);
+	test_shader->bind_shader_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
 
 	//Rendering a single model
 	int i = 0;
