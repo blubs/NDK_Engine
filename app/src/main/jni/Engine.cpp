@@ -33,6 +33,9 @@ Engine::Engine(struct android_app* droid_app)
 	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,0.1f,1000.0f);
 
 	test_shader = (Shader*) malloc(sizeof(Shader));
+
+	mat_red = (Material*) malloc(sizeof(Material));
+	mat_blue = (Material*) malloc(sizeof(Material));
 }
 
 void Engine::handle_cmd(struct android_app *app, int32_t cmd)
@@ -586,11 +589,23 @@ int Engine::init_gl()
 	//Initializing shader
 	//Populating parameter arrays
 
-	GLuint param_types[] = {Shader::PARAM_VERTICES,Shader::PARAM_VERT_COLORS,Shader::PARAM_VERT_UV1,Shader::PARAM_TEXTURE_DIFFUSE,Shader::PARAM_MVP_MATRIX};
-	const char* param_names[] = {"vert_pos","fill_color","src_tex_coord","tex","mvp"};
-	int param_count = 5;
+	GLuint param_types[] = {Shader::PARAM_VERTICES,Shader::PARAM_VERT_COLORS,Shader::PARAM_VERT_UV1,Shader::PARAM_TEXTURE_DIFFUSE,Shader::PARAM_MVP_MATRIX,Shader::PARAM_TEST_FIELD};
+	const char* param_names[] = {"vert_pos","fill_color","src_tex_coord","tex","mvp","test_color_param"};
+	int param_count = 6;
 
 	test_shader->initialize(vert_shader_src,vert_shader_name,frag_shader_src,frag_shader_name,param_types,param_names,param_count);
+
+	mat_red->initialize();
+	mat_red->set_shader(test_shader);
+	float color_red[] = {1.0f,0.4f,0.4f,1.0f};
+	mat_red->set_fixed_shader_param(Shader::PARAM_TEST_FIELD,color_red,sizeof(float) * 4);
+
+	mat_blue->initialize();
+	mat_blue->set_shader(test_shader);
+	float color_blue[] = {0.4f,1.0f,0.4f,1.0f};
+	LOGE("color blue: %f %f %f %f\n",color_blue[0],color_blue[1],color_blue[2],color_blue[3]);
+	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD,color_blue,sizeof(float) * 4);
+
 
 	//FIXME remove this
 	/*gl_program = glCreateProgram();
@@ -642,7 +657,6 @@ int Engine::init_gl()
 	GLuint tex_id;
 	glGenTextures(1, &tex_id);
 	//======================
-	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -661,9 +675,11 @@ int Engine::init_gl()
 }
 void Engine::term_gl()
 {
+	//Terminating all loaded materials
+	mat_blue->term();
+	mat_red->term();
 	//Terminating all loaded shaders
 	//Unloading all loaded shaders
-
 
 	glDeleteTextures(1, &texture_id);
 	texture_id = 0;
@@ -878,29 +894,50 @@ void Engine::draw_frame()
 	//Have to bind the data before a call (taken care of above)
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
-	test_shader->bind_shader();
+	/*test_shader->bind_shader();
 	test_shader->bind_shader_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
 	test_shader->bind_shader_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
 	test_shader->bind_shader_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
-	test_shader->bind_shader_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
+	test_shader->bind_shader_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);*/
 
 	//Rendering a single model
 	int i = 0;
 	int j = 0;
 	int k = 0;
 	//Drawing a 3d array of triangles
-	for(int i = 0; i < 10; i++)
+	//for(i = 0; i < 10; i++)
 	{
-		for(int j = 0; j < 10; j++)
+	//	for(j = 0; j < 10; j++)
 		{
-			for(int k = 0; k < 10; k++)
+	//		for(k = 0; k < 10; k++)
 			{
 				Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
 
 				Mat4 model_pos = Mat4::TRANSLATE(pos);
 				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate
 				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
-				test_shader->bind_shader_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
+
+				//Make a checker board pattern of cubes
+				if((i+j+k)%2)
+				{
+					mat_red->bind_material();
+					mat_red->bind_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
+					mat_red->bind_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
+					mat_red->bind_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
+					mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
+					mat_red->bind_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
+
+				}
+				else
+				{
+					mat_blue->bind_material();
+					mat_blue->bind_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
+					mat_blue->bind_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
+					mat_blue->bind_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
+					mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
+					mat_blue->bind_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
+				}
+
 				//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
 			}

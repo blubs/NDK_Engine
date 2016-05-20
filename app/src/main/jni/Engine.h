@@ -13,6 +13,7 @@
 #include "Camera.h"
 #include "Player.h"
 #include "Shader.h"
+#include "Material.h"
 
 
 
@@ -100,6 +101,9 @@ public:
 	GLuint gl_program = 0;
 */
 	Shader* test_shader;
+
+	Material* mat_red;
+	Material* mat_blue;
 	//This is independent from shader
 	GLuint texture_id = 0;
 	const char* test_texture = 0;
