@@ -114,7 +114,6 @@ int Shader::bind_shader_value (GLuint type, void *data)
 	{
 		if(param_type[i] == type)
 		{
-			LOGE("about to call bind shader param at index %d",i);
 			bind_shader_value_by_index(i,data);
 			break;
 		}
@@ -125,7 +124,6 @@ int Shader::bind_shader_value (GLuint type, void *data)
 //Binds a value to a shader location for rendering, given we already know the index of the data
 int Shader::bind_shader_value_by_index (int index, void *data)
 {
-	LOGE("binding shader param at index %d",index);
 	GLuint loc;//used for vertex attributes that require the locations to be unsigned ints
 	if(param_location[index] == -1)
 	{

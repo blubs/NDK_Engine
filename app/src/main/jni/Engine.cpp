@@ -602,8 +602,7 @@ int Engine::init_gl()
 
 	mat_blue->initialize();
 	mat_blue->set_shader(test_shader);
-	float color_blue[] = {0.4f,1.0f,0.4f,1.0f};
-	LOGE("color blue: %f %f %f %f\n",color_blue[0],color_blue[1],color_blue[2],color_blue[3]);
+	float color_blue[] = {0.4f,0.4f,1.0f,1.0f};
 	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD,color_blue,sizeof(float) * 4);
 
 
@@ -905,11 +904,11 @@ void Engine::draw_frame()
 	int j = 0;
 	int k = 0;
 	//Drawing a 3d array of triangles
-	//for(i = 0; i < 10; i++)
+	for(i = 0; i < 10; i++)
 	{
-	//	for(j = 0; j < 10; j++)
+		for(j = 0; j < 10; j++)
 		{
-	//		for(k = 0; k < 10; k++)
+			for(k = 0; k < 10; k++)
 			{
 				Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
 
@@ -926,7 +925,6 @@ void Engine::draw_frame()
 					mat_red->bind_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
 					mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
 					mat_red->bind_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
-
 				}
 				else
 				{
@@ -937,7 +935,6 @@ void Engine::draw_frame()
 					mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
 					mat_blue->bind_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
 				}
-
 				//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
 			}

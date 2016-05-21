@@ -115,14 +115,11 @@ public:
 		{
 			if(params[i])
 			{
-				LOGE("bind material: found param %d , binding it\n",i);
-				shader->bind_shader_value_by_index(i, &(params[i]));
+				shader->bind_shader_value_by_index(i, params[i]);
 			}
 			else if(alloced_params[i])
 			{
-				LOGE("bind material: found alloced param %d , binding it\n",i);
-				LOGE("type = %d, TEST_PARAM = %d",shader->param_type[i], Shader::PARAM_TEST_FIELD);
-				shader->bind_shader_value_by_index(i, &(alloced_params[i]));
+				shader->bind_shader_value_by_index(i, alloced_params[i]);
 			}
 		}
 		return 1;
@@ -142,17 +139,14 @@ public:
 	//has a function for terminating this material
 	void term()
 	{
-		LOGE("terminate material called\n");
 		if(params)
 		{
-			LOGE("params is initialiezd\n");
 			clear_all_params();
 			free(params);
 			free(alloced_params);
 		}
 		param_count = 0;
 		shader = NULL;
-		LOGE("terminate material finished\n");
 	}
 
 private:
@@ -162,7 +156,6 @@ private:
 		{
 			if(alloced_params[i])
 			{
-				LOGE("found allocated param at index %d, freeing it",i);
 				free(alloced_params[i]);
 			}
 
