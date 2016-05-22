@@ -223,6 +223,13 @@ struct Quat
 		result.v = v*-1.0f;
 		return result;
 	}
+	//Actually inverts this quaternion
+	void invert()
+	{
+		v.x *= -1.0f;
+		v.y *= -1.0f;
+		v.z *= -1.0f;
+	}
 
 	//Multiplies a quaternion and a vector (applies a rotation)
 	//The code is functionally equivalent to (q * p * q.invert()).v, where p.w = 0, p.v = r
