@@ -5,7 +5,7 @@
 #include "Engine.h"
 
 
-Engine::Engine(struct android_app* droid_app)
+Engine::Engine (struct android_app *droid_app)
 {
 	app = droid_app;
 
@@ -17,30 +17,34 @@ Engine::Engine(struct android_app* droid_app)
 	sensor_manager = ASensorManager_getInstance();
 	//Unused accelerometer sensor reference
 	//accelerometer_sensor = ASensorManager_getDefaultSensor(sensor_manager,ASENSOR_TYPE_ACCELEROMETER);
-	sensor_event_queue = ASensorManager_createEventQueue(sensor_manager, droid_app->looper, LOOPER_ID_USER,NULL,NULL);
+	sensor_event_queue = ASensorManager_createEventQueue(sensor_manager, droid_app->looper, LOOPER_ID_USER, NULL, NULL);
 
 	//Restore from a saved state
 	if(droid_app->savedState != NULL)
 	{
 		//Really not sure when this is running, I'll add debug code so I can be informed when
 		LOGE("NOT AN ERROR: notifying that previous saved state was not null, set state to prev state.\n");
-		state = *(struct saved_state*) droid_app->savedState;
+		state = *(struct saved_state *) droid_app->savedState;
 	}
 
 	///... how do I want to hold game structs?
-	camera = (Camera*) malloc(sizeof(Camera));
+	camera = (Camera *) malloc(sizeof(Camera));
 	//FIXME: can't used width / height because they have not yet been assigned (assigned elsewhere)
-	camera->set_view_attributes(90.0f * DEG_TO_RAD,ASPECT_16_9_PORTRAIT,0.1f,1000.0f);
+	camera->set_view_attributes(90.0f * DEG_TO_RAD, ASPECT_16_9_PORTRAIT, 0.1f, 1000.0f);
 
-	test_shader = (Shader*) malloc(sizeof(Shader));
+	test_shader = (Shader *) malloc(sizeof(Shader));
 
-	mat_red = (Material*) malloc(sizeof(Material));
-	mat_blue = (Material*) malloc(sizeof(Material));
+	test_skeletal_shader = (Shader *) malloc(sizeof(Shader));
+
+	mat_red = (Material *) malloc(sizeof(Material));
+	mat_blue = (Material *) malloc(sizeof(Material));
+
+	skeletal_mat = (Material *) malloc(sizeof(Material));
 }
 
-void Engine::handle_cmd(struct android_app *app, int32_t cmd)
+void Engine::handle_cmd (struct android_app *app, int32_t cmd)
 {
-	Engine* eng = (Engine*)app->userData;
+	Engine *eng = (Engine *) app->userData;
 
 	switch(cmd)
 	{
@@ -48,7 +52,7 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 		case APP_CMD_SAVE_STATE:
 			eng->app->savedState = malloc(sizeof(struct saved_state));
 			//*((struct saved_state*) eng->app->savedState) = *(eng->state);
-			*((struct saved_state*) eng->app->savedState) = (eng->state);
+			*((struct saved_state *) eng->app->savedState) = (eng->state);
 
 			eng->app->savedStateSize = sizeof(struct saved_state);
 			break;
@@ -81,7 +85,7 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 			//if(eng->accelerometer_sensor != NULL)
 			//{
 			//	ASensorEventQueue_enableSensor(eng->sensor_event_queue,eng->accelerometer_sensor);
-				//60 samples per second
+			//60 samples per second
 			//	ASensorEventQueue_setEventRate(eng->sensor_event_queue,eng->accelerometer_sensor, (1000L/60)*1000);
 			//}
 			eng->start_audio();
@@ -101,7 +105,8 @@ void Engine::handle_cmd(struct android_app *app, int32_t cmd)
 	}
 	return;
 }
-int32_t Engine::handle_input(struct android_app *app, AInputEvent *event)
+
+int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 {
 	Engine *eng = (Engine *) app->userData;
 	int type = AInputEvent_getType(event);
@@ -115,18 +120,18 @@ int32_t Engine::handle_input(struct android_app *app, AInputEvent *event)
 		switch(motion_type)
 		{
 			case AMOTION_EVENT_ACTION_DOWN:
-				x = AMotionEvent_getX(event,0) /eng->width;
-				y = AMotionEvent_getY(event,0) /eng->height;//0 being pointer index
+				x = AMotionEvent_getX(event, 0) / eng->width;
+				y = AMotionEvent_getY(event, 0) / eng->height;//0 being pointer index
 				//LOGI("Amotion event action down: (%.4f,%.4f)\n",x,y);
 				break;
 			case AMOTION_EVENT_ACTION_UP:
-				x = AMotionEvent_getX(event,0) /eng->width;
-				y = AMotionEvent_getY(event,0) /eng->height;//0 being pointer index
+				x = AMotionEvent_getX(event, 0) / eng->width;
+				y = AMotionEvent_getY(event, 0) / eng->height;//0 being pointer index
 				//LOGI("Amotion event action up: (%.4f,%.4f)\n",x,y);
 				break;
 			case AMOTION_EVENT_ACTION_MOVE:
-				x = AMotionEvent_getX(event,0) /eng->width;
-				y = AMotionEvent_getY(event,0) /eng->height;//0 being pointer index
+				x = AMotionEvent_getX(event, 0) / eng->width;
+				y = AMotionEvent_getY(event, 0) / eng->height;//0 being pointer index
 				//LOGI("Amotion event action move: (%.4f,%.4f)\n",x,y);
 				break;
 			default:
@@ -135,28 +140,28 @@ int32_t Engine::handle_input(struct android_app *app, AInputEvent *event)
 
 
 		eng->animating = 1;
-		eng->state.x =  AMotionEvent_getX(event, 0) / eng->width;
-		eng->state.y =  AMotionEvent_getY(event, 0) / eng->height;
+		eng->state.x = AMotionEvent_getX(event, 0) / eng->width;
+		eng->state.y = AMotionEvent_getY(event, 0) / eng->height;
 		return 1;
 	}
 	return 0;
 }
 
-int Engine::init_display()
+int Engine::init_display ()
 {
 #ifdef DEBUG_MODE
 	LOGI("LIFECYCLE: Display initialized.\n");
 #endif
 	//Setting up OPENGLES
 	const EGLint config_attribs[] = {
-		   EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		   EGL_BLUE_SIZE, 8,
-		   EGL_GREEN_SIZE, 8,
-		   EGL_RED_SIZE, 8,
-		   EGL_DEPTH_SIZE, 24,
-		   EGL_NONE
+	EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+	EGL_BLUE_SIZE, 8,
+	EGL_GREEN_SIZE, 8,
+	EGL_RED_SIZE, 8,
+	EGL_DEPTH_SIZE, 24,
+	EGL_NONE
 	};
-	EGLint w,h,num_configs;
+	EGLint w, h, num_configs;
 	EGLConfig config;
 	EGLSurface surface;
 	EGLContext context;
@@ -168,7 +173,7 @@ int Engine::init_display()
 		LOGW("eglGetDisplay returned NULL");
 		return -1;
 	}*/
-	eglInitialize(display,0,0);
+	eglInitialize(display, 0, 0);
 
 	//Choosing first config that matches our criteria)
 	eglChooseConfig(display, config_attribs, &config, 1, &num_configs);
@@ -185,8 +190,8 @@ int Engine::init_display()
 		return -1;
 	}
 
-	eglQuerySurface(display,surface,EGL_WIDTH, &w);
-	eglQuerySurface(display,surface,EGL_HEIGHT, &h);
+	eglQuerySurface(display, surface, EGL_WIDTH, &w);
+	eglQuerySurface(display, surface, EGL_HEIGHT, &h);
 
 	egl_display = display;
 	egl_context = context;
@@ -211,45 +216,54 @@ int Engine::init_display()
 
 //========================================= Loading assets ======================================
 
-int Engine::load_shaders()
+int Engine::load_shaders ()
 {
 	vert_shader_name = "minimal.vert";
 	frag_shader_name = "minimal.frag";
 	frag_shader_src = File_Utils::load_raw_asset("minimal.frag");
 	vert_shader_src = File_Utils::load_raw_asset("minimal.vert");
 
+
+	skel_fshader_nm = "test_skeletal.frag";
+	skel_vshader_nm = "test_skeletal.vert";
+	skel_fshader_src = File_Utils::load_raw_asset("test_skeletal.frag");
+	skel_vshader_src = File_Utils::load_raw_asset("test_skeletal.vert");
 	return 1;
 }
 
 
-
 //Returns 0 on fail, returns 1 on success.
-int Engine::load_assets()
+int Engine::load_assets ()
 {
 	//Loading the test texture.
-	test_texture = (char*) File_Utils::load_raw_asset("tex.pkm");
+	test_texture = (char *) File_Utils::load_raw_asset("tex.pkm");
 	return 1;
 }
 
 //=================================================================================================
 
 //========================================= Unloading assets ======================================
-void Engine::unload_shaders()
+void Engine::unload_shaders ()
 {
 	if(vert_shader_src)
-		free((char*)vert_shader_src);
+		free((char *) vert_shader_src);
 	if(frag_shader_src)
-		free((char*)frag_shader_src);
+		free((char *) frag_shader_src);
+
+	if(skel_fshader_src)
+		free((char *) frag_shader_src);
+	if(skel_vshader_src)
+		free((char *) frag_shader_src);
 }
 
-void Engine::unload_assets()
+void Engine::unload_assets ()
 {
 	if(test_texture)
-		free((char*)test_texture);
+		free((char *) test_texture);
 }
 //=================================================================================================
 
-void Engine::term_display()
+void Engine::term_display ()
 {
 #ifdef DEBUG_MODE
 	LOGI("LIFECYCLE: DISPLAY TERMINATED\n");
@@ -281,7 +295,7 @@ void Engine::term_display()
 }
 
 //Callback for swapping audio buffers
-void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
+void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 {
 	Engine *e = ((Engine *) c);
 
@@ -301,8 +315,8 @@ void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
 	//Populate the current audio buffer with the whatever sounds that are playing.
 	if(e->snd_ch.used)
 	{
-		float falloff = 1.0f/( 50.0f * ((float)e->state.x)  /  ((float)e->width)  );
-		falloff = fminf(1.0f,falloff);
+		float falloff = 1.0f / (50.0f * ((float) e->state.x) / ((float) e->width));
+		falloff = fminf(1.0f, falloff);
 		falloff = fmaxf(0.0f, falloff);
 		float last_falloff = e->snd_ch.last_falloff;
 		e->snd_ch.last_falloff = falloff;
@@ -312,15 +326,16 @@ void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
 		//Distance emulated between 0 and 50 meters
 
 		//Need file length, and audio
-		int smpls_cp = SND_AUDIO_BUFFER_SIZE < (e->snd_ch.length - e->snd_ch.position) ? SND_AUDIO_BUFFER_SIZE : (e->snd_ch.length - e->snd_ch.position);
+		int smpls_cp = SND_AUDIO_BUFFER_SIZE < (e->snd_ch.length - e->snd_ch.position) ? SND_AUDIO_BUFFER_SIZE :
+		(e->snd_ch.length - e->snd_ch.position);
 
 
 		for(int i = 0; i < smpls_cp; i++)
 		{
 			//Calculating current lerped falloff
-			falloff = faloff_slope*i + last_falloff;
+			falloff = faloff_slope * i + last_falloff;
 
-			Stereo_Sample smp = *((Stereo_Sample*) (e->snd_ch.data) + (i + e->snd_ch.position));
+			Stereo_Sample smp = *((Stereo_Sample *) (e->snd_ch.data) + (i + e->snd_ch.position));
 			smp.l *= falloff;
 			smp.r *= falloff;
 			e->active_audio_buffer[i] = smp;
@@ -335,7 +350,7 @@ void sl_buffer_callback(SLBufferQueueItf snd_queue, void* c)
 	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
 }
 
-void Engine::play_sound()
+void Engine::play_sound ()
 {
 	if(snd_ch.data == NULL)
 		return;
@@ -344,7 +359,7 @@ void Engine::play_sound()
 	snd_ch.position = 0;
 }
 
-int Engine::init_sl()
+int Engine::init_sl ()
 {
 
 	//=================================== Creating the SL Sound Engine ======================================
@@ -473,7 +488,7 @@ int Engine::init_sl()
 	//=============== Setting the Buffer Swapping Callback ======================================================
 	// called when current buffer is done playing to prepare the next buffer
 	result =
-		(*sl_buffer_queue_interface)->RegisterCallback(sl_buffer_queue_interface, sl_buffer_callback, this);//(void*)&osl_engine
+	(*sl_buffer_queue_interface)->RegisterCallback(sl_buffer_queue_interface, sl_buffer_callback, this);//(void*)&osl_engine
 	if(result != SL_RESULT_SUCCESS)
 	{
 		LOGE("sl_buffer_queue_interface RegisterCallback failed");
@@ -508,7 +523,7 @@ int Engine::init_sl()
 	//Send first audio buffer to the audio player
 	(*sl_buffer_queue_interface)->Enqueue(sl_buffer_queue_interface, active_audio_buffer, sizeof(short) * SND_AUDIO_BUFFER_SIZE);
 	//Swap the audio buffers
-	Stereo_Sample* other_buffer = active_audio_buffer;
+	Stereo_Sample *other_buffer = active_audio_buffer;
 	active_audio_buffer = inactive_audio_buffer;
 	inactive_audio_buffer = other_buffer;
 
@@ -522,13 +537,13 @@ int Engine::init_sl()
 	//	}
 }
 
-void Engine::term_sl()
+void Engine::term_sl ()
 {
 	stop_audio();
 	if(sl_audio_player != NULL)
 	{
 		SLuint32 sound_player_state;
-		(*sl_audio_player)->GetState(sl_audio_player,&sound_player_state);
+		(*sl_audio_player)->GetState(sl_audio_player, &sound_player_state);
 
 		if(sound_player_state == SL_OBJECT_STATE_REALIZED)
 		{
@@ -557,22 +572,24 @@ void Engine::term_sl()
 	}
 }
 
-void Engine::start_audio()
+void Engine::start_audio ()
 {
-	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface,SL_PLAYSTATE_PLAYING);
+	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface, SL_PLAYSTATE_PLAYING);
 }
 
-void Engine::stop_audio()
+void Engine::stop_audio ()
 {
-	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface,SL_PLAYSTATE_STOPPED);
+	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface, SL_PLAYSTATE_STOPPED);
 }
-void Engine::pause_audio()
+
+void Engine::pause_audio ()
 {
 	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface, SL_PLAYSTATE_PAUSED);
 }
 
-int Engine::init_gl()
+int Engine::init_gl ()
 {
+	LOGE("Init gl");
 	//Init gl state
 	//At this stage, all of the shaders have already been loaded.
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
@@ -589,68 +606,62 @@ int Engine::init_gl()
 	//Initializing shader
 	//Populating parameter arrays
 
-	GLuint param_types[] = {Shader::PARAM_VERTICES,Shader::PARAM_VERT_COLORS,Shader::PARAM_VERT_UV1,Shader::PARAM_TEXTURE_DIFFUSE,Shader::PARAM_MVP_MATRIX,Shader::PARAM_TEST_FIELD};
-	const char* param_names[] = {"vert_pos","fill_color","src_tex_coord","tex","mvp","test_color_param"};
+	GLuint param_types[] =
+	{
+		Shader::PARAM_VERTICES,
+		Shader::PARAM_VERT_COLORS,
+		Shader::PARAM_VERT_UV1,
+		Shader::PARAM_TEXTURE_DIFFUSE,
+		Shader::PARAM_MVP_MATRIX,
+		Shader::PARAM_TEST_FIELD
+	};
+	const char *param_names[] =
+	{
+		"vert_pos",
+		"fill_color",
+		"src_tex_coord",
+		"tex", "mvp",
+		"test_color_param"
+	};
 	int param_count = 6;
 
-	test_shader->initialize(vert_shader_src,vert_shader_name,frag_shader_src,frag_shader_name,param_types,param_names,param_count);
+	test_shader->initialize(vert_shader_src, vert_shader_name, frag_shader_src, frag_shader_name, param_types, param_names,
+					    param_count);
 
 	mat_red->initialize();
 	mat_red->set_shader(test_shader);
-	float color_red[] = {1.0f,0.4f,0.4f,1.0f};
-	mat_red->set_fixed_shader_param(Shader::PARAM_TEST_FIELD,color_red,sizeof(float) * 4);
+	float color_red[] = {1.0f, 0.4f, 0.4f, 1.0f};
+	mat_red->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, color_red, sizeof(float) * 4);
 
 	mat_blue->initialize();
 	mat_blue->set_shader(test_shader);
-	float color_blue[] = {0.4f,0.4f,1.0f,1.0f};
-	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD,color_blue,sizeof(float) * 4);
+	float color_blue[] = {0.4f, 0.4f, 1.0f, 1.0f};
+	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, color_blue, sizeof(float) * 4);
 
 
-	//FIXME remove this
-	/*gl_program = glCreateProgram();
-	if(!gl_program)
+	//================================Initializing the skeletal shaders======================================
+	GLuint skel_param_types[] =
 	{
-		LOGE("Error: failed to create gl program.\n");
-		return 0;
-	}
-
-	test_vert_shader = GL_Utils::load_shader(vert_shader_src,vert_shader_name,GL_VERTEX_SHADER);
-
-	test_frag_shader = GL_Utils::load_shader(frag_shader_src,frag_shader_name,GL_FRAGMENT_SHADER);
-
-	glAttachShader(gl_program, test_vert_shader);
-	glAttachShader(gl_program, test_frag_shader);
-
-	glLinkProgram(gl_program);
-
-	GLint linked;
-	glGetProgramiv(gl_program, GL_LINK_STATUS, &linked);
-
-	if(linked == GL_FALSE)
+		Shader::PARAM_VERTICES,
+		Shader::PARAM_VERT_UV1,
+		Shader::PARAM_TEXTURE_DIFFUSE,
+		Shader::PARAM_MVP_MATRIX,
+		Shader::PARAM_BONE_MATRICES,
+		Shader::PARAM_BONE_INDICES,
+		Shader::PARAM_BONE_WEIGHTS
+	};
+	const char *skel_param_names[] =
 	{
-		LOGE("Error: Failed to link gl program.\n");
-
-		GLint log_size = 0;
-		glGetProgramiv(gl_program, GL_INFO_LOG_LENGTH, &log_size);
-
-		GLchar *info_log = (GLchar *) malloc(sizeof(GLchar) * log_size);
-		glGetProgramInfoLog(gl_program, log_size, &log_size, info_log);
-		LOGE("   linker log: %s.\n", info_log);
-		free(info_log);
-
-		glDeleteProgram(gl_program);
-		gl_program = 0;
-		return 0;
-	}
-
-
-	glUseProgram(gl_program);
-
-	shader_fill_color_loc = glGetAttribLocation(gl_program, "fill_color");
-	shader_vert_pos_loc = glGetAttribLocation(gl_program, "vert_pos");
-	shader_uv_loc = glGetAttribLocation(gl_program, "src_tex_coord");
-	shader_tex_loc = glGetUniformLocation(gl_program, "tex");
-	shader_mvp_loc = glGetUniformLocation(gl_program,"mvp");*/
+		"vert_pos",
+		"src_tex_coord",
+		"tex",
+		"mvp",
+		"bone",
+		"bone_index",
+		"bone_weight"
+	};
+	test_skeletal_shader->initialize(skel_vshader_src, skel_vshader_nm, skel_fshader_src, skel_fshader_nm, skel_param_types,
+							   skel_param_names, 4);
 
 	//==================================== Loading textures =======================================
 	GLuint tex_id;
@@ -662,7 +673,7 @@ int Engine::init_gl()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8, 512, 512, 0, 131072, (const void *) test_texture);
-	glBindTexture(GL_TEXTURE_2D,0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 
 	texture_id = tex_id;
@@ -670,9 +681,11 @@ int Engine::init_gl()
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
 	glClearColor(1, 1, 1, 1);
+	LOGE("Init gl finished");
 	return 1;
 }
-void Engine::term_gl()
+
+void Engine::term_gl ()
 {
 	//Terminating all loaded materials
 	mat_blue->term();
@@ -703,7 +716,7 @@ void Engine::term_gl()
 	*/
 }
 
-int Engine::init_data()
+int Engine::init_data ()
 {
 	LOGI("init_data...\n");
 	if(!init_sl())
@@ -717,7 +730,7 @@ int Engine::init_data()
 	return 1;
 }
 
-void Engine::term_data()
+void Engine::term_data ()
 {
 	unload_shaders();
 	unload_assets();
@@ -725,7 +738,7 @@ void Engine::term_data()
 	data_initialized = false;
 }
 
-void Engine::draw_frame()
+void Engine::draw_frame ()
 {
 	//Need to initialize data before the screen context has been created.
 	if(!data_initialized)
@@ -761,7 +774,7 @@ void Engine::draw_frame()
 	glDepthMask(GL_TRUE);
 
 	//Filling the screen with a color
-	glClearColor(state.x, 0.0f/*state.angle*/, state.y,1);
+	glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
 	//glClear(GL_COLOR_BUFFER_BIT);
 
 	//Triangle is in the xy plane, facing the negative y direction
@@ -855,9 +868,9 @@ void Engine::draw_frame()
 
 	camera->angles = Vec3::ZERO();
 	//Pitch
-	camera->angles.x = ((0.5f-state.y)*TWO_PI);
+	camera->angles.x = ((0.5f - state.y) * TWO_PI);
 	//Yaw
-	camera->angles.y = (0.5f-state.x)*TWO_PI;
+	camera->angles.y = (0.5f - state.x) * TWO_PI;
 	//Roll
 	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
@@ -871,24 +884,24 @@ void Engine::draw_frame()
 	unsigned int cube_tris[] =
 	{
 		//Front quad
-		0,1,2, 2,3,0,
+		0, 1, 2, 2, 3, 0,
 		//Back quad
-		4,5,6, 6,7,4,
+		4, 5, 6, 6, 7, 4,
 		//Right quad
-		1,4,7, 7,2,1,
+		1, 4, 7, 7, 2, 1,
 		//Left quad
-		0,3,6, 6,5,0,
+		0, 3, 6, 6, 5, 0,
 		//Top quad
-		4,1,0, 0,5,4,
+		4, 1, 0, 0, 5, 4,
 		//Bottom quad
-		6,3,2, 2,7,6,
+		6, 3, 2, 2, 7, 6,
 	};
 
 	GLuint element_buffer;
 	glGenBuffers(1, &element_buffer);
 	//Bind the buffer to set the data
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,element_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,36 * sizeof(unsigned int)/*size of indices*/,cube_tris,GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)/*size of indices*/, cube_tris, GL_STATIC_DRAW);
 
 	//Have to bind the data before a call (taken care of above)
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
@@ -899,47 +912,145 @@ void Engine::draw_frame()
 	test_shader->bind_shader_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
 	test_shader->bind_shader_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);*/
 
-	//Rendering a single model
 	int i = 0;
 	int j = 0;
 	int k = 0;
-	//Drawing a 3d array of triangles
-	for(i = 0; i < 10; i++)
+	//Drawing a 3d array of cubes
+	for(i = 0; i < 4; i++)
 	{
-		for(j = 0; j < 10; j++)
+		for(j = 0; j < 4; j++)
 		{
-			for(k = 0; k < 10; k++)
+			for(k = 0; k < 4; k++)
 			{
-				Vec3 pos(3.0f*(i-5.0f), 3.0f*(j-5.0f), 3.0f*(k-5.0f));
+				Vec3 pos(5.0f * (i - 2.0f), 5.0f * (j - 2.0f), 5.0f * (k - 2.0f));
 
 				Mat4 model_pos = Mat4::TRANSLATE(pos);
 				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate
 				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 
-				//Make a checker board pattern of cubes
-				if((i+j+k)%2)
+				//Make a checker board pattern of cubes (alternating materials between each subsequent cube)
+				if((i + j + k) % 2)
 				{
 					mat_red->bind_material();
-					mat_red->bind_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
-					mat_red->bind_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
-					mat_red->bind_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
-					mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
-					mat_red->bind_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
+					mat_red->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
+					mat_red->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
+					mat_red->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
+					mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) texture_id);
+					mat_red->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 				}
 				else
 				{
 					mat_blue->bind_material();
-					mat_blue->bind_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
-					mat_blue->bind_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
-					mat_blue->bind_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
-					mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);
-					mat_blue->bind_value(Shader::PARAM_MVP_MATRIX,(void*)&mvp);
+					mat_blue->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
+					mat_blue->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
+					mat_blue->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
+					mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) texture_id);
+					mat_blue->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 				}
 				//glDrawArrays(GL_TRIANGLES, 0, vert_count);
-				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
+				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
 			}
 		}
 	}
+
+
+	//Here is where we are going to test skeletal animation shader.
+
+	//This model has 2 vertically stretched boxes, which are weighted to different bones.
+	const float joint_vertices[] =
+	{
+		//Front quad
+		-0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, -0.5f,
+		-0.5f, 0.5f, -0.5f,
+		//Back quad
+		0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		//Right quad
+		//Left quad
+		//Top quad
+		//Bottom quad
+	};
+	const float joint_uvs[] =
+	{
+		//Front quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		//Back quad
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		//Right quad
+		//Left quad
+		//Top quad
+		//Bottom quad
+	};
+	const float joint_colors[] =
+	{
+		//Front quad
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		//Back quad
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		//Right quad
+		//Left quad
+		//Top quad
+		//Bottom quad
+	};
+
+	//Only the first bone index is set for all bones
+	//First 8 vertices bind to first bone, second 8 bind to second bone
+	const float joint_bone_indices[] =
+	{
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+		1.0f,-1.0f,-1.0f,
+	};
+
+	//Each vert is only weighted by the first bone index
+	const float joint_bone_weights[] =
+	{
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+		1.0f,0.0f,0.0f,
+	};
 
 	eglSwapBuffers(egl_display, egl_surface);
 }

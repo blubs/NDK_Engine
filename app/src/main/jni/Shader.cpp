@@ -163,13 +163,20 @@ int Shader::bind_shader_value_by_index (int index, void *data)
 			glEnableVertexAttribArray(loc);
 			break;
 		case PARAM_MVP_MATRIX:
-			glUniformMatrix4fv(param_location[index], 1, GL_FALSE, ((Mat4 *) data)->m);
+			glUniformMatrix4fv(param_location[index], 1, GL_FALSE, ((float *) data));
 			break;
 		case PARAM_TEXTURE_DIFFUSE:
 			glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
 			glBindTexture(GL_TEXTURE_2D, (GLuint) data);
 			glUniform1i(param_location[index], bound_textures);
 			bound_textures++;
+			break;
+		case PARAM_BONE_MATRICES:
+			//glUniformMatrix4fv(param_location[index], (how do we get the count?), GL_FALSE, (??? have to convert a mat4 array to just an array of arrays of floats);
+			break;
+		case PARAM_BONE_WEIGHTS:
+		case PARAM_BONE_INDICES:
+			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, (float*) data);
 			break;
 		case PARAM_TEST_FIELD:
 			glUniform4f(param_location[index], ((float*)data)[0],((float*)data)[1],((float*)data)[2],((float*)data)[3]);

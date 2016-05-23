@@ -89,6 +89,11 @@ public:
 	const char* vert_shader_src = 0;
 	const char* vert_shader_name = 0;
 
+	const char* skel_fshader_src = 0;
+	const char* skel_fshader_nm = 0;
+	const char* skel_vshader_src = 0;
+	const char* skel_vshader_nm = 0;
+
 	//FIXME remove this after shader.h is done
 /*
 	GLuint test_frag_shader = 0;
@@ -101,9 +106,12 @@ public:
 	GLuint gl_program = 0;
 */
 	Shader* test_shader;
+	Shader* test_skeletal_shader;
 
 	Material* mat_red;
 	Material* mat_blue;
+
+	Material* skeletal_mat;
 	//This is independent from shader
 	GLuint texture_id = 0;
 	const char* test_texture = 0;
