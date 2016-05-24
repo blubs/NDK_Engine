@@ -17,6 +17,8 @@ public:
 	GLuint vert_shader;
 	GLuint frag_shader;
 
+	GLuint indexed_tri_buffer;
+
 	//Static types for parameters
 	static const int PARAM_VERTICES = 1;
 	//static const int PARAM_NORMALS = 2; TODO: later

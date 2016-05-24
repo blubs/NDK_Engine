@@ -47,6 +47,8 @@ int Shader::initialize (const char *vshader_src, const char *vshader_name, const
 	}
 	glUseProgram(gl_program);
 
+	glGenBuffers(1,&indexed_tri_buffer);
+
 
 	//Create arrays with room for param_count entries
 	param_type = (GLuint *) malloc(sizeof(GLuint *) * params_count);
@@ -63,13 +65,18 @@ int Shader::initialize (const char *vshader_src, const char *vshader_name, const
 		param_type[i] = param_types[i];
 		switch(param_types[i])
 		{
+			//Attributes
 			case PARAM_VERTICES:
 			case PARAM_VERT_COLORS:
 			case PARAM_VERT_UV1:
+			case PARAM_BONE_WEIGHTS:
+			case PARAM_BONE_INDICES:
 				param_location[i] = glGetAttribLocation(gl_program, param_identifiers[i]);
 				break;
+			//Uniforms
 			case PARAM_MVP_MATRIX:
 			case PARAM_TEXTURE_DIFFUSE:
+			case PARAM_BONE_MATRICES:
 			case PARAM_TEST_FIELD:
 				param_location[i] = glGetUniformLocation(gl_program, param_identifiers[i]);
 				break;
@@ -82,7 +89,6 @@ int Shader::initialize (const char *vshader_src, const char *vshader_name, const
 
 void Shader::term ()
 {
-	glDeleteProgram(gl_program);
 	if(frag_shader)
 		GL_Utils::unload_shader(frag_shader);
 	if(vert_shader)
@@ -97,6 +103,8 @@ void Shader::term ()
 	if(param_type)
 		free(param_type);
 	param_count = 0;
+	glDeleteBuffers(1,&indexed_tri_buffer);
+	glDeleteProgram(gl_program);
 }
 
 int Shader::bind_shader ()
@@ -127,7 +135,7 @@ int Shader::bind_shader_value_by_index (int index, void *data)
 	GLuint loc;//used for vertex attributes that require the locations to be unsigned ints
 	if(param_location[index] == -1)
 	{
-		LOGE("Warning: param location at index %d has not been set",index);
+		LOGW("Warning: param location at index %d has not been set (type: %d)",index,param_type[index]);
 		return 0;
 	}
 	loc = 0;
@@ -137,6 +145,8 @@ int Shader::bind_shader_value_by_index (int index, void *data)
 		case PARAM_VERTICES:
 		case PARAM_VERT_COLORS:
 		case PARAM_VERT_UV1:
+		case PARAM_BONE_WEIGHTS:
+		case PARAM_BONE_INDICES:
 			if(param_location[index] > INT_MAX)
 			{
 				LOGE("Error: unsigned int parameter location in shader is greater than the capacity of int.\n");
@@ -172,7 +182,8 @@ int Shader::bind_shader_value_by_index (int index, void *data)
 			bound_textures++;
 			break;
 		case PARAM_BONE_MATRICES:
-			//glUniformMatrix4fv(param_location[index], (how do we get the count?), GL_FALSE, (??? have to convert a mat4 array to just an array of arrays of floats);
+			//First index holds the amount of matrices
+			glUniformMatrix4fv(param_location[index], (int)(*(float*)data), GL_FALSE, ((float*) data)+1);
 			break;
 		case PARAM_BONE_WEIGHTS:
 		case PARAM_BONE_INDICES:

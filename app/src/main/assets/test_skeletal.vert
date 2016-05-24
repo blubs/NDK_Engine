@@ -19,8 +19,8 @@ void main()
 	int index;
 
 	dest_tex_coord = src_tex_coord;
-	vert_color = vec4(1.0f,1.0f,1.0f,1.0f);
-	temp_pos = vec4(vert_pos.x,vert_pos.y,vert_pos.z,1.0);
+	vert_color = vec4(1.0,1.0,1.0,1.0);
+	temp_pos = vec4(vert_pos.x,vert_pos.y,vert_pos.z,1.0) * bone_weight.x;
 	index = int(bone_index.x);
 	pos = mvp * bone[index] * temp_pos;
 	gl_Position = pos;

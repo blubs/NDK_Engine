@@ -114,7 +114,7 @@ int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 	if(type == AINPUT_EVENT_TYPE_MOTION)
 	{
 		int32_t motion_action = AMotionEvent_getAction(event);
-		unsigned int motion_type = motion_action & AMOTION_EVENT_ACTION_MASK;
+		int motion_type = motion_action & AMOTION_EVENT_ACTION_MASK;
 		float x = 0;
 		float y = 0;
 		switch(motion_type)
@@ -137,7 +137,6 @@ int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 			default:
 				break;
 		}
-
 
 		eng->animating = 1;
 		eng->state.x = AMotionEvent_getX(event, 0) / eng->width;
@@ -589,7 +588,7 @@ void Engine::pause_audio ()
 
 int Engine::init_gl ()
 {
-	LOGE("Init gl");
+	LOGI("Init gl");
 	//Init gl state
 	//At this stage, all of the shaders have already been loaded.
 	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
@@ -661,7 +660,11 @@ int Engine::init_gl ()
 		"bone_weight"
 	};
 	test_skeletal_shader->initialize(skel_vshader_src, skel_vshader_nm, skel_fshader_src, skel_fshader_nm, skel_param_types,
-							   skel_param_names, 4);
+							   skel_param_names, 7);
+
+	skeletal_mat->initialize();
+	skeletal_mat->set_shader(test_skeletal_shader);
+
 
 	//==================================== Loading textures =======================================
 	GLuint tex_id;
@@ -681,7 +684,7 @@ int Engine::init_gl ()
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
 	glClearColor(1, 1, 1, 1);
-	LOGE("Init gl finished");
+	LOGI("Init gl finished");
 	return 1;
 }
 
@@ -855,6 +858,7 @@ void Engine::draw_frame ()
 	//int vert_count = 36;
 	int vert_count = 8;
 
+
 	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
 	//Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
 	//Quat pitch(((state.y*2.0f)-1.0f) * HALF_PI*0.5f,(yaw*Vec3::RIGHT()));
@@ -897,6 +901,7 @@ void Engine::draw_frame ()
 		6, 3, 2, 2, 7, 6,
 	};
 
+	//TODO: material should hold these buffers
 	GLuint element_buffer;
 	glGenBuffers(1, &element_buffer);
 	//Bind the buffer to set the data
@@ -922,10 +927,13 @@ void Engine::draw_frame ()
 		{
 			for(k = 0; k < 4; k++)
 			{
+				if(i == 2 || j == 2 || k == 2)
+					continue;
 				Vec3 pos(5.0f * (i - 2.0f), 5.0f * (j - 2.0f), 5.0f * (k - 2.0f));
 
 				Mat4 model_pos = Mat4::TRANSLATE(pos);
-				Mat4 model_transform = model_pos /** model_rot*/; //don't rotate
+				//Mat4 model_transform = model_pos * model_rot; //don't rotate
+				Mat4 model_transform = model_pos; //don't rotate
 				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 
 				//Make a checker board pattern of cubes (alternating materials between each subsequent cube)
@@ -960,20 +968,69 @@ void Engine::draw_frame ()
 	const float joint_vertices[] =
 	{
 		//Front quad
-		-0.5f, 0.5f, 0.5f,
-		0.5f, 0.5f, 0.5f,
-		0.5f, 0.5f, -0.5f,
-		-0.5f, 0.5f, -0.5f,
+		-0.1f, 0.1f, 1.0f,
+		0.1f, 0.1f, 1.0f,
+		0.1f, 0.1f, 0.1f,
+		-0.1f, 0.1f, 0.1f,
 		//Back quad
-		0.5f, -0.5f, 0.5f,
-		-0.5f, -0.5f, 0.5f,
-		-0.5f, -0.5f, -0.5f,
-		0.5f, -0.5f, -0.5f,
+		0.1f, -0.1f, 1.0f,
+		-0.1f, -0.1f, 1.0f,
+		-0.1f, -0.1f, 0.1f,
+		0.1f, -0.1f, 0.1f,
 		//Right quad
 		//Left quad
 		//Top quad
 		//Bottom quad
+
+		//Second box
+		-0.1f, 0.1f, -0.1f,
+		0.1f, 0.1f, -0.1f,
+		0.1f, 0.1f, -1.0f,
+		-0.1f, 0.1f, -1.0f,
+		0.1f, -0.1f, -0.1f,
+		-0.1f, -0.1f, -0.1f,
+		-0.1f, -0.1f, -1.0f,
+		0.1f, -0.1f, -1.0f,
 	};
+
+	//Referencing vertices by index
+	unsigned int joint_tris[] =
+	{
+		//Front quad
+		0, 1, 2, 2, 3, 0,
+		//Back quad
+		4, 5, 6, 6, 7, 4,
+		//Right quad
+		1, 4, 7, 7, 2, 1,
+		//Left quad
+		0, 3, 6, 6, 5, 0,
+		//Top quad
+		4, 1, 0, 0, 5, 4,
+		//Bottom quad
+		6, 3, 2, 2, 7, 6,
+
+		//Second box
+		//Front quad
+		8, 9, 10, 10, 11, 8,
+		//Back quad
+		12, 13, 14, 14, 15, 12,
+		//Right quad
+		9, 12, 15, 15, 10, 9,
+		//Left quad
+		8, 11, 14, 14, 13, 8,
+		//Top quad
+		12, 9, 8, 8, 13, 12,
+		//Bottom quad
+		14, 11, 10, 10, 15, 14,
+	};
+
+	GLuint element_buffer2;
+	glGenBuffers(1, &element_buffer2);
+	//Bind the buffer to set the data
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer2);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)/*size of indices*/, joint_tris, GL_STATIC_DRAW);
+
+
 	const float joint_uvs[] =
 	{
 		//Front quad
@@ -986,27 +1043,15 @@ void Engine::draw_frame ()
 		0.0f, 0.0f,
 		0.0f, 1.0f,
 		1.0f, 1.0f,
-		//Right quad
-		//Left quad
-		//Top quad
-		//Bottom quad
-	};
-	const float joint_colors[] =
-	{
-		//Front quad
-		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-		//Back quad
-		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-		//Right quad
-		//Left quad
-		//Top quad
-		//Bottom quad
+
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
 	};
 
 	//Only the first bone index is set for all bones
@@ -1051,6 +1096,38 @@ void Engine::draw_frame ()
 		1.0f,0.0f,0.0f,
 		1.0f,0.0f,0.0f,
 	};
+
+
+	Vec3 pos(0,1,0);
+
+	Mat4 model_pos = Mat4::TRANSLATE(pos);
+	Mat4 model_transform = model_pos;
+	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+
+	int BONE_COUNT = 2;
+	float* joint_matrices = (float*) malloc(sizeof(float) * (1 + (BONE_COUNT*16)));
+	joint_matrices[0] = 2;//amount of bones
+	Mat4 id = Mat4::IDENTITY();
+	//Copying identity matrices
+	for(i = 0; i < 15; i++)
+	{
+		joint_matrices[1+i] = joint_matrices[1+16+i] = id.m[i];
+	}
+
+	skeletal_mat->bind_material();
+	skeletal_mat->bind_value(Shader::PARAM_VERTICES, (void*) joint_vertices);
+	skeletal_mat->bind_value(Shader::PARAM_VERT_UV1, (void*) joint_uvs);
+	skeletal_mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void*) texture_id);
+	skeletal_mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
+
+	skeletal_mat->bind_value(Shader::PARAM_BONE_MATRICES,joint_matrices);
+	skeletal_mat->bind_value(Shader::PARAM_BONE_INDICES,(void*)joint_bone_indices);
+	skeletal_mat->bind_value(Shader::PARAM_BONE_WEIGHTS,(void*)joint_bone_weights);
+
+	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
+
+
 
 	eglSwapBuffers(egl_display, egl_surface);
 }
