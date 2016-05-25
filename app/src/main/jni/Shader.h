@@ -17,8 +17,6 @@ public:
 	GLuint vert_shader;
 	GLuint frag_shader;
 
-	GLuint indexed_tri_buffer;
-
 	//Static types for parameters
 	static const int PARAM_VERTICES = 1;
 	//static const int PARAM_NORMALS = 2; TODO: later
@@ -38,7 +36,7 @@ public:
 	//TODO: any other parameter types
 
 	//Arrays that hold arbitrary types of parameters
-	GLint* param_location;
+	void** param_location;
 	GLuint* param_type;
 	uint param_count;
 

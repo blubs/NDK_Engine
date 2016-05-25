@@ -1098,7 +1098,7 @@ void Engine::draw_frame ()
 	};
 
 
-	Vec3 pos(0,1,0);
+	Vec3 pos(0,-4,0);
 
 	Mat4 model_pos = Mat4::TRANSLATE(pos);
 	Mat4 model_transform = model_pos;
@@ -1108,10 +1108,14 @@ void Engine::draw_frame ()
 	float* joint_matrices = (float*) malloc(sizeof(float) * (1 + (BONE_COUNT*16)));
 	joint_matrices[0] = 2;//amount of bones
 	Mat4 id = Mat4::IDENTITY();
+
 	//Copying identity matrices
-	for(i = 0; i < 15; i++)
+	for(i = 0; i < 16; i++)
 	{
-		joint_matrices[1+i] = joint_matrices[1+16+i] = id.m[i];
+		//The first bone's matrix
+		joint_matrices[1+i] = id.m[i];
+		//The second bone's matrix
+		joint_matrices[1+16+i] = id.m[i];
 	}
 
 	skeletal_mat->bind_material();
@@ -1120,9 +1124,10 @@ void Engine::draw_frame ()
 	skeletal_mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void*) texture_id);
 	skeletal_mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
 
-	skeletal_mat->bind_value(Shader::PARAM_BONE_MATRICES,joint_matrices);
 	skeletal_mat->bind_value(Shader::PARAM_BONE_INDICES,(void*)joint_bone_indices);
 	skeletal_mat->bind_value(Shader::PARAM_BONE_WEIGHTS,(void*)joint_bone_weights);
+	//This doesn't work.
+	skeletal_mat->bind_value(Shader::PARAM_BONE_MATRICES,joint_matrices);
 
 	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);

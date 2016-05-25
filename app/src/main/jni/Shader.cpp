@@ -47,22 +47,16 @@ int Shader::initialize (const char *vshader_src, const char *vshader_name, const
 	}
 	glUseProgram(gl_program);
 
-	glGenBuffers(1,&indexed_tri_buffer);
-
 
 	//Create arrays with room for param_count entries
-	param_type = (GLuint *) malloc(sizeof(GLuint *) * params_count);
-	param_location = (GLint *) malloc(sizeof(GLint *) * params_count);
+	param_type = (GLuint *) malloc(sizeof(GLuint) * params_count);
+	param_location = (void **) malloc(sizeof(void *) * params_count);
 	param_count = params_count;
 
 	for(int i = 0; i < param_count; i++)
 	{
-		param_location[i] = -1;
-	}
-
-	for(int i = 0; i < param_count; i++)
-	{
 		param_type[i] = param_types[i];
+		param_location[i] = NULL;
 		switch(param_types[i])
 		{
 			//Attributes
@@ -71,15 +65,61 @@ int Shader::initialize (const char *vshader_src, const char *vshader_name, const
 			case PARAM_VERT_UV1:
 			case PARAM_BONE_WEIGHTS:
 			case PARAM_BONE_INDICES:
-				param_location[i] = glGetAttribLocation(gl_program, param_identifiers[i]);
+				param_location[i] = (GLint*)malloc(sizeof(GLint));
+				*((GLint*)(param_location[i])) = -1;
+				*((GLint*)(param_location[i])) = glGetAttribLocation(gl_program, param_identifiers[i]);
 				break;
 			//Uniforms
 			case PARAM_MVP_MATRIX:
 			case PARAM_TEXTURE_DIFFUSE:
-			case PARAM_BONE_MATRICES:
 			case PARAM_TEST_FIELD:
-				param_location[i] = glGetUniformLocation(gl_program, param_identifiers[i]);
+				param_location[i] = (GLint*)malloc(sizeof(GLint));
+				*((GLint*)(param_location[i])) = -1;
+				*((GLint*)(param_location[i])) = glGetUniformLocation(gl_program, param_identifiers[i]);
 				break;
+			case PARAM_BONE_MATRICES:
+			{
+				int matrix_count = 0;
+				//we need to know how many bones the shader supports
+				// keep trying to get locations for subsequent matrices until we get -1 as the address
+				for(int j = 0; j < 512; j++)
+				{
+					char* name = NULL;
+					//Format the matrix index name, i.e. if param_identifiers[i] is "bone_matrix", this yields "bone_matrix[j]", for all values of j
+					if(asprintf(&name, "%s[%d]",param_identifiers[i],j) == -1)
+					{
+						LOGE("asprintf returns -1, failed to alloc char array for bone matrices: %s\n",param_identifiers[i]);
+						continue;
+					}
+					if(glGetUniformLocation(gl_program, name) == -1)
+					{
+						free(name);
+						break;
+					}
+					else
+					{
+						matrix_count++;
+						free(name);
+					}
+				}
+
+				//Check how many bone matrices there are.
+				GLint* matrix_list_indices = (GLint*) malloc(sizeof(GLint) * matrix_count);
+				for(int j = 0; j < matrix_count; j++)
+				{
+					char* name = NULL;
+					//Format the matrix index name, i.e. if param_identifiers[i] is "bone_matrix", this yields "bone_matrix[j]", for all values of j
+					if(asprintf(&name, "%s[%d]",param_identifiers[i],j) == -1)
+					{
+						LOGE("asprintf returns -1, failed to alloc char array for bone matrices: %s\n",param_identifiers[i]);
+						continue;
+					}
+					matrix_list_indices[j] = glGetUniformLocation(gl_program, name);
+					free(name);
+				}
+				param_location[i] = matrix_list_indices;
+				break;
+			}
 			default:
 				break;
 		}
@@ -99,11 +139,20 @@ void Shader::term ()
 	vert_shader = 0;
 
 	if(param_location)
+	{
+		//Freeing all allocated values in the pointer array
+		for(int i = 0; i < param_count; i++)
+		{
+			if(param_location[i])
+				free(param_location[i]);
+		}
 		free(param_location);
+	}
 	if(param_type)
+	{
 		free(param_type);
+	}
 	param_count = 0;
-	glDeleteBuffers(1,&indexed_tri_buffer);
 	glDeleteProgram(gl_program);
 }
 
@@ -129,68 +178,64 @@ int Shader::bind_shader_value (GLuint type, void *data)
 	return 1;
 }
 
+
 //Binds a value to a shader location for rendering, given we already know the index of the data
 int Shader::bind_shader_value_by_index (int index, void *data)
 {
-	GLuint loc;//used for vertex attributes that require the locations to be unsigned ints
-	if(param_location[index] == -1)
+	if(*((GLint*)(param_location[index])) == -1)
 	{
 		LOGW("Warning: param location at index %d has not been set (type: %d)",index,param_type[index]);
 		return 0;
 	}
-	loc = 0;
-	//Handle parameter locations that expect unsigned int values
+	GLint loc = 0;
+	GLuint uloc = 0;
 	switch(param_type[index])
 	{
 		case PARAM_VERTICES:
-		case PARAM_VERT_COLORS:
-		case PARAM_VERT_UV1:
-		case PARAM_BONE_WEIGHTS:
-		case PARAM_BONE_INDICES:
-			if(param_location[index] > INT_MAX)
-			{
-				LOGE("Error: unsigned int parameter location in shader is greater than the capacity of int.\n");
-				return 0;
-			}
-			loc = (GLuint) param_location[index];
-			break;
-		default:
-			break;
-	}
-
-	switch(param_type[index])
-	{
-		case PARAM_VERTICES:
-			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, (float *) data);
-			glEnableVertexAttribArray(loc);
+			uloc = *((GLuint*)(param_location[index]));
+			glVertexAttribPointer(uloc, 3, GL_FLOAT, GL_FALSE, 0, (float *) data);
+			glEnableVertexAttribArray(uloc);
 			break;
 		case PARAM_VERT_COLORS:
-			glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, (float *) data);
-			glEnableVertexAttribArray(loc);
+			uloc = *((GLuint*)(param_location[index]));
+			glVertexAttribPointer(uloc, 4, GL_FLOAT, GL_FALSE, 0, (float *) data);
+			glEnableVertexAttribArray(uloc);
 			break;
 		case PARAM_VERT_UV1:
-			glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, (float *) data);
-			glEnableVertexAttribArray(loc);
+			uloc = *((GLuint*)(param_location[index]));
+			glVertexAttribPointer(uloc, 2, GL_FLOAT, GL_FALSE, 0, (float *) data);
+			glEnableVertexAttribArray(uloc);
 			break;
 		case PARAM_MVP_MATRIX:
-			glUniformMatrix4fv(param_location[index], 1, GL_FALSE, ((float *) data));
+			loc = *((GLint*)(param_location[index]));
+			glUniformMatrix4fv(loc, 1, GL_FALSE, ((float *) data));
 			break;
 		case PARAM_TEXTURE_DIFFUSE:
+			loc = *((GLint*)(param_location[index]));
 			glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
 			glBindTexture(GL_TEXTURE_2D, (GLuint) data);
-			glUniform1i(param_location[index], bound_textures);
+			glUniform1i(loc, bound_textures);
 			bound_textures++;
 			break;
 		case PARAM_BONE_MATRICES:
+		{
 			//First index holds the amount of matrices
-			glUniformMatrix4fv(param_location[index], (int)(*(float*)data), GL_FALSE, ((float*) data)+1);
+			loc = *((GLint*)(param_location[index]));
+			int bone_count = (int)(*(float*)data);
+			for(int i = 0; i < bone_count; i++)
+			{
+				glUniformMatrix4fv( (((GLint*)param_location[index])[i]), (int)(*(float*)data), GL_FALSE, ((float*) data)+1 + (16*i));
+			}
 			break;
+		}
 		case PARAM_BONE_WEIGHTS:
 		case PARAM_BONE_INDICES:
-			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, (float*) data);
+			uloc = *((GLuint*)(param_location[index]));
+			glVertexAttribPointer(uloc, 3, GL_FLOAT, GL_FALSE, 0, (float*) data);
 			break;
 		case PARAM_TEST_FIELD:
-			glUniform4f(param_location[index], ((float*)data)[0],((float*)data)[1],((float*)data)[2],((float*)data)[3]);
+			loc = *((GLint*)(param_location[index]));
+			glUniform4f(loc, ((float*)data)[0],((float*)data)[1],((float*)data)[2],((float*)data)[3]);
 			break;
 		default:
 			break;
