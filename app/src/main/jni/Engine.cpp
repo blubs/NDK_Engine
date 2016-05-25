@@ -1028,7 +1028,7 @@ void Engine::draw_frame ()
 	glGenBuffers(1, &element_buffer2);
 	//Bind the buffer to set the data
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer2);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)/*size of indices*/, joint_tris, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 72 * sizeof(unsigned int)/*size of indices*/, joint_tris, GL_STATIC_DRAW);
 
 
 	const float joint_uvs[] =
@@ -1066,14 +1066,15 @@ void Engine::draw_frame ()
 		0.0f,-1.0f,-1.0f,
 		0.0f,-1.0f,-1.0f,
 		0.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
-		1.0f,-1.0f,-1.0f,
+
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
+		0.0f,-1.0f,-1.0f,
 	};
 
 	//Each vert is only weighted by the first bone index
@@ -1098,7 +1099,7 @@ void Engine::draw_frame ()
 	};
 
 
-	Vec3 pos(0,-4,0);
+	Vec3 pos(0,-7,0);
 
 	Mat4 model_pos = Mat4::TRANSLATE(pos);
 	Mat4 model_transform = model_pos;
@@ -1108,6 +1109,7 @@ void Engine::draw_frame ()
 	float* joint_matrices = (float*) malloc(sizeof(float) * (1 + (BONE_COUNT*16)));
 	joint_matrices[0] = 2;//amount of bones
 	Mat4 id = Mat4::IDENTITY();
+
 
 	//Copying identity matrices
 	for(i = 0; i < 16; i++)
@@ -1130,7 +1132,7 @@ void Engine::draw_frame ()
 	skeletal_mat->bind_value(Shader::PARAM_BONE_MATRICES,joint_matrices);
 
 	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
+	glDrawElements(GL_TRIANGLES, 72, GL_UNSIGNED_INT, (void *) 0);
 
 
 
