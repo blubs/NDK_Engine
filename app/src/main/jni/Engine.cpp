@@ -990,7 +990,7 @@ void Engine::draw_frame ()
 		0.1f, -0.1f, -0.1f,
 		-0.1f, -0.1f, -0.1f,
 		-0.1f, -0.1f, -1.0f,
-		0.1f, -0.1f, -1.0f,
+		0.1f, -0.1f, -1.0f
 	};
 
 	//Referencing vertices by index
@@ -1021,7 +1021,7 @@ void Engine::draw_frame ()
 		//Top quad
 		12, 9, 8, 8, 13, 12,
 		//Bottom quad
-		14, 11, 10, 10, 15, 14,
+		14, 11, 10, 10, 15, 14
 	};
 
 	GLuint element_buffer2;
@@ -1051,51 +1051,53 @@ void Engine::draw_frame ()
 		1.0f, 0.0f,
 		0.0f, 0.0f,
 		0.0f, 1.0f,
-		1.0f, 1.0f,
+		1.0f, 1.0f
 	};
 
 	//Only the first bone index is set for all bones
 	//First 8 vertices bind to first bone, second 8 bind to second bone
+	//FIXME: for some reason the vert shader is getting all 0's from this list...
 	const float joint_bone_indices[] =
 	{
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
 
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
-		0.0f,-1.0f,-1.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f
 	};
 
 	//Each vert is only weighted by the first bone index
 	const float joint_bone_weights[] =
 	{
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
-		1.0f,0.0f,0.0f,
+		0.9848f,0.1736f,0.0f,
+		0.9848f,0.1736f,0.0f,
+		0.9848f,0.1736f,0.0f,
+		0.9848f,0.1736f,0.0f,
+		0.9848f,0.1736f,0.0f,
+		0.9848f,0.1736f,0.0f,
+		0.9848f,0.1736f,0.0f,
+		0.9848f,0.1736f,0.0f,
+
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f,
+		0.0f,1.0f,0.0f
 	};
 
 
@@ -1106,18 +1108,25 @@ void Engine::draw_frame ()
 	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
 
 	int BONE_COUNT = 2;
-	float* joint_matrices = (float*) malloc(sizeof(float) * (1 + (BONE_COUNT*16)));
-	joint_matrices[0] = 2;//amount of bones
+	float* joint_matrices = (float*) malloc(sizeof(float) * (BONE_COUNT*16));
 	Mat4 id = Mat4::IDENTITY();
+
+	static float angle = 0.0f;
+	angle += 0.1f;
+	if(angle > 360.0f)
+		angle = 0.0f;
+
+	Quat rot(angle,Vec3::FRONT());
+	Mat4 rot_matrix = Mat4::ROTATE(rot);
 
 
 	//Copying identity matrices
 	for(i = 0; i < 16; i++)
 	{
 		//The first bone's matrix
-		joint_matrices[1+i] = id.m[i];
+		joint_matrices[i] = id.m[i];
 		//The second bone's matrix
-		joint_matrices[1+16+i] = id.m[i];
+		joint_matrices[16+i] = rot_matrix.m[i];
 	}
 
 	skeletal_mat->bind_material();
@@ -1125,11 +1134,9 @@ void Engine::draw_frame ()
 	skeletal_mat->bind_value(Shader::PARAM_VERT_UV1, (void*) joint_uvs);
 	skeletal_mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void*) texture_id);
 	skeletal_mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
-
 	skeletal_mat->bind_value(Shader::PARAM_BONE_INDICES,(void*)joint_bone_indices);
 	skeletal_mat->bind_value(Shader::PARAM_BONE_WEIGHTS,(void*)joint_bone_weights);
-	//This doesn't work.
-	skeletal_mat->bind_value(Shader::PARAM_BONE_MATRICES,joint_matrices);
+	skeletal_mat->bind_values(Shader::PARAM_BONE_MATRICES,joint_matrices,BONE_COUNT);
 
 	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 	glDrawElements(GL_TRIANGLES, 72, GL_UNSIGNED_INT, (void *) 0);

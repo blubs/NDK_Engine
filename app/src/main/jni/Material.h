@@ -115,11 +115,11 @@ public:
 		{
 			if(params[i])
 			{
-				shader->bind_shader_value_by_index(i, params[i]);
+				shader->bind_shader_value_by_index(i, params[i],0);
 			}
 			else if(alloced_params[i])
 			{
-				shader->bind_shader_value_by_index(i, alloced_params[i]);
+				shader->bind_shader_value_by_index(i, alloced_params[i],0);
 			}
 		}
 		return 1;
@@ -133,7 +133,17 @@ public:
 			LOGE("Error: tried to bind a shader value without first assigning shader.\n");
 			return 0;
 		}
-		return shader->bind_shader_value(type, value);
+		return shader->bind_shader_value(type, value, 0);
+	}
+
+	int bind_values(GLuint type, void* value, int count)
+	{
+		if(!shader)
+		{
+			LOGE("Error: tried to bind a shader value without first assigning shader.\n");
+			return 0;
+		}
+		return shader->bind_shader_value(type, value, count);
 	}
 
 	//has a function for terminating this material

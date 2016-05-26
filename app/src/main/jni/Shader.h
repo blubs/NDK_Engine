@@ -53,10 +53,10 @@ public:
 	int bind_shader();
 
 	//Binds a value to a shader location for rendering
-	int bind_shader_value(GLuint type,void* data);
+	int bind_shader_value(GLuint type,void* data, int extra_data);
 
 	//Same as above if we already know what index the data goes in.
-	int bind_shader_value_by_index (int index, void *data);
+	int bind_shader_value_by_index (int index, void *data, int extra_data);
 
 };
 #endif //ENGINE_SHADER_H

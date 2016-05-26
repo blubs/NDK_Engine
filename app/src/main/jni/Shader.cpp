@@ -164,14 +164,14 @@ int Shader::bind_shader ()
 }
 
 //Binds a value to a shader location for rendering
-int Shader::bind_shader_value (GLuint type, void *data)
+int Shader::bind_shader_value (GLuint type, void *data, int extra_data)
 {
 	//Iterate through all parameters until we find the one we're looking for
 	for(int i = 0; i < param_count; i++)
 	{
 		if(param_type[i] == type)
 		{
-			bind_shader_value_by_index(i,data);
+			bind_shader_value_by_index(i,data,extra_data);
 			break;
 		}
 	}
@@ -180,7 +180,7 @@ int Shader::bind_shader_value (GLuint type, void *data)
 
 
 //Binds a value to a shader location for rendering, given we already know the index of the data
-int Shader::bind_shader_value_by_index (int index, void *data)
+int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 {
 	if(*((GLint*)(param_location[index])) == -1)
 	{
@@ -219,12 +219,11 @@ int Shader::bind_shader_value_by_index (int index, void *data)
 			break;
 		case PARAM_BONE_MATRICES:
 		{
+			//extra data holds the matrix count
 			//First index holds the amount of matrices
-			loc = *((GLint*)(param_location[index]));
-			int bone_count = (int)(*(float*)data);
-			for(int i = 0; i < bone_count; i++)
+			for(int i = 0; i < extra_data; i++)
 			{
-				glUniformMatrix4fv( (((GLint*)param_location[index])[i]), (int)(*(float*)data), GL_FALSE, ((float*) data)+1 + (16*i));
+				glUniformMatrix4fv( (((GLint*)param_location[index])[i]), (int)(*(float*)data), GL_FALSE, ((float*) data)+(16*i));
 			}
 			break;
 		}
@@ -232,6 +231,7 @@ int Shader::bind_shader_value_by_index (int index, void *data)
 		case PARAM_BONE_INDICES:
 			uloc = *((GLuint*)(param_location[index]));
 			glVertexAttribPointer(uloc, 3, GL_FLOAT, GL_FALSE, 0, (float*) data);
+			glEnableVertexAttribArray(uloc);
 			break;
 		case PARAM_TEST_FIELD:
 			loc = *((GLint*)(param_location[index]));
