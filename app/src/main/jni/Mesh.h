@@ -5,6 +5,9 @@
 #ifndef ENGINE_MESH_H
 #define ENGINE_MESH_H
 
+#include "common.h"
+#include "Material.h"
+
 //Skeleton based-mesh, for static meshes, refer to todo: class Static_Mesh (remove Static_Model.cpp, once we get to implementation)
 class Mesh
 {
