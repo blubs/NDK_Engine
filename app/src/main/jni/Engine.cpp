@@ -1054,9 +1054,10 @@ void Engine::draw_frame ()
 		1.0f, 1.0f
 	};
 
-	//Only the first bone index is set for all bones
-	//First 8 vertices bind to first bone, second 8 bind to second bone
-	//FIXME: for some reason the vert shader is getting all 0's from this list...
+	//All vertices must have valid indices for 3 bones,
+	// since we do not check in the shader whether an index is valid or not
+	// however, the respective weight of unused bones for a vert should be 0.0f,
+	// thereby negating the bone's influence on the vertex
 	const float joint_bone_indices[] =
 	{
 		0.0f,1.0f,0.0f,
@@ -1078,7 +1079,8 @@ void Engine::draw_frame ()
 		0.0f,1.0f,0.0f
 	};
 
-	//Each vert is only weighted by the first bone index
+	//First 8 verts are weighted by both bones
+	//Last 8 verts are only weighted by the first bone
 	const float joint_bone_weights[] =
 	{
 		0.9848f,0.1736f,0.0f,
