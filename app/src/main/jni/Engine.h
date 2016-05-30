@@ -14,6 +14,7 @@
 #include "Player.h"
 #include "Shader.h"
 #include "Material.h"
+#include "Skel_Model.h"
 
 
 
@@ -31,6 +32,7 @@ public:
 	//remove this
 	Engine() {};
 	Engine(struct android_app *app);
+	void term();
 	~Engine() {};
 
 	static void handle_cmd(struct android_app *app, int32_t cmd);
@@ -111,10 +113,24 @@ public:
 	Material* mat_red;
 	Material* mat_blue;
 
+	const char* mesh_fshader_src = 0;
+	const char* mesh_fshader_nm = 0;
+	const char* mesh_vshader_src = 0;
+	const char* mesh_vshader_nm = 0;
+
+	Shader* mesh_shader;
+	Material* mesh_mat;
+
 	Material* skeletal_mat;
+
 	//This is independent from shader
 	GLuint texture_id = 0;
 	const char* test_texture = 0;
+
+
+	Skel_Model* test_arms;
+
+
 	void draw_frame();
 
 	EGLDisplay egl_display = 0;

@@ -40,6 +40,11 @@ Engine::Engine (struct android_app *droid_app)
 	mat_blue = (Material *) malloc(sizeof(Material));
 
 	skeletal_mat = (Material *) malloc(sizeof(Material));
+
+	mesh_shader = (Shader*) malloc(sizeof(Shader));
+	mesh_mat = (Material*) malloc(sizeof(Material));
+
+	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
 }
 
 void Engine::handle_cmd (struct android_app *app, int32_t cmd)
@@ -227,6 +232,11 @@ int Engine::load_shaders ()
 	skel_vshader_nm = "test_skeletal.vert";
 	skel_fshader_src = File_Utils::load_raw_asset("test_skeletal.frag");
 	skel_vshader_src = File_Utils::load_raw_asset("test_skeletal.vert");
+
+	mesh_fshader_nm = "minimal_mesh.frag";
+	mesh_vshader_nm = "minimal_mesh.vert";
+	mesh_fshader_src = File_Utils::load_raw_asset("minimal_mesh.frag");
+	mesh_vshader_src = File_Utils::load_raw_asset("minimal_mesh.vert");
 	return 1;
 }
 
@@ -236,6 +246,9 @@ int Engine::load_assets ()
 {
 	//Loading the test texture.
 	test_texture = (char *) File_Utils::load_raw_asset("tex.pkm");
+
+	test_arms->load_model("test_arms.skmf");
+	test_arms->mat = mesh_mat;
 	return 1;
 }
 
@@ -253,12 +266,20 @@ void Engine::unload_shaders ()
 		free((char *) frag_shader_src);
 	if(skel_vshader_src)
 		free((char *) frag_shader_src);
+
+	if(mesh_fshader_src)
+		free((char*) mesh_fshader_src);
+	if(mesh_vshader_src)
+		free((char*) mesh_vshader_src);
 }
 
 void Engine::unload_assets ()
 {
 	if(test_texture)
 		free((char *) test_texture);
+
+	if(test_arms)
+		test_arms->unload_model();
 }
 //=================================================================================================
 
@@ -659,11 +680,29 @@ int Engine::init_gl ()
 		"bone_index",
 		"bone_weight"
 	};
-	test_skeletal_shader->initialize(skel_vshader_src, skel_vshader_nm, skel_fshader_src, skel_fshader_nm, skel_param_types,
-							   skel_param_names, 7);
+	test_skeletal_shader->initialize(skel_vshader_src, skel_vshader_nm, skel_fshader_src, skel_fshader_nm,
+		 skel_param_types, skel_param_names, 7);
 
 	skeletal_mat->initialize();
 	skeletal_mat->set_shader(test_skeletal_shader);
+
+	//========================================= Initializing the mesh shader ================================
+
+	GLuint mesh_shader_param_types[] =
+	{
+	Shader::PARAM_VERTICES,
+	Shader::PARAM_MVP_MATRIX
+	};
+	const char *mesh_shader_param_names[] =
+	{
+	"vert_pos",
+	"mvp"
+	};
+	mesh_shader->initialize(mesh_vshader_src,mesh_vshader_nm,mesh_fshader_src,mesh_fshader_nm,
+		mesh_shader_param_types, mesh_shader_param_names, 2);
+
+	mesh_mat->initialize();
+	mesh_mat->set_shader(mesh_shader);
 
 
 	//==================================== Loading textures =======================================
@@ -680,6 +719,9 @@ int Engine::init_gl ()
 
 
 	texture_id = tex_id;
+
+	//==================================== Setting up Mesh VBOs ====================================
+	test_arms->init_gl();
 	//========================================================================
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
@@ -693,13 +735,23 @@ void Engine::term_gl ()
 	//Terminating all loaded materials
 	mat_blue->term();
 	mat_red->term();
+	mesh_mat->term();
+	skeletal_mat->term();
 	//Terminating all loaded shaders
-	//Unloading all loaded shaders
+	test_shader->term();
+	test_skeletal_shader->term();
+	mesh_shader->term();
+
+
+	//Terminating all loaded models
+	test_arms->term_gl();
+
+
+
 
 	glDeleteTextures(1, &texture_id);
 	texture_id = 0;
 	//FIXME remove the following code
-	test_shader->term();
 
 	/*glDeleteProgram(gl_program);
 	if(test_frag_shader)
@@ -739,6 +791,35 @@ void Engine::term_data ()
 	unload_assets();
 	term_sl();
 	data_initialized = false;
+}
+
+
+//Destroys all data allocated by constructor
+void Engine::term()
+{
+	if(test_shader)
+		free(test_shader);
+
+	if(test_skeletal_shader)
+		free(test_skeletal_shader);
+
+	if(mat_red)
+		free(mat_red);
+
+	if(mat_blue)
+		free(mat_blue);
+
+	if(skeletal_mat)
+		free(skeletal_mat);
+
+	if(mesh_shader)
+		free(mesh_shader);
+
+	if(mesh_mat)
+		free(mesh_mat);
+
+	if(test_arms)
+		free(test_arms);
 }
 
 void Engine::draw_frame ()
@@ -1107,7 +1188,8 @@ void Engine::draw_frame ()
 
 	Mat4 model_pos = Mat4::TRANSLATE(pos);
 	Mat4 model_transform = model_pos;
-	Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+	Mat4 vp = camera->projection_m * camera->view_m;
+	Mat4 mvp = vp * model_transform;
 
 	int BONE_COUNT = 2;
 	float* joint_matrices = (float*) malloc(sizeof(float) * (BONE_COUNT*16));
@@ -1143,7 +1225,7 @@ void Engine::draw_frame ()
 	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 	glDrawElements(GL_TRIANGLES, 72, GL_UNSIGNED_INT, (void *) 0);
 
-
+	test_arms->render(vp);
 
 	eglSwapBuffers(egl_display, egl_surface);
 }

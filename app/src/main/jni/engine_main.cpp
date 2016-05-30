@@ -20,10 +20,18 @@ void android_main(struct android_app *app)
 	LOGI("LIFECYCLE: ANDROID_MAIN RAN\n");
 #endif
 
-//	const char* data = File_Utils::read_savedata("test.dat");
-//	LOGI("Read file: %s.\n",data);
-//	free((char*)data);
-//	File_Utils::write_savedata("test.dat");
+	//Reads saved data and writes saved data
+/*	const char* data = File_Utils::read_savedata("test.dat");
+	LOGI("Read file: %s.\n",data);
+	free((char*)data);
+	File_Utils::write_savedata("test.dat");*/
+
+
+	//	Reads a file containing 5 floating point values (0.0-4.0)
+	/*const char* float_arr = File_Utils::load_raw_asset("test_float_array.skmf");
+	LOGE("float arr: [%f,%f,%f,%f,%f]\n",((float*)float_arr)[0],((float*)float_arr)[1],((float*)float_arr)[2],((float*)float_arr)[3],((float*)float_arr)[4]);
+	free((void*)float_arr);*/
+
 
 	//Test audio file loading
 	const Asset_File* test_sound_file = File_Utils::load_asset("raw_1000_10_5_sec_sweep_stereo.raw");
