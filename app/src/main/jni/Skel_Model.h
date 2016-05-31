@@ -32,7 +32,12 @@ public:
 
 	const unsigned int* raw_data = NULL;
 	const float* verts;
+
+	const unsigned int* bone_indices;
+	const float* bone_weights;
+
 	const unsigned int* tri_verts;
+
 
 	//arrays of vertex attributes
 	//	uvs
@@ -72,7 +77,6 @@ public:
 
 		//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 		glDrawElements(GL_TRIANGLES, tri_vert_count, GL_UNSIGNED_INT, (void *) 0);
-
 	}
 
 
@@ -94,12 +98,16 @@ public:
 		//First float is the vertex count
 		//Second float is the triangle count * 3
 		//List thereafter is the position (3 floats) of all vertices
+		//List thereafter is 3 bone indices for all vertices
+		//List thereafter is 3 bone weights pertaining to the 3 bone indices defined above
 		//List thereafter is the indices vertices that make up the triangles
 		vertex_count = raw_data[0];
 		tri_vert_count = raw_data[1];
 
 		verts = (float*) (raw_data + 2);
-		tri_verts = raw_data + 2 + (vertex_count*3/*3 floats per vertex*/);
+		bone_indices = raw_data + 2 + (vertex_count*3);
+		bone_weights = (float*) raw_data + 2 + (vertex_count*3) + (vertex_count*3);
+		tri_verts = raw_data + 2 + (vertex_count*3) + (vertex_count*3) + (vertex_count*3);
 		return 1;
 	}
 
