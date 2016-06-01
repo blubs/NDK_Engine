@@ -9,6 +9,7 @@
 
 class Skeleton
 {
+public:
 	unsigned int bone_count = 0;
 	float* rest_pose;
 	const unsigned int* raw_data = NULL;

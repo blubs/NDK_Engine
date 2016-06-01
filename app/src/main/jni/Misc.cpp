@@ -17,10 +17,8 @@ uint64_t nano_time()
 }
 
 //Prints the elements of a Mat4 matrix
-void print_mat4(Mat4 matrix)
+void print_mat4(float* mat)
 {
-	//referencing the actual matrix for brevity
-	float* mat = matrix.m;
 	LOGI("[ %.2f , %.2f , %.2f , %.2f ]\n[ %.2f , %.2f , %.2f , %.2f ]\n[ %.2f , %.2f , %.2f , %.2f ]\n[ %.2f , %.2f , %.2f , %.2f ]\n",
 		mat[0],mat[4],mat[8],mat[12],
 		mat[1],mat[5],mat[9],mat[13],

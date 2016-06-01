@@ -119,6 +119,12 @@ int Material::bind_value (GLuint type, void *value)
 		LOGE("Error: tried to bind a shader value without first assigning shader.\n");
 		return 0;
 	}
+
+	if(type == Shader::PARAM_BONE_MATRICES)
+	{
+		LOGE("Error: Param bone matrices should be sent with the method \"bind_values\", not bind_value\n");
+		return 0;
+	}
 	return shader->bind_shader_value(type, value, 0);
 }
 

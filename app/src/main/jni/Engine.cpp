@@ -45,6 +45,8 @@ Engine::Engine (struct android_app *droid_app)
 	mesh_mat = (Material*) malloc(sizeof(Material));
 
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
+
+	player_skel = (Skeleton*) malloc(sizeof(Skeleton));
 }
 
 void Engine::handle_cmd (struct android_app *app, int32_t cmd)
@@ -249,6 +251,12 @@ int Engine::load_assets ()
 
 	test_arms->load_model("test_arms.skmf");
 	test_arms->mat = mesh_mat;
+
+	player_skel->load("player_skeleton.sksf");
+	player_skel->load_animation("speed_vault.skaf");
+
+	test_arms->skel = player_skel;
+
 	return 1;
 }
 
@@ -280,6 +288,9 @@ void Engine::unload_assets ()
 
 	if(test_arms)
 		test_arms->unload_model();
+
+	if(player_skel)
+		player_skel->unload();
 }
 //=================================================================================================
 
@@ -640,7 +651,8 @@ int Engine::init_gl ()
 		"vert_pos",
 		"fill_color",
 		"src_tex_coord",
-		"tex", "mvp",
+		"tex",
+		"mvp",
 		"test_color_param"
 	};
 	int param_count = 6;
@@ -690,16 +702,22 @@ int Engine::init_gl ()
 
 	GLuint mesh_shader_param_types[] =
 	{
-	Shader::PARAM_VERTICES,
-	Shader::PARAM_MVP_MATRIX
+		Shader::PARAM_VERTICES,
+		Shader::PARAM_MVP_MATRIX,
+		Shader::PARAM_BONE_INDICES,
+		Shader::PARAM_BONE_WEIGHTS,
+		Shader::PARAM_BONE_MATRICES
 	};
 	const char *mesh_shader_param_names[] =
 	{
-	"vert_pos",
-	"mvp"
+		"vert_pos",
+		"mvp",
+		"bone_index",
+		"bone_weight",
+		"bone"
 	};
 	mesh_shader->initialize(mesh_vshader_src,mesh_vshader_nm,mesh_fshader_src,mesh_fshader_nm,
-		mesh_shader_param_types, mesh_shader_param_names, 2);
+		mesh_shader_param_types, mesh_shader_param_names, 5);
 
 	mesh_mat->initialize();
 	mesh_mat->set_shader(mesh_shader);
@@ -820,6 +838,9 @@ void Engine::term()
 
 	if(test_arms)
 		free(test_arms);
+
+	if(player_skel)
+		free(player_skel);
 }
 
 void Engine::draw_frame ()

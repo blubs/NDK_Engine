@@ -11,7 +11,7 @@
 uint64_t nano_time();
 
 //Prints the elements of a 4x4 matrix
-void print_mat4(Mat4 matrix);
+void print_mat4(float* mat);
 
 
 //Unused, refer to function def as to why

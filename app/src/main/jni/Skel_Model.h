@@ -10,7 +10,6 @@
 #include "File_Utils.h"
 #include "Skeleton.h"
 
-
 class Skel_Model
 {
 public:
@@ -34,7 +33,7 @@ public:
 	const unsigned int* raw_data = NULL;
 	const float* verts;
 
-	const unsigned int* bone_indices;
+	const float* bone_indices;
 	const float* bone_weights;
 
 	const unsigned int* tri_verts;
@@ -47,7 +46,7 @@ public:
 
 	Material* mat;
 
-	Skeleton* arm;
+	Skeleton* skel;
 
 	GLuint tri_verts_buffer;
 
@@ -57,16 +56,24 @@ public:
 	//Also has a function for unbinding gl VBOs
 	int render(Mat4 vp)
 	{
+		if(!mat)
+		{
+			LOGW("Warning: tried rendering a skeletal model without assigning material\n");
+			return 0;
+		}
+		if(!skel)
+		{
+			LOGW("Warning: tried rendering a skeletal model without assigning a skeleton\n");
+			return 0;
+		}
+
 		Vec3 pos(0,-8.5f,-0.5f);
 
 		Mat4 model_pos = Mat4::TRANSLATE(pos);
 
 		static float angle = 0.0f;
-		angle += 0.01f;
-		if(angle > 360.0f)
-			angle = 0.0f;
 
-		Quat rot(angle,Vec3::UP());
+		Quat rot(angle * DEG_TO_RAD,Vec3::UP());
 		Mat4 model_rot = Mat4::ROTATE(rot);
 		Mat4 model_transform = model_pos * model_rot;
 		Mat4 mvp = vp * model_transform;
@@ -76,10 +83,42 @@ public:
 		mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
 		mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
 
+		mat->bind_value(Shader::PARAM_BONE_INDICES, (void*) bone_indices);
+		mat->bind_value(Shader::PARAM_BONE_WEIGHTS, (void*) bone_weights);
+
+
+		//Trying a temporary buffer full of identity matrices
+		/*float* temp_mat = (float*) malloc(sizeof(float) * 16 * (skel->bone_count));
+
+		//Works for 0.02f, doesn't work for 0.03f
+		//LOGE("sub angle %f",angle*0.02f);
+		//Mat4 ident = Mat4::IDENTITY();
+		for(int i = 0; i < skel->bone_count; i++)
+		{
+			Quat slower_rot(angle * 0.01f * i * DEG_TO_RAD,Vec3::UP());
+			Mat4 ident = Mat4::TRANSLATE(Vec3(0,0,i)) * Mat4::ROTATE(slower_rot);
+
+			for(int j = 0; j < 16; j++)
+			{
+				temp_mat[16*i + j] = ident.m[j];
+				//temp_mat[16*i + j] = skel->animation[16*i + j];
+				//temp_mat[16*i + j] = model_rot.m[j];
+			}
+		}
+		mat->bind_values(Shader::PARAM_BONE_MATRICES, (void*) temp_mat,skel->bone_count);*/
+
+		//lets not free yet, because I'm unsure if bone data must persist (will need to test, but memory leak for now)
+		//Tell skeleton to update accordingly and set a pointer to whatever the current frame is that we set, for now just reach in and get first frame
+		mat->bind_values(Shader::PARAM_BONE_MATRICES, (void*) skel->animation,skel->bone_count);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_verts_buffer);
 
 		//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 		glDrawElements(GL_TRIANGLES, tri_vert_count, GL_UNSIGNED_INT, (void *) 0);
+
+		angle += 1.0f;
+		if(angle > 360.0f)
+			angle = 0.0f;
 	}
 
 
@@ -108,8 +147,14 @@ public:
 		tri_vert_count = raw_data[1];
 
 		verts = (float*) (raw_data + 2);
-		bone_indices = raw_data + 2 + (vertex_count*3);
+		bone_indices = (float*) raw_data + 2 + (vertex_count*3);
 		bone_weights = (float*) raw_data + 2 + (vertex_count*3) + (vertex_count*3);
+
+		/*for(int i = 0; i < vertex_count; i++)
+		{
+			LOGE("Vert[%d], bones:(%d,%d,%d) weights:(%f,%f,%f), sum: %f\n",i,bone_indices[i*3],bone_indices[i*3+1],bone_indices[i*3+2],bone_weights[i*3],bone_weights[i*3+1],bone_weights[i*3+2],(bone_weights[i*3]+bone_weights[i*3+1]+bone_weights[i*3+2]));
+		}*/
+
 		tri_verts = raw_data + 2 + (vertex_count*3) + (vertex_count*3) + (vertex_count*3);
 		return 1;
 	}

@@ -15,6 +15,7 @@
 #include "Shader.h"
 #include "Material.h"
 #include "Skel_Model.h"
+#include "Skeleton.h"
 
 
 
@@ -129,6 +130,7 @@ public:
 
 
 	Skel_Model* test_arms;
+	Skeleton* player_skel;
 
 
 	void draw_frame();

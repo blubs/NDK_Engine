@@ -5,6 +5,7 @@ attribute vec2 src_tex_coord;
 attribute vec3 bone_weight;
 attribute vec3 bone_index;
 
+
 varying vec4 vert_color;
 varying vec2 dest_tex_coord;
 
