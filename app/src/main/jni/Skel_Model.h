@@ -8,6 +8,7 @@
 #include "common.h"
 #include "Material.h"
 #include "File_Utils.h"
+#include "Skeleton.h"
 
 
 class Skel_Model
@@ -45,6 +46,8 @@ public:
 	//		do we need tangents?
 
 	Material* mat;
+
+	Skeleton* arm;
 
 	GLuint tri_verts_buffer;
 
@@ -124,7 +127,6 @@ public:
 	{
 		glDeleteBuffers(1,&tri_verts_buffer);
 	}
-	//TODO: free all allocated data
 	void unload_model()
 	{
 		if(raw_data)
