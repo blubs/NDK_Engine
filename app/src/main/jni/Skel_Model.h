@@ -71,8 +71,10 @@ public:
 
 		Mat4 model_pos = Mat4::TRANSLATE(pos);
 
-		static float angle = 0.0f;
-
+		static float angle = -90.0f;
+		//angle += 1.0f;
+		//if(angle > 360.0f)
+		//	angle = 0.0f;
 		Quat rot(angle * DEG_TO_RAD,Vec3::UP());
 		Mat4 model_rot = Mat4::ROTATE(rot);
 		Mat4 model_transform = model_pos * model_rot;
@@ -109,16 +111,25 @@ public:
 
 		//lets not free yet, because I'm unsure if bone data must persist (will need to test, but memory leak for now)
 		//Tell skeleton to update accordingly and set a pointer to whatever the current frame is that we set, for now just reach in and get first frame
-		mat->bind_values(Shader::PARAM_BONE_MATRICES, (void*) skel->animation,skel->bone_count);
+		static int counter = 0;
+		static int frame = 0;
+		counter++;
+		if(counter >= 5)
+		{
+			frame++;
+			if(frame >= 35)
+				frame = 0;
+			counter = 0;
+		}
+		//every 6 frames
+		mat->bind_values(Shader::PARAM_BONE_MATRICES, (void*) (skel->animation + skel->bone_count * 16 * frame),skel->bone_count);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_verts_buffer);
 
 		//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 		glDrawElements(GL_TRIANGLES, tri_vert_count, GL_UNSIGNED_INT, (void *) 0);
 
-		angle += 1.0f;
-		if(angle > 360.0f)
-			angle = 0.0f;
+		return 1;
 	}
 
 
