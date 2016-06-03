@@ -156,7 +156,7 @@ int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 int Engine::init_display ()
 {
 #ifdef DEBUG_MODE
-	LOGI("LIFECYCLE: Display initialized.\n");
+	LOGI("LIFECYCLE: init display started.\n");
 #endif
 	//Setting up OPENGLES
 	const EGLint config_attribs[] = {
@@ -216,6 +216,10 @@ int Engine::init_display ()
 	//Resume audio if it was paused previously
 	if(sl_audio_player_interface != NULL)
 		start_audio();
+
+#ifdef DEBUG_MODE
+	LOGI("LIFECYCLE: init display finished.\n");
+#endif
 
 	return 0;
 }
@@ -745,6 +749,8 @@ int Engine::init_gl ()
 	//glDepthRangef(0.0f,1.0f); useless line
 	glClearColor(1, 1, 1, 1);
 	LOGI("Init gl finished");
+
+	gl_initialized = 1;
 	return 1;
 }
 
@@ -769,24 +775,8 @@ void Engine::term_gl ()
 
 	glDeleteTextures(1, &texture_id);
 	texture_id = 0;
-	//FIXME remove the following code
 
-	/*glDeleteProgram(gl_program);
-	if(test_frag_shader)
-		GL_Utils::unload_shader(test_frag_shader);
-	if(test_vert_shader)
-		GL_Utils::unload_shader(test_vert_shader);
-
-	gl_program = 0;
-	shader_vert_pos_loc = -1;
-	shader_fill_color_loc = -1;
-	shader_uv_loc = -1;
-	shader_tex_loc = -1;
-	shader_mvp_loc = -1;
-
-	test_frag_shader = 0;
-	test_vert_shader = 0;
-	*/
+	gl_initialized = 0;
 }
 
 int Engine::init_data ()

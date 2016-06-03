@@ -14,6 +14,9 @@ void android_main(struct android_app *app)
 	//Trying to get files to load.
 	File_Utils::asset_mgr = app->activity->assetManager;
 
+	//Setting start time as now (a reference point)
+	set_start_time();
+
 	//====================================
 
 #ifdef DEBUG_MODE
@@ -44,6 +47,8 @@ void android_main(struct android_app *app)
 
 	engine.play_sound();
 
+	float last_frame_time = 0.0;
+
 	//run the engine loop
 	while(1)
 	{
@@ -54,6 +59,7 @@ void android_main(struct android_app *app)
 
 		//When not animating: block waiting for events
 		//When animating, handle all events then draw frame
+
 		while((ident = ALooper_pollAll(engine.animating ? 0 : -1,NULL, &events,(void**)  &source))>=0)
 		{
 			//Process event
@@ -88,20 +94,34 @@ void android_main(struct android_app *app)
 				return;
 			}
 		}
+		LOGE("engine.animating = %d",engine.animating);
 		if(engine.animating)
 		{
-			engine.state.angle += 0.01f;
-			if(engine.state.angle > 1)
-			{
-				engine.state.angle = 0;
-			}
-			//Drawing throttled by screen update rate, no timing code needed here
-			static long frame = 0;
-			//if(frame % 60 == 0)
-			//	LOGE("60 frames passed\n");
-			//LOGE("Frame: %ld, frame mod 60 = %ld\n",frame,(frame % 60));
-			frame++;
+			LOGE("engine.draw_frame()");
 			engine.draw_frame();
+
+			//No guarantees that the we're actually drawing until gl_initialized is 1
+			if(engine.gl_initialized)
+			{
+				engine.state.angle += 0.01f;
+				if(engine.state.angle > 1)
+				{
+					engine.state.angle = 0;
+				}
+				//Drawing throttled by screen update rate, no timing code needed here
+				static long frame = 0;
+				//if(frame % 60 == 0)
+				//	LOGE("60 frames passed\n");
+				//LOGE("Frame: %ld, frame mod 60 = %ld\n",frame,(frame % 60));
+				frame++;
+				float ctime = time();
+				float delta_time = ctime - last_frame_time;
+				last_frame_time = ctime;
+
+				LOGE("delta_time = %f,  last_frame_time = %f, avg fps = %f\n",delta_time, last_frame_time,frame/time());
+			}
+
+
 		}
 	}
 }

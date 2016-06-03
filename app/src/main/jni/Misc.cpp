@@ -2,19 +2,47 @@
 // Created by F1 on 3/29/2016.
 //
 
-#include "Misc.h"
+#include "misc.h"
 
 
-//Returns the current time in nanoseconds
-//sample printing code:
-//uint64_t t1 = nano_time();
-//LOGE("time in nano: %llu\n",t1);
-uint64_t nano_time()
+
+
+//We use double here for more precision then convert down to float once subtracting time from this
+double start_time = 0.0;
+//Sets start_time for later usage
+void set_start_time()
 {
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
-	return (uint64_t) (now.tv_sec*1000000000LL + now.tv_nsec);
+	start_time = now.tv_sec + (double) now.tv_nsec / 1e9;
 }
+
+//Returns time since start_time as a float
+float time()
+{
+	if(start_time == 0.0)
+	{
+		LOGW("Warning: time() called without first calling set_start_time(), start_time = 0\n");
+	}
+
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	double current_time = now.tv_sec + (double) now.tv_nsec / 1e9;
+	return (float) (current_time - start_time);
+}
+
+//Returns nanoseconds (from some arbitrary reference point, doesn't seem to be epoch time) as an unsigned long long
+//sample printing code:
+//uint64_t t1 = nano_time();
+//LOGE("time in nano: %llu\n",t1);
+/*uint64_t nano_time()
+{
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+//	return (uint64_t) (now.tv_sec*1000000000LL + now.tv_nsec);
+	return now.tv_sec * 1000.0 + (double) now.tv_nsec / 1e6;
+	//return (uint64_t) (now.tv_sec*1000000000LL + now.tv_nsec);
+}*/
 
 //Prints the elements of a Mat4 matrix
 void print_mat4(float* mat)

@@ -7,8 +7,11 @@
 
 #include "common.h"
 
-//Returns the current time in nano seconds
-uint64_t nano_time();
+//Sets start_time as current time for later usage as a reference point by time()
+void set_start_time();
+
+//Returns time since start_time as a float
+float time();
 
 //Prints the elements of a 4x4 matrix
 void print_mat4(float* mat);

@@ -6,7 +6,7 @@
 #define ENGINE_ENGINE_H
 
 #include "common.h"
-#include "Misc.h"
+#include "misc.h"
 #include "SL_Utils.h"
 #include "File_Utils.h"
 #include "GL_Utils.h"
@@ -151,6 +151,8 @@ public:
 	struct saved_state state;
 	//struct saved_state* state;
 	int animating;
+
+	int gl_initialized = 0;
 
 	Camera* camera;
 };
