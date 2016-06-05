@@ -18,10 +18,10 @@ public:
 	int render(Mat4 vp)
 	{
 
-		if(!skel->playing_anim)
+		/*if(!skel->playing_anim)
 		{
 			skel->play_anim(0);
-		}
+		}*/
 
 		//TODO: render all playermodels
 		skel->update_frame();

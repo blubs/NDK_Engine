@@ -53,6 +53,13 @@ public:
 		playing_anim = true;
 		return 1;
 	}
+	int stop_anim()
+	{
+		playing_anim = false;
+		current_anim = -1;
+		current_frame = 0;
+		return 1;
+	}
 
 	//Ran every frame to update animation frame logic (calculate interpolation data, increment frame, etc)
 	int update_frame()
@@ -64,9 +71,8 @@ public:
 		if(ctime > time_for_next_frame)
 		{
 			time_for_next_frame = ctime + 1/30.0f;//30 fps
-		//	current_frame++;
-			current_frame = 1;
-			if(current_frame > anim_lengths[current_anim])
+			current_frame++;
+			if(current_frame >= anim_lengths[current_anim])
 			{
 				current_frame = 0;//looping the animation
 			}
@@ -226,8 +232,8 @@ public:
 class Entity_Bone_Joint : public Game_Object
 {
 public:
-	Skeleton* parent_skel;
-	int parent_bone_index;
+	Skeleton* parent_skel = NULL;
+	int parent_bone_index = 0;
 
 	Mat4 get_world_transform()
 	{
@@ -246,9 +252,11 @@ public:
 		transform = parent_skel->get_bone_transform(parent_bone_index) * parent_skel->get_bone_rest_transform(parent_bone_index);
 
 		transform_calculated = true;
+		//Bone transforms seem to introduce a roll of 90 degrees, so undoing it
+		Quat fix_roll(HALF_PI, Vec3::FRONT());
 
 		LOGE("FINISHED getting world transform from entity bone to bone\n");
-		return parent_skel->get_world_transform() * transform;
+		return parent_skel->get_world_transform() * transform * Mat4::ROTATE(fix_roll);
 	}
 };
 

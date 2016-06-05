@@ -37,8 +37,6 @@ public:
 	Mat4 get_world_transform()
 	{
 		LOGE("get world transform started\n");
-		pos = Vec3::ZERO();
-		angles = Vec3::ZERO();
 		if(transform_calculated)
 		{
 			return world_transform;

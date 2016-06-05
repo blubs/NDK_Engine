@@ -32,7 +32,7 @@ Engine::Engine (struct android_app *droid_app)
 
 	//camera = (Camera *) malloc(sizeof(Camera));
 	camera = new Camera;
-	camera->set_view_attributes(90.0f * DEG_TO_RAD, ASPECT_16_9_PORTRAIT, 0.1f, 1000.0f);
+	camera->set_view_attributes(90.0f * DEG_TO_RAD, ASPECT_16_9_PORTRAIT, 0.01f, 1000.0f);
 
 	player = new Player;
 	//player = (Player*) malloc(sizeof(Player));
@@ -1253,6 +1253,10 @@ void Engine::draw_frame ()
 	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 	glDrawElements(GL_TRIANGLES, 72, GL_UNSIGNED_INT, (void *) 0);
 
+	if(state.x > 0.95f && player_skel->playing_anim)
+		player_skel->stop_anim();
+	if(state.x < 0.05f && !player_skel->playing_anim)
+		player_skel->play_anim(0);
 	player->render(vp);
 
 	eglSwapBuffers(egl_display, egl_surface);
