@@ -3,10 +3,38 @@
 //
 
 #include "Shader.h"
+#include "File_Utils.h"
+
+//Loads the raw shader source
+int Shader::load(const char* vshader_name, const char* fshader_name)
+{
+	vert_shader_name = (char*) malloc(sizeof(char) * strlen(vshader_name));
+	frag_shader_name = (char*) malloc(sizeof(char) * strlen(fshader_name));
+	strcpy(vert_shader_name,vshader_name);
+	strcpy(frag_shader_name,fshader_name);
 
 
-int Shader::initialize (const char *vshader_src, const char *vshader_name, const char *fshader_src, const char *fshader_name,
-	GLuint *param_types, const char **param_identifiers, uint params_count)
+	//Loading the raw shader sources
+
+	vert_shader_src = File_Utils::load_raw_asset(vshader_name);
+	frag_shader_src = File_Utils::load_raw_asset(fshader_name);
+}
+
+//Frees the loaded raw shader source
+void Shader::unload()
+{
+	if(vert_shader_name)
+		free(vert_shader_name);
+	if(frag_shader_name)
+		free(frag_shader_name);
+	if(vert_shader_src)
+		free((void*)vert_shader_src);
+	if(frag_shader_src)
+		free((void*)frag_shader_src);
+}
+
+
+int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint params_count)
 {
 	//Creating the gl program
 	gl_program = glCreateProgram();
@@ -16,9 +44,9 @@ int Shader::initialize (const char *vshader_src, const char *vshader_name, const
 		return 0;
 	}
 
-	vert_shader = GL_Utils::load_shader(vshader_src, vshader_name, GL_VERTEX_SHADER);
+	vert_shader = GL_Utils::load_shader(vert_shader_src, vert_shader_name, GL_VERTEX_SHADER);
 	glAttachShader(gl_program, vert_shader);
-	frag_shader = GL_Utils::load_shader(fshader_src, fshader_name, GL_FRAGMENT_SHADER);
+	frag_shader = GL_Utils::load_shader(frag_shader_src, frag_shader_name, GL_FRAGMENT_SHADER);
 	glAttachShader(gl_program, frag_shader);
 	glLinkProgram(gl_program);
 
@@ -127,7 +155,7 @@ int Shader::initialize (const char *vshader_src, const char *vshader_name, const
 	return 0;
 }
 
-void Shader::term ()
+void Shader::term_gl ()
 {
 	if(frag_shader)
 		GL_Utils::unload_shader(frag_shader);

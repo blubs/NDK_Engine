@@ -11,6 +11,12 @@
 class Shader
 {
 public:
+	//Holding the raw src code of the shaders
+	const char* vert_shader_src;
+	const char* frag_shader_src;
+	char* vert_shader_name;
+	char* frag_shader_name;
+
 	//we construct a shader by passing in the shader source files
 	GLuint gl_program = 0;
 
@@ -43,12 +49,17 @@ public:
 	//Running count of how many textures we have bound. Resets every time bind is initiated.
 	int bound_textures;
 
+	//Loads the raw shader source
+	int load(const char* vshader_name, const char* fshader_name);
+
+	//Frees the loaded raw shader source
+	void unload();
+
 	//Initializes the shader given vertex / fragment shader src and name, as well as a list of parameter types and values (including the number of parameters)
-	int initialize(const char* vshader_src, const char* vshader_name, const char* fshader_src, const char* fshader_name,
-				GLuint* param_types, const char** param_identifiers, uint params_count);
+	int init_gl(GLuint* param_types, const char** param_identifiers, uint params_count);
 
 	//Freeing the shader and allocated memory
-	void term();
+	void term_gl();
 	//Binds a shader for use by renderer (should be called before binding individual values)
 	int bind_shader();
 

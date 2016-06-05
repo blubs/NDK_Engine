@@ -27,10 +27,22 @@ Engine::Engine (struct android_app *droid_app)
 		state = *(struct saved_state *) droid_app->savedState;
 	}
 
+	//============== Setting up game world objects/structs ======================
 	///... how do I want to hold game structs?
-	camera = (Camera *) malloc(sizeof(Camera));
-	//FIXME: can't used width / height because they have not yet been assigned (assigned elsewhere)
+
+	//camera = (Camera *) malloc(sizeof(Camera));
+	camera = new Camera;
 	camera->set_view_attributes(90.0f * DEG_TO_RAD, ASPECT_16_9_PORTRAIT, 0.1f, 1000.0f);
+
+	player = new Player;
+	//player = (Player*) malloc(sizeof(Player));
+
+	cam_to_bone = new Entity_Bone_Joint;
+	//cam_to_bone = (Entity_Bone_Joint*) malloc(sizeof(Entity_Bone_Joint));
+
+	LOGE("cam_to_bone ptr = %p\n",cam_to_bone);
+
+	//=============== Setting up graphics objects (materials/shaders) ===========
 
 	test_shader = (Shader *) malloc(sizeof(Shader));
 
@@ -46,8 +58,23 @@ Engine::Engine (struct android_app *droid_app)
 
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
 
-	player_skel = (Skeleton*) malloc(sizeof(Skeleton));
+	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
+
+	player_skel = new Skeleton;
+	//===========================================================================
+
+	player->model = test_arms;
+	player->skel = player_skel;
+
+
+	camera->parent = cam_to_bone;
+	cam_to_bone->parent_skel = player_skel;
+	cam_to_bone->parent_bone_index = 8; //head bone is at index 8, we could add methods for finding the bone
+	// but we don't need all of that at the moment (since camera is never going to be parented to anything but that bone)
+	player_skel->parent = player;
 }
+
+
 
 void Engine::handle_cmd (struct android_app *app, int32_t cmd)
 {
@@ -228,21 +255,9 @@ int Engine::init_display ()
 
 int Engine::load_shaders ()
 {
-	vert_shader_name = "minimal.vert";
-	frag_shader_name = "minimal.frag";
-	frag_shader_src = File_Utils::load_raw_asset("minimal.frag");
-	vert_shader_src = File_Utils::load_raw_asset("minimal.vert");
-
-
-	skel_fshader_nm = "test_skeletal.frag";
-	skel_vshader_nm = "test_skeletal.vert";
-	skel_fshader_src = File_Utils::load_raw_asset("test_skeletal.frag");
-	skel_vshader_src = File_Utils::load_raw_asset("test_skeletal.vert");
-
-	mesh_fshader_nm = "minimal_mesh.frag";
-	mesh_vshader_nm = "minimal_mesh.vert";
-	mesh_fshader_src = File_Utils::load_raw_asset("minimal_mesh.frag");
-	mesh_vshader_src = File_Utils::load_raw_asset("minimal_mesh.vert");
+	test_shader->load("minimal.vert","minimal.frag");
+	test_skeletal_shader->load("test_skeletal.vert","test_skeletal.frag");
+	mesh_shader->load("minimal_mesh.vert","minimal_mesh.frag");
 	return 1;
 }
 
@@ -257,6 +272,7 @@ int Engine::load_assets ()
 	test_arms->mat = mesh_mat;
 
 	player_skel->load("player_skeleton.sksf");
+	player_skel->load_animation("showcase_hands.skaf");
 	player_skel->load_animation("speed_vault.skaf");
 
 	test_arms->skel = player_skel;
@@ -269,20 +285,9 @@ int Engine::load_assets ()
 //========================================= Unloading assets ======================================
 void Engine::unload_shaders ()
 {
-	if(vert_shader_src)
-		free((char *) vert_shader_src);
-	if(frag_shader_src)
-		free((char *) frag_shader_src);
-
-	if(skel_fshader_src)
-		free((char *) frag_shader_src);
-	if(skel_vshader_src)
-		free((char *) frag_shader_src);
-
-	if(mesh_fshader_src)
-		free((char*) mesh_fshader_src);
-	if(mesh_vshader_src)
-		free((char*) mesh_vshader_src);
+	test_shader->unload();
+	test_skeletal_shader->unload();
+	mesh_shader->unload();
 }
 
 void Engine::unload_assets ()
@@ -661,7 +666,7 @@ int Engine::init_gl ()
 	};
 	int param_count = 6;
 
-	test_shader->initialize(vert_shader_src, vert_shader_name, frag_shader_src, frag_shader_name, param_types, param_names,
+	test_shader->init_gl(param_types, param_names,
 					    param_count);
 
 	mat_red->initialize();
@@ -696,8 +701,7 @@ int Engine::init_gl ()
 		"bone_index",
 		"bone_weight"
 	};
-	test_skeletal_shader->initialize(skel_vshader_src, skel_vshader_nm, skel_fshader_src, skel_fshader_nm,
-		 skel_param_types, skel_param_names, 7);
+	test_skeletal_shader->init_gl(skel_param_types, skel_param_names, 7);
 
 	skeletal_mat->initialize();
 	skeletal_mat->set_shader(test_skeletal_shader);
@@ -720,8 +724,7 @@ int Engine::init_gl ()
 		"bone_weight",
 		"bone"
 	};
-	mesh_shader->initialize(mesh_vshader_src,mesh_vshader_nm,mesh_fshader_src,mesh_fshader_nm,
-		mesh_shader_param_types, mesh_shader_param_names, 5);
+	mesh_shader->init_gl(mesh_shader_param_types, mesh_shader_param_names, 5);
 
 	mesh_mat->initialize();
 	mesh_mat->set_shader(mesh_shader);
@@ -750,7 +753,7 @@ int Engine::init_gl ()
 	glClearColor(1, 1, 1, 1);
 	LOGI("Init gl finished");
 
-	gl_initialized = 1;
+	gl_initialized = true;
 	return 1;
 }
 
@@ -762,9 +765,9 @@ void Engine::term_gl ()
 	mesh_mat->term();
 	skeletal_mat->term();
 	//Terminating all loaded shaders
-	test_shader->term();
-	test_skeletal_shader->term();
-	mesh_shader->term();
+	test_shader->term_gl();
+	test_skeletal_shader->term_gl();
+	mesh_shader->term_gl();
 
 
 	//Terminating all loaded models
@@ -776,7 +779,7 @@ void Engine::term_gl ()
 	glDeleteTextures(1, &texture_id);
 	texture_id = 0;
 
-	gl_initialized = 0;
+	gl_initialized = false;
 }
 
 int Engine::init_data ()
@@ -830,7 +833,14 @@ void Engine::term()
 		free(test_arms);
 
 	if(player_skel)
-		free(player_skel);
+		delete player_skel;
+	//	free(player_skel);
+	if(player)
+		delete player;
+	if(camera)
+		delete camera;
+	if(cam_to_bone)
+		delete cam_to_bone;
 }
 
 void Engine::draw_frame ()
@@ -870,6 +880,16 @@ void Engine::draw_frame ()
 
 	//Filling the screen with a color
 	glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
+
+
+
+	//Setting all transforms to be recalculated
+	player_skel->transform_calculated = false;
+	camera->transform_calculated = false;
+	player->transform_calculated = false;
+	cam_to_bone->transform_calculated = false;
+
+
 	//glClear(GL_COLOR_BUFFER_BIT);
 
 	//Triangle is in the xy plane, facing the negative y direction
@@ -958,9 +978,6 @@ void Engine::draw_frame ()
 	//Mat4 model_rot = Mat4::ROTATE(rot);
 
 	camera->pos = Vec3::ZERO();
-	camera->pos.y = -9.8f;
-	camera->pos.x = 0.0f;
-	camera->pos.z = 0.0f;
 
 	camera->angles = Vec3::ZERO();
 	//Pitch
@@ -1195,7 +1212,7 @@ void Engine::draw_frame ()
 	};
 
 
-	Vec3 pos(0,-7,0);
+	Vec3 pos(0,7,0);
 
 	Mat4 model_pos = Mat4::TRANSLATE(pos);
 	Mat4 model_transform = model_pos;
@@ -1236,7 +1253,9 @@ void Engine::draw_frame ()
 	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 	glDrawElements(GL_TRIANGLES, 72, GL_UNSIGNED_INT, (void *) 0);
 
-	test_arms->render(vp);
+	player->render(vp);
 
 	eglSwapBuffers(egl_display, egl_surface);
 }
+
+float Engine::delta_time = 0.0f;

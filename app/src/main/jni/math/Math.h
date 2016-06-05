@@ -320,6 +320,27 @@ struct Mat4
 		m[15] = a15;
 	}
 
+	//This assumes ptr has 16 float values
+	Mat4(const float* ptr)
+	{
+		m[0] = ptr[0];
+		m[1] = ptr[1];
+		m[2] = ptr[2];
+		m[3] = ptr[3];
+		m[4] = ptr[4];
+		m[5] = ptr[5];
+		m[6] = ptr[6];
+		m[7] = ptr[7];
+		m[8] = ptr[8];
+		m[9] = ptr[9];
+		m[10] = ptr[10];
+		m[11] = ptr[11];
+		m[12] = ptr[12];
+		m[13] = ptr[13];
+		m[14] = ptr[14];
+		m[15] = ptr[15];
+	}
+
 	Mat4 operator =(const Mat4& other)
 	{
 		m[0] = other.m[0];
@@ -394,6 +415,47 @@ struct Mat4
 		return result;
 	}
 
+	//[ 0  4  8  12 ]
+	//[ 1  5  9  13 ]
+	//[ 2  6  10 14 ]
+	//[ 3  7  11 15 ]
+
+	//The following two functions return the inverse matrix
+	//They assume the matrices represent rigid body transformations (i.e. only rotation and translation)
+	//This can be used to find view matrix as well
+	//This actually inverts the matrix
+	Mat4 invert()
+	{
+		Vec3 u(m[0],m[1],m[2]);
+		Vec3 v(m[4],m[5],m[6]);
+		Vec3 w(m[8],m[9],m[10]);
+
+		Vec3 t(m[12],m[13],m[14]);
+
+		m[0] = u.x;	m[4] = u.y;	m[8] = u.z;	m[12] = -(u*t);
+		m[1] = v.x;	m[5] = v.y;	m[9] = v.z;	m[13] = -(v*t);
+		m[2] = w.x;	m[6] = w.y;	m[10]= w.z;	m[14] = -(w*t);
+		m[3] = 0.0f;	m[7] = 0.0f;	m[11]= 0.0f;	m[15] = 1.0f;
+	}
+	//This returns a copy of the inverted matrix
+	Mat4 inverted()
+	{
+		Mat4 result;
+
+		Vec3 u(m[0],m[1],m[2]);
+		Vec3 v(m[4],m[5],m[6]);
+		Vec3 w(m[8],m[9],m[10]);
+
+		Vec3 t(m[12],m[13],m[14]);
+
+		result.m[0] = u.x;	result.m[4] = u.y;	result.m[8] = u.z;	result.m[12] = -(u*t);
+		result.m[1] = v.x;	result.m[5] = v.y;	result.m[9] = v.z;	result.m[13] = -(v*t);
+		result.m[2] = w.x;	result.m[6] = w.y;	result.m[10]= w.z;	result.m[14] = -(w*t);
+		result.m[3] = 0.0f;	result.m[7] = 0.0f;	result.m[11]= 0.0f;	result.m[15] = 1.0f;
+
+		return result;
+	}
+
 	//Static method that returns an identity matrix
 	static Mat4 IDENTITY()
 	{
@@ -453,8 +515,49 @@ struct Mat4
 
 		return result;
 	}
+
+	//Calculated transform matrix given angles and position
+	static Mat4 ROT_TRANS(const Vec3& angles, const Vec3& pos)
+	{
+		Quat pitch(angles.x, Vec3::RIGHT());
+		//Rotating angles.y about UP vector for yaw
+		Quat yaw(angles.y, Vec3::UP());
+
+		Quat rot = yaw*pitch;
+		Vec3 forward = rot * Vec3::FRONT();
+
+		//Rotating angles.z about the forward vector for the roll
+		Quat roll(angles.z, forward);
+		//Adding roll to pitch * yaw
+		rot = roll * rot;
+		Vec3 right = rot * Vec3::RIGHT();
+		Vec3 up = Vec3::cross(right,forward);
+
+		return Mat4::TRANSLATE(pos) * Mat4::ROTATE(rot);
+	}
+
+	//Alternate ROT_TRANS, assigns forward right and up vectors that are passed in
 	//TODO:
 	// rotation matrix
+	static Mat4 ROT_TRANS(const Vec3& angles, const Vec3& pos, Vec3* right, Vec3* up, Vec3* forward)
+	{
+		Quat pitch(angles.x, Vec3::RIGHT());
+		//Rotating angles.y about UP vector for yaw
+		Quat yaw(angles.y, Vec3::UP());
+
+		Quat rot = yaw*pitch;
+		*forward = rot * Vec3::FRONT();
+
+		//Rotating angles.z about the forward vector for the roll
+		Quat roll(angles.z, *forward);
+		//Adding roll to pitch * yaw
+		rot = roll * rot;
+		*right = rot * Vec3::RIGHT();
+		*up = Vec3::cross(*right,*forward);
+
+		return Mat4::TRANSLATE(pos) * Mat4::ROTATE(rot);
+	}
+
 
 	// Constructs a view matrix from normalized camera direction vectors and position vector
 	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)

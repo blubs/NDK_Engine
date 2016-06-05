@@ -6,8 +6,9 @@
 #define ENGINE_CAMERA_H
 
 #include "common.h"
+#include "Game_Object.h"
 
-class Camera
+class Camera : public Entity
 {
 public:
 	float fov;
@@ -15,10 +16,6 @@ public:
 	float near_plane;
 	float far_plane;
 
-
-	Vec3 pos;
-	//Pitch, yaw, roll
-	Vec3 angles;
 
 	Vec3 up;
 	Vec3 forward;
@@ -44,21 +41,20 @@ public:
 	//Converts angles to forward,right,and up vectors, and sets the view matrix
 	void update_view_matrix()
 	{
-		//Rotating angles.x about RIGHT vector for pitch
-		Quat pitch(angles.x, Vec3::RIGHT());
-		//Rotating angles.y about UP vector for yaw
-		Quat yaw(angles.y, Vec3::UP());
+		LOGE("start update view matrix\n");
+		Quat flip_y_and_z(HALF_PI,Vec3::RIGHT());
 
-		Quat rot = yaw*pitch;
-		forward = rot * Vec3::FRONT();
+		transform = Mat4::ROT_TRANS(angles,pos,&right,&up,&forward) * Mat4::ROTATE(flip_y_and_z);
+		LOGE("about to get world trans from parent, ptr %p\n",parent);
+		if(parent)
+		{
+			world_transform = parent->get_world_transform() * transform;
+		}
+		else
+			world_transform = transform;
 
-		//Rotating angles.z about the forward vector for the roll
-		Quat roll(angles.z, forward);
-		//Adding roll to pitch * yaw
-		rot = roll * rot;
-		right = rot * Vec3::RIGHT();
-		up = Vec3::cross(right,forward);
-		view_m = Mat4::VIEW(right,up,forward,pos);
+		view_m = world_transform.inverted();
+		LOGE("update view matrix finished\n");
 	}
 };
 

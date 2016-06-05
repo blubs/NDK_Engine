@@ -46,6 +46,6 @@ extern "C" {
 #define ASPECT_16_9_LANDSCAPE 1.7778f
 #define ASPECT_16_9_PORTRAIT 0.5625f
 
-#include "math/Math.h"
+#include "math.h"
 
 #endif //ENGINE_COMMON_H

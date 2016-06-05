@@ -78,7 +78,7 @@ public:
 
 	int init_gl();
 	void term_gl();
-	//bool gl_initialized = false;
+	bool gl_initialized = false;
 
 
 	int init_data();
@@ -86,16 +86,6 @@ public:
 	bool data_initialized = false;
 
 
-	const char* frag_shader_src = 0;
-	const char* frag_shader_name = 0;
-
-	const char* vert_shader_src = 0;
-	const char* vert_shader_name = 0;
-
-	const char* skel_fshader_src = 0;
-	const char* skel_fshader_nm = 0;
-	const char* skel_vshader_src = 0;
-	const char* skel_vshader_nm = 0;
 
 	//FIXME remove this after shader.h is done
 /*
@@ -113,11 +103,6 @@ public:
 
 	Material* mat_red;
 	Material* mat_blue;
-
-	const char* mesh_fshader_src = 0;
-	const char* mesh_fshader_nm = 0;
-	const char* mesh_vshader_src = 0;
-	const char* mesh_vshader_nm = 0;
 
 	Shader* mesh_shader;
 	Material* mesh_mat;
@@ -152,9 +137,11 @@ public:
 	//struct saved_state* state;
 	int animating;
 
-	int gl_initialized = 0;
-
 	Camera* camera;
+	Player* player;
+	Entity_Bone_Joint* cam_to_bone;
+
+	static float delta_time;
 };
 
 
