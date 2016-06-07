@@ -101,12 +101,12 @@ public:
 
 	//We will eventually need methods for combining Meshes, and copying Meshes
 
-	int load_model(const char* filename)
+	int load_model(const char* filepath)
 	{
-		raw_data = (unsigned int*) File_Utils::load_raw_asset(filename);
+		raw_data = (unsigned int*) File_Utils::load_raw_asset(filepath);
 		if(!raw_data)
 		{
-			LOGE("Error: failed to load \"%s\"\n",filename);
+			LOGE("Error: failed to load \"%s\"\n",filepath);
 			return 0;
 		}
 

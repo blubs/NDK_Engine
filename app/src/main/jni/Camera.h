@@ -41,20 +41,15 @@ public:
 	//Converts angles to forward,right,and up vectors, and sets the view matrix
 	void update_view_matrix()
 	{
-		LOGE("start update view matrix\n");
 		Quat flip_y_and_z(HALF_PI,Vec3::RIGHT());
 
 		transform = Mat4::ROT_TRANS(angles,pos,&right,&up,&forward) * Mat4::ROTATE(flip_y_and_z);
-		LOGE("about to get world trans from parent, ptr %p\n",parent);
 		if(parent)
-		{
 			world_transform = parent->get_world_transform() * transform;
-		}
 		else
 			world_transform = transform;
 
 		view_m = world_transform.inverted();
-		LOGE("update view matrix finished\n");
 	}
 };
 

@@ -16,6 +16,7 @@
 #include "Material.h"
 #include "Skel_Model.h"
 #include "Skeleton.h"
+#include "Texture.h"
 
 
 
@@ -98,24 +99,22 @@ public:
 		GLint shader_mvp_loc = -1;
 	GLuint gl_program = 0;
 */
-	Shader* test_shader;
-	Shader* test_skeletal_shader;
+	Shader* test_shader = NULL;
+	Shader* test_skeletal_shader = NULL;
 
-	Material* mat_red;
-	Material* mat_blue;
+	Material* mat_red = NULL;
+	Material* mat_blue = NULL;
 
-	Shader* mesh_shader;
-	Material* mesh_mat;
+	Shader* mesh_shader = NULL;
+	Material* mesh_mat = NULL;
 
-	Material* skeletal_mat;
+	Material* skeletal_mat = NULL;
 
 	//This is independent from shader
-	GLuint texture_id = 0;
-	const char* test_texture = 0;
+	Texture* test_texture = NULL;
 
-
-	Skel_Model* test_arms;
-	Skeleton* player_skel;
+	Skel_Model* test_arms = NULL;
+	Skeleton* player_skel = NULL;
 
 
 	void draw_frame();
@@ -137,9 +136,9 @@ public:
 	//struct saved_state* state;
 	int animating;
 
-	Camera* camera;
-	Player* player;
-	Entity_Bone_Joint* cam_to_bone;
+	Camera* camera = NULL;
+	Player* player = NULL;
+	Entity_Bone_Joint* cam_to_bone = NULL;
 
 	static float delta_time;
 };

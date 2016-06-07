@@ -119,12 +119,12 @@ public:
 		return Mat4(data);
 	}
 
-	int load(const char* filename)
+	int load(const char* filepath)
 	{
-		raw_data = (unsigned int*) File_Utils::load_raw_asset(filename);
+		raw_data = (unsigned int*) File_Utils::load_raw_asset(filepath);
 		if(!raw_data)
 		{
-			LOGE("Error: failed to load \"%s\"\n",filename);
+			LOGE("Error: failed to load \"%s\"\n",filepath);
 			return 0;
 		}
 
@@ -164,13 +164,13 @@ public:
 			free(rest_pose_ident_mat4s);
 	}
 
-	int load_animation(const char* filename)
+	int load_animation(const char* filepath)
 	{
-		unsigned int* loaded_anim = (unsigned int*) File_Utils::load_raw_asset(filename);
+		unsigned int* loaded_anim = (unsigned int*) File_Utils::load_raw_asset(filepath);
 
 		if(!loaded_anim)
 		{
-			LOGE("Error: failed to load \"%s\"\n",filename);
+			LOGE("Error: failed to load \"%s\"\n",filepath);
 			return 0;
 		}
 
@@ -237,7 +237,6 @@ public:
 
 	Mat4 get_world_transform()
 	{
-		LOGE("Getting cam to joint world transform\n");
 		if(!parent_skel)
 		{
 			LOGE("Error: Entity_Bone_Joint skeletal parent not set.\n");
@@ -255,7 +254,6 @@ public:
 		//Bone transforms seem to introduce a roll of 90 degrees, so undoing it
 		Quat fix_roll(HALF_PI, Vec3::FRONT());
 
-		LOGE("FINISHED getting world transform from entity bone to bone\n");
 		return parent_skel->get_world_transform() * transform * Mat4::ROTATE(fix_roll);
 	}
 };

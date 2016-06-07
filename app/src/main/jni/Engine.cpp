@@ -58,8 +58,9 @@ Engine::Engine (struct android_app *droid_app)
 
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
 
-	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
+	test_texture = (Texture*) malloc(sizeof(Texture));
 
+	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
 	player_skel = new Skeleton;
 	//===========================================================================
 
@@ -266,7 +267,7 @@ int Engine::load_shaders ()
 int Engine::load_assets ()
 {
 	//Loading the test texture.
-	test_texture = (char *) File_Utils::load_raw_asset("tex.pkm");
+	test_texture->load("tex.pkm",512,512);
 
 	test_arms->load_model("test_arms.skmf");
 	test_arms->mat = mesh_mat;
@@ -293,7 +294,7 @@ void Engine::unload_shaders ()
 void Engine::unload_assets ()
 {
 	if(test_texture)
-		free((char *) test_texture);
+		test_texture->unload();
 
 	if(test_arms)
 		test_arms->unload_model();
@@ -731,19 +732,7 @@ int Engine::init_gl ()
 
 
 	//==================================== Loading textures =======================================
-	GLuint tex_id;
-	glGenTextures(1, &tex_id);
-	//======================
-	glBindTexture(GL_TEXTURE_2D, tex_id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8, 512, 512, 0, 131072, (const void *) test_texture);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-
-	texture_id = tex_id;
+	test_texture->init_gl();
 
 	//==================================== Setting up Mesh VBOs ====================================
 	test_arms->init_gl();
@@ -776,8 +765,7 @@ void Engine::term_gl ()
 
 
 
-	glDeleteTextures(1, &texture_id);
-	texture_id = 0;
+	test_texture->term_gl();
 
 	gl_initialized = false;
 }
@@ -831,6 +819,9 @@ void Engine::term()
 
 	if(test_arms)
 		free(test_arms);
+
+	if(test_texture)
+		free(test_texture);
 
 	if(player_skel)
 		delete player_skel;
@@ -1026,6 +1017,9 @@ void Engine::draw_frame ()
 	test_shader->bind_shader_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
 	test_shader->bind_shader_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);*/
 
+	//Getting the texture gl_id
+	GLuint tex_gl_id = test_texture->gl_id;
+
 	int i = 0;
 	int j = 0;
 	int k = 0;
@@ -1052,7 +1046,7 @@ void Engine::draw_frame ()
 					mat_red->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
 					mat_red->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
 					mat_red->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
-					mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) texture_id);
+					mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex_gl_id);
 					mat_red->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 				}
 				else
@@ -1061,7 +1055,7 @@ void Engine::draw_frame ()
 					mat_blue->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
 					mat_blue->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
 					mat_blue->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
-					mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) texture_id);
+					mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex_gl_id);
 					mat_blue->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 				}
 				//glDrawArrays(GL_TRIANGLES, 0, vert_count);
@@ -1244,7 +1238,7 @@ void Engine::draw_frame ()
 	skeletal_mat->bind_material();
 	skeletal_mat->bind_value(Shader::PARAM_VERTICES, (void*) joint_vertices);
 	skeletal_mat->bind_value(Shader::PARAM_VERT_UV1, (void*) joint_uvs);
-	skeletal_mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void*) texture_id);
+	skeletal_mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void*) tex_gl_id);
 	skeletal_mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
 	skeletal_mat->bind_value(Shader::PARAM_BONE_INDICES,(void*)joint_bone_indices);
 	skeletal_mat->bind_value(Shader::PARAM_BONE_WEIGHTS,(void*)joint_bone_weights);

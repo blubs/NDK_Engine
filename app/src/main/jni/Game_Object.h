@@ -36,7 +36,6 @@ class Entity : public Game_Object
 public:
 	Mat4 get_world_transform()
 	{
-		LOGE("get world transform started\n");
 		if(transform_calculated)
 		{
 			return world_transform;
@@ -49,7 +48,6 @@ public:
 			world_transform = transform;
 
 		transform_calculated = true;
-		LOGE("get world transform finished\n");
 		return world_transform;
 	}
 

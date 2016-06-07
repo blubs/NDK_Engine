@@ -18,7 +18,7 @@ const char* File_Utils::load_raw_asset (const char *file_path)
 	if(asset == NULL)
 	{
 		LOGE("ERROR: Failed to read file to string, asset not found. (file: %s)\n",file_path);
-		return "";
+		return NULL;
 	}
 
 	const char* asset_buffer = (char*)AAsset_getBuffer(asset);
@@ -84,7 +84,7 @@ const char* File_Utils::read_savedata(const char* file_name)
 	if(!f)
 	{
 		LOGE("Error: opening file \"%s\" for read failed.\n",file_name);
-		return "";
+		return NULL;
 	}
 
 	char* data = (char*)malloc(sizeof(char)*100);//TODO: replace 100 with an expected data size.
