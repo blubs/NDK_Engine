@@ -17,7 +17,7 @@
 #include "Skel_Model.h"
 #include "Skeleton.h"
 #include "Texture.h"
-
+#include "UI_Text.h"
 
 
 // Saved State Data
@@ -110,6 +110,10 @@ public:
 
 	Material* skeletal_mat = NULL;
 
+	Shader* text_shader = NULL;
+	Material* text_mat = NULL;
+
+
 	//This is independent from shader
 	Texture* test_texture = NULL;
 
@@ -139,6 +143,8 @@ public:
 	Camera* camera = NULL;
 	Player* player = NULL;
 	Entity_Bone_Joint* cam_to_bone = NULL;
+
+	UI_Text* test_text = NULL;
 
 	static float delta_time;
 };

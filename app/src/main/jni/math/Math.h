@@ -537,8 +537,6 @@ struct Mat4
 	}
 
 	//Alternate ROT_TRANS, assigns forward right and up vectors that are passed in
-	//TODO:
-	// rotation matrix
 	static Mat4 ROT_TRANS(const Vec3& angles, const Vec3& pos, Vec3* right, Vec3* up, Vec3* forward)
 	{
 		Quat pitch(angles.x, Vec3::RIGHT());
@@ -558,6 +556,8 @@ struct Mat4
 		return Mat4::TRANSLATE(pos) * Mat4::ROTATE(rot);
 	}
 
+	//TODO:
+	// rotation matrix
 
 	// Constructs a view matrix from normalized camera direction vectors and position vector
 	static Mat4 VIEW(const Vec3 right, const Vec3 up, const Vec3 forward, const Vec3 pos)

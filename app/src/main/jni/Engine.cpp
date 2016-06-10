@@ -40,8 +40,6 @@ Engine::Engine (struct android_app *droid_app)
 	cam_to_bone = new Entity_Bone_Joint;
 	//cam_to_bone = (Entity_Bone_Joint*) malloc(sizeof(Entity_Bone_Joint));
 
-	LOGE("cam_to_bone ptr = %p\n",cam_to_bone);
-
 	//=============== Setting up graphics objects (materials/shaders) ===========
 
 	test_shader = (Shader *) malloc(sizeof(Shader));
@@ -59,6 +57,10 @@ Engine::Engine (struct android_app *droid_app)
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
 
 	test_texture = (Texture*) malloc(sizeof(Texture));
+
+	text_shader = (Shader*) malloc(sizeof(Shader));
+	text_mat = (Material*) malloc(sizeof(Material));
+	test_text = (UI_Text*) malloc(sizeof(UI_Text));
 
 	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
 	player_skel = new Skeleton;
@@ -259,6 +261,7 @@ int Engine::load_shaders ()
 	test_shader->load("minimal.vert","minimal.frag");
 	test_skeletal_shader->load("test_skeletal.vert","test_skeletal.frag");
 	mesh_shader->load("minimal_mesh.vert","minimal_mesh.frag");
+	text_shader->load("text.vert","text.frag");
 	return 1;
 }
 
@@ -278,6 +281,8 @@ int Engine::load_assets ()
 
 	test_arms->skel = player_skel;
 
+	test_text->init(text_mat,test_texture);
+	test_text->set_text("Hello World!");
 	return 1;
 }
 
@@ -289,6 +294,7 @@ void Engine::unload_shaders ()
 	test_shader->unload();
 	test_skeletal_shader->unload();
 	mesh_shader->unload();
+	text_shader->unload();
 }
 
 void Engine::unload_assets ()
@@ -665,10 +671,9 @@ int Engine::init_gl ()
 		"mvp",
 		"test_color_param"
 	};
-	int param_count = 6;
+	uint param_count = 6;
 
-	test_shader->init_gl(param_types, param_names,
-					    param_count);
+	test_shader->init_gl(param_types, param_names,param_count);
 
 	mat_red->initialize();
 	mat_red->set_shader(test_shader);
@@ -706,6 +711,33 @@ int Engine::init_gl ()
 
 	skeletal_mat->initialize();
 	skeletal_mat->set_shader(test_skeletal_shader);
+
+
+	//======================================= Initializing the UI text shader =================================
+	GLuint text_param_types[] =
+	{
+		Shader::PARAM_VERTICES,
+		Shader::PARAM_VERT_UV1,
+		Shader::PARAM_TEXTURE_DIFFUSE,
+		Shader::PARAM_MVP_MATRIX,
+		Shader::PARAM_COLOR_MULT,
+		Shader::PARAM_COLOR_ADD
+	};
+	const char *text_param_names[] =
+	{
+		"vert_pos",
+		"src_tex_coord",
+		"tex",
+		"mvp",
+		"mult_color",
+		"add_color"
+	};
+	uint text_param_count = 6;
+
+	text_shader->init_gl(text_param_types, text_param_names,text_param_count);
+
+	text_mat->initialize();
+	text_mat->set_shader(text_shader);
 
 	//========================================= Initializing the mesh shader ================================
 
@@ -753,10 +785,12 @@ void Engine::term_gl ()
 	mat_red->term();
 	mesh_mat->term();
 	skeletal_mat->term();
+	text_mat->term();
 	//Terminating all loaded shaders
 	test_shader->term_gl();
 	test_skeletal_shader->term_gl();
 	mesh_shader->term_gl();
+	text_shader->term_gl();
 
 
 	//Terminating all loaded models
@@ -816,6 +850,11 @@ void Engine::term()
 
 	if(mesh_mat)
 		free(mesh_mat);
+
+	if(text_mat)
+		free(text_mat);
+	if(text_shader)
+		free(text_shader);
 
 	if(test_arms)
 		free(test_arms);
@@ -1252,6 +1291,7 @@ void Engine::draw_frame ()
 	if(state.x < 0.05f && !player_skel->playing_anim)
 		player_skel->play_anim(0);
 	player->render(vp);
+	test_text->render(Mat4::IDENTITY());//Identity for drawing in view space
 
 	eglSwapBuffers(egl_display, egl_surface);
 }

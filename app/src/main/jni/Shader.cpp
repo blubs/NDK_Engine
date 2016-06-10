@@ -100,6 +100,8 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 			//Uniforms
 			case PARAM_MVP_MATRIX:
 			case PARAM_TEXTURE_DIFFUSE:
+			case PARAM_COLOR_MULT:
+			case PARAM_COLOR_ADD:
 			case PARAM_TEST_FIELD:
 				param_location[i] = (GLint*)malloc(sizeof(GLint));
 				*((GLint*)(param_location[i])) = -1;
@@ -269,6 +271,8 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 			glVertexAttribPointer(uloc, 3, GL_FLOAT, GL_FALSE, 0, (float*) data);
 			glEnableVertexAttribArray(uloc);
 			break;
+		case PARAM_COLOR_MULT:
+		case PARAM_COLOR_ADD:
 		case PARAM_TEST_FIELD:
 			loc = *((GLint*)(param_location[index]));
 			glUniform4f(loc, ((float*)data)[0],((float*)data)[1],((float*)data)[2],((float*)data)[3]);

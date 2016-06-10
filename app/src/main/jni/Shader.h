@@ -37,6 +37,8 @@ public:
 	static const int PARAM_BONE_MATRICES = 11;
 	static const int PARAM_BONE_INDICES = 12;
 	static const int PARAM_BONE_WEIGHTS = 13;
+	static const int PARAM_COLOR_MULT = 14;
+	static const int PARAM_COLOR_ADD = 15;
 	static const int PARAM_TEST_FIELD = 20;
 	//TODO: do cubemap textures need their own distinct texture types for each face?
 	//TODO: any other parameter types
