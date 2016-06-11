@@ -32,7 +32,6 @@ Engine::Engine (struct android_app *droid_app)
 
 	//camera = (Camera *) malloc(sizeof(Camera));
 	camera = new Camera;
-	camera->set_view_attributes(90.0f * DEG_TO_RAD, ASPECT_16_9_PORTRAIT, 0.01f, 1000.0f);
 
 	player = new Player;
 	//player = (Player*) malloc(sizeof(Player));
@@ -65,16 +64,6 @@ Engine::Engine (struct android_app *droid_app)
 	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
 	player_skel = new Skeleton;
 	//===========================================================================
-
-	player->model = test_arms;
-	player->skel = player_skel;
-
-
-	camera->parent = cam_to_bone;
-	cam_to_bone->parent_skel = player_skel;
-	cam_to_bone->parent_bone_index = 8; //head bone is at index 8, we could add methods for finding the bone
-	// but we don't need all of that at the moment (since camera is never going to be parented to anything but that bone)
-	player_skel->parent = player;
 }
 
 
@@ -273,16 +262,10 @@ int Engine::load_assets ()
 	test_texture->load("tex.pkm",512,512);
 
 	test_arms->load_model("test_arms.skmf");
-	test_arms->mat = mesh_mat;
 
 	player_skel->load("player_skeleton.sksf");
 	player_skel->load_animation("showcase_hands.skaf");
 	player_skel->load_animation("speed_vault.skaf");
-
-	test_arms->skel = player_skel;
-
-	test_text->init(text_mat,test_texture);
-	test_text->set_text("Hello World!");
 	return 1;
 }
 
@@ -904,6 +887,35 @@ void Engine::draw_frame ()
 		return;
 	}
 
+	static bool first_frame = true;
+
+	//====================================== First frame set up code TODO: move this elsewhere ==========================
+	if(first_frame)
+	{
+		//FIXME: have a method that runs on the first frame to set up the game logic
+		//This is a valid place to run first frame things for now...
+
+		test_arms->mat = mesh_mat;
+		test_arms->skel = player_skel;
+
+		test_text->init(text_mat,test_texture);
+		test_text->set_text("Hello World!");
+
+		player->model = test_arms;
+		player->skel = player_skel;
+
+
+		camera->parent = cam_to_bone;
+		cam_to_bone->parent_skel = player_skel;
+		cam_to_bone->parent_bone_index = 8; //head bone is at index 8, we could add methods for finding the bone
+		// but we don't need all of that at the moment (since camera is never going to be parented to anything but that bone)
+		player_skel->parent = player;
+		camera->set_persp_view(90.0f * DEG_TO_RAD, width,height, 0.01f, 1000.0f);
+		camera->set_ortho_view(width,height,0.0001f,1.0f);
+		//==================================================================================================================
+		first_frame = false;
+	}
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	glDepthMask(GL_TRUE);
@@ -1076,7 +1088,7 @@ void Engine::draw_frame ()
 				Mat4 model_pos = Mat4::TRANSLATE(pos);
 				//Mat4 model_transform = model_pos * model_rot; //don't rotate
 				Mat4 model_transform = model_pos; //don't rotate
-				Mat4 mvp = camera->projection_m * camera->view_m * model_transform;
+				Mat4 mvp = camera->persp_proj_m * camera->view_m * model_transform;
 
 				//Make a checker board pattern of cubes (alternating materials between each subsequent cube)
 				if((i + j + k) % 2)
@@ -1249,7 +1261,7 @@ void Engine::draw_frame ()
 
 	Mat4 model_pos = Mat4::TRANSLATE(pos);
 	Mat4 model_transform = model_pos;
-	Mat4 vp = camera->projection_m * camera->view_m;
+	Mat4 vp = camera->persp_proj_m * camera->view_m;
 	Mat4 mvp = vp * model_transform;
 
 	int BONE_COUNT = 2;
@@ -1291,7 +1303,7 @@ void Engine::draw_frame ()
 	if(state.x < 0.05f && !player_skel->playing_anim)
 		player_skel->play_anim(0);
 	player->render(vp);
-	test_text->render(Mat4::IDENTITY());//Identity for drawing in view space
+	test_text->render(camera->ortho_proj_m);//Identity for drawing in view space
 
 	eglSwapBuffers(egl_display, egl_surface);
 }

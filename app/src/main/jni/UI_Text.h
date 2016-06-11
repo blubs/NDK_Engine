@@ -57,6 +57,7 @@ public:
 				0.5f,0.5f,0.0f,
 				-0.5f,0.5f,0.0f
 			};
+
 			float left = 0.0f;
 			float top = 1.0f;
 			float bottom = 0.0f;
@@ -81,8 +82,7 @@ public:
 			const float add_col[] = { add_color.x,add_color.y,add_color.z,0.0f };
 
 
-			Mat4 mvp = vp;
-
+			Mat4 mvp = vp * Mat4::ROT_TRANS(angles,pos) * Mat4::SCALE(800.0f,800.0f,800.0f);
 			mat->bind_material();
 			mat->bind_value(Shader::PARAM_VERTICES,(void*) quad_verts);
 			mat->bind_value(Shader::PARAM_VERT_UV1,(void*) quad_uvs);
@@ -131,7 +131,8 @@ public:
 	{
 		text = NULL;
 		text_length = 0;
-		pos = Vec3::ZERO();
+		//pos = Vec3(0.5f * 1440.0f,0.5f * 2560.0f,0.5f);
+		pos = Vec3(0.0f,0.0f,0.5f);
 		angles = Vec3::ZERO();
 		color = Vec3(1.0f,1.0f,1.0f);
 		add_color = Vec3::ZERO();

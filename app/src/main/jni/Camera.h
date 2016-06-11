@@ -23,20 +23,32 @@ public:
 
 	//How are we going to reference the parent of the camera?
 
-	Mat4 projection_m;
+	Mat4 persp_proj_m;
+	Mat4 ortho_proj_m;
 	Mat4 view_m;
 
 	//Update the view attributes
-	void set_view_attributes(float field_of_view, float aspect_ratio, float near_clipping_plane, float far_clipping_plane)
+	void set_persp_view(float field_of_view, int width, int height, float near_clipping_plane, float far_clipping_plane)
 	{
 		fov = field_of_view;
+		float aspect_ratio = ((float) width )/ ((float) height);
 		aspect = aspect_ratio;
 		near_plane = near_clipping_plane;
 		far_plane = far_clipping_plane;
 
 		//Calculate the projection matrix
-		projection_m = Mat4::PROJECT_PERSPECTIVE(near_plane,far_plane,aspect,fov);
+		persp_proj_m = Mat4::PROJECT_PERSPECTIVE(near_plane,far_plane,aspect,fov);
 	}
+	void set_ortho_view(int width, int height, float near_clipping_plane, float far_clipping_plane)
+	{
+		//near_plane = near_clipping_plane;
+		//far_plane = far_clipping_plane;
+
+		//Calculate the projection matrix
+		ortho_proj_m = Mat4::PROJECT_ORTHO(near_clipping_plane,far_clipping_plane,(float)width,(float)height);
+	}
+
+
 
 	//Converts angles to forward,right,and up vectors, and sets the view matrix
 	void update_view_matrix()

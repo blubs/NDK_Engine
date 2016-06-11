@@ -601,6 +601,30 @@ struct Mat4
 		return result;
 	}
 
+	//may or may not change this, but currently ortho projection considers the center to be at (0,0)
+	// Constructs an orthographic projection matrix given near plane, far plane, screen width and screen height
+	static Mat4 PROJECT_ORTHO(const float near, const float far, const float width, const float height)
+	{
+		Mat4 result = Mat4::IDENTITY();
+		float top = height*0.5f;
+		float bottom = -top;
+		float right = width*0.5f;
+		float left = -right;
+
+		float inv_z_dist = 1.0f/ (far - near);
+		float inv_width = 1.0f/(right - left);
+		float inv_height = 1.0f/(top-bottom);
+
+		result.m[0] = 2.0f * inv_width;
+		result.m[5] = 2.0f * inv_height;
+		result.m[10] = 2.0f * inv_z_dist;
+		result.m[12] = -(right+left) * inv_width;
+		result.m[13] = -(top+bottom) * inv_height;
+		result.m[14] = -(far+near) * inv_z_dist;
+
+		return result;
+	}
+
 	//Additional methods to perhaps implement (depending on if I ever find the need for them)
 	//Scalar multiplication / division of a matrix
 	//addition / subtraction of a matrices
