@@ -899,7 +899,7 @@ void Engine::draw_frame ()
 		test_arms->skel = player_skel;
 
 		test_text->init(text_mat,test_texture);
-		test_text->set_text("Hello World!");
+		test_text->set_text("hello world");
 
 		player->model = test_arms;
 		player->skel = player_skel;

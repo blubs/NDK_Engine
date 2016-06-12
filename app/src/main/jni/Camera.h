@@ -41,9 +41,6 @@ public:
 	}
 	void set_ortho_view(int width, int height, float near_clipping_plane, float far_clipping_plane)
 	{
-		//near_plane = near_clipping_plane;
-		//far_plane = far_clipping_plane;
-
 		//Calculate the projection matrix
 		ortho_proj_m = Mat4::PROJECT_ORTHO(near_clipping_plane,far_clipping_plane,(float)width,(float)height);
 	}
