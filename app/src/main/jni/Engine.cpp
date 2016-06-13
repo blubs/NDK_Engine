@@ -57,6 +57,8 @@ Engine::Engine (struct android_app *droid_app)
 
 	test_texture = (Texture*) malloc(sizeof(Texture));
 
+	char_set = (Texture*) malloc(sizeof(Texture));
+
 	text_shader = (Shader*) malloc(sizeof(Shader));
 	text_mat = (Material*) malloc(sizeof(Material));
 	test_text = (UI_Text*) malloc(sizeof(UI_Text));
@@ -260,6 +262,7 @@ int Engine::load_assets ()
 {
 	//Loading the test texture.
 	test_texture->load("tex.pkm",512,512);
+	char_set->load("char_set.pkm",2048,2048);
 
 	test_arms->load_model("test_arms.skmf");
 
@@ -284,6 +287,8 @@ void Engine::unload_assets ()
 {
 	if(test_texture)
 		test_texture->unload();
+	if(char_set)
+		char_set->unload();
 
 	if(test_arms)
 		test_arms->unload_model();
@@ -748,6 +753,7 @@ int Engine::init_gl ()
 
 	//==================================== Loading textures =======================================
 	test_texture->init_gl();
+	char_set->init_gl();
 
 	//==================================== Setting up Mesh VBOs ====================================
 	test_arms->init_gl();
@@ -783,6 +789,7 @@ void Engine::term_gl ()
 
 
 	test_texture->term_gl();
+	char_set->term_gl();
 
 	gl_initialized = false;
 }
@@ -844,6 +851,8 @@ void Engine::term()
 
 	if(test_texture)
 		free(test_texture);
+	if(char_set)
+		free(char_set);
 
 	if(player_skel)
 		delete player_skel;
@@ -898,8 +907,8 @@ void Engine::draw_frame ()
 		test_arms->mat = mesh_mat;
 		test_arms->skel = player_skel;
 
-		test_text->init(text_mat,test_texture);
-		test_text->set_text("hello world");
+		test_text->init(text_mat,char_set);
+		test_text->set_text("test TEST !@#$%^&*()");
 
 		player->model = test_arms;
 		player->skel = player_skel;

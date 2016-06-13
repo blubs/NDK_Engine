@@ -116,6 +116,7 @@ public:
 
 	//This is independent from shader
 	Texture* test_texture = NULL;
+	Texture* char_set = NULL;
 
 	Skel_Model* test_arms = NULL;
 	Skeleton* player_skel = NULL;

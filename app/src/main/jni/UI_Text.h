@@ -40,6 +40,18 @@ public:
 	Material* mat;
 	Texture* charset;
 
+	//From ASCII value - 32 (32 is space, which isn't mapped)
+	//to ASCII value 126
+	//Showing what char goes at which index
+	//{!,",#,$,%,&,',(,),*,+,,,-,.,/,0,1,2,3,4,5,6,7,8,9,:,;,<,=,>,?,@,ABCDEFGHIJKLMNOPQRSTUVWXYZ,[,\,],^,_,`,abcdefghijklmnopqrstuvwxyz,{,|,},~}
+	static const char char_index_x[94];
+	static const char char_index_y[94];
+
+	//Spacing before before
+	static float char_pre_space[94];
+	//Spacing after char
+	static float char_suf_space[94];
+
 	int render(Mat4 vp)
 	{
 		if(!visible)
@@ -59,36 +71,27 @@ public:
 
 		for(int i = 0; i < text_length; i++)
 		{
-			//TODO: get uv coordinates of char from charset
 			char c = text[i];
-			if(c == ' ')
+			if(c <= ' ' || c > '~')
 				continue;
+			c = c - '!';
 
+			float index_x = char_index_x[c];
+			float index_y = char_index_y[c];
 
-			float letters_per_row = 32.0f;
+			//LOGE("place of char: %c, (%f,%f)\n",(c+'!'),index_x,index_y);
 
-			float index_x = c - 'a';
-			float index_y = (index_x/letters_per_row);
-			index_x = fmodf(index_x,1.0f);
+			float cell_size = 0.09765625f;//this is 10 cells of size 100 px fitting in 1024 pixels, with 24 wasted pixels
 
-			float cell_size = 1.0f/letters_per_row;
+			float corner_x = cell_size * index_x;
+			float corner_y = cell_size * index_y;
 
-			float center_x = cell_size * index_x;
-			float center_y = cell_size * index_y;
+			float left = corner_x;
+			float top = corner_y;
+			float bottom = corner_y + cell_size;
+			float right = corner_x + cell_size;
 
-			cell_size = 1.0f;
-			center_x = center_y = 0.5f;
-
-			float left = center_x - cell_size*0.5f;
-			float top = center_y + cell_size*0.5f;
-			float bottom = center_y - cell_size*0.5f;
-			float right = center_x + cell_size*0.5f;
-
-			//Images are flipped
-			top = 1.0f - top;
-			bottom = 1.0f - bottom;
-
-			Vec3 letter_offset(i*1.1f,0.0f,0.0f);
+			Vec3 letter_offset(i*0.9f,0.0f,0.0f);
 
 			const float quad_uvs[] =
 			{
@@ -126,7 +129,7 @@ public:
 		if(text)
 			clear_text();
 
-		text = (char*) malloc(sizeof(char) * sizeof(text_to_set));
+		text = (char*) malloc(sizeof(char) * (strlen(text_to_set)+1));
 		strcpy(text,text_to_set);
 		text_length = strlen(text);
 		visible = true;
@@ -155,8 +158,12 @@ public:
 		//pos = Vec3(0.5f * 1440.0f,0.5f * 2560.0f,0.5f);
 		pos = Vec3(-500.0f,0.0f,0.5f);
 		angles = Vec3::ZERO();
+		//This has very ugly results actually
+		//color = Vec3(0.0f,0.0f,0.0f);
+		//add_color = Vec3(1.0f,1.0f,1.0f);
 		color = Vec3(1.0f,1.0f,1.0f);
-		add_color = Vec3::ZERO();
+		add_color = Vec3(0.0f,0.0f,0.0f);
+
 		opacity = 1.0f;
 		visible = false;
 
