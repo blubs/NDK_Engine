@@ -30,14 +30,11 @@ Engine::Engine (struct android_app *droid_app)
 	//============== Setting up game world objects/structs ======================
 	///... how do I want to hold game structs?
 
-	//camera = (Camera *) malloc(sizeof(Camera));
 	camera = new Camera;
 
 	player = new Player;
-	//player = (Player*) malloc(sizeof(Player));
 
 	cam_to_bone = new Entity_Bone_Joint;
-	//cam_to_bone = (Entity_Bone_Joint*) malloc(sizeof(Entity_Bone_Joint));
 
 	//=============== Setting up graphics objects (materials/shaders) ===========
 
@@ -141,7 +138,7 @@ int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 
 	if(type == AINPUT_EVENT_TYPE_MOTION)
 	{
-		int32_t motion_action = AMotionEvent_getAction(event);
+		/*int32_t motion_action = AMotionEvent_getAction(event);
 		int motion_type = motion_action & AMOTION_EVENT_ACTION_MASK;
 		float x = 0;
 		float y = 0;
@@ -164,7 +161,7 @@ int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 				break;
 			default:
 				break;
-		}
+		}*/
 
 		eng->animating = 1;
 		eng->state.x = AMotionEvent_getX(event, 0) / eng->width;
@@ -350,7 +347,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 	//Populate the current audio buffer with the whatever sounds that are playing.
 	if(e->snd_ch.used)
 	{
-		float falloff = 1.0f / (50.0f * ((float) e->state.x) / ((float) e->width));
+		float falloff = 1.0f / (50.0f * (e->state.x) / ((float) e->width));
 		falloff = fminf(1.0f, falloff);
 		falloff = fmaxf(0.0f, falloff);
 		float last_falloff = e->snd_ch.last_falloff;
@@ -570,6 +567,7 @@ int Engine::init_sl ()
 	//	{
 	//		osl_engine.mSounds[i].mUsed = false;
 	//	}
+	return 1;
 }
 
 void Engine::term_sl ()
@@ -820,6 +818,8 @@ void Engine::term_data ()
 //Destroys all data allocated by constructor
 void Engine::term()
 {
+	term_data();
+
 	if(test_shader)
 		free(test_shader);
 
@@ -853,6 +853,19 @@ void Engine::term()
 		free(test_texture);
 	if(char_set)
 		free(char_set);
+
+
+	if(text_shader)
+		free(text_shader);
+	if(text_mat)
+		free(text_mat);
+	if(test_text)
+	{
+		//TODO: we need a method that terminates all objects that were initialized in the first frame call... something like end_frame
+		//TODO: when we have that, move the following term() call there (and any others)
+		test_text->term();
+		free(test_text);
+	}
 
 	if(player_skel)
 		delete player_skel;
@@ -908,7 +921,13 @@ void Engine::draw_frame ()
 		test_arms->skel = player_skel;
 
 		test_text->init(text_mat,char_set);
-		test_text->set_text("test TEST !@#$%^&*()");
+		//test_text->set_text("test\nT  E\n\nST !@\n#$%^&*()");
+		test_text->set_text("!\"#$%&'()*\n+,-./01234\n56789:;<=>\n?@ABCDEFGH\nIJKLMNOPQR\nSTUVWXYZ[\\\n]^_`abcdef\nghijklmnop\nqrstuvwxyz\n{|}~");
+
+		//Place in top leftish corner
+		test_text->pos.x = -width * 0.4f;
+		test_text->pos.y = height * 0.4f;
+
 
 		player->model = test_arms;
 		player->skel = player_skel;
@@ -943,28 +962,7 @@ void Engine::draw_frame ()
 
 	//glClear(GL_COLOR_BUFFER_BIT);
 
-	//Triangle is in the xy plane, facing the negative y direction
-	/*const float triangleVertices[] =
-	{
-		-0.5f, 0.0f, 0.5f,
-		0.0f, 0.0f, -0.5f,
-		0.5f, 0.0f, 0.5f, //For triangle in 3 space
-		//-0.5f, 0.5f, 0.0f,
-		//0.0f, -0.5f, 0.0f,
-		//0.5f, 0.5f, 0.0f, //For triangle in 2 space
-	};
-	const float triangleUVs[] =
-	{
-		0.25f, 0.0f,
-		0.5f, 1.0f,
-		0.75f, 0.0f,
-	};
-	const float triangleColors[] =
-	{
-		1.0, 0.0, 0.0, 1.0,
-		0.0, 1.0, 0.0, 1.0,
-		0.0, 0.0, 1.0, 1.0,
-	};*/
+	//================================== Begin Drawing test boxes ==========================================
 
 	const float cube_vertices[] =
 	{
@@ -1018,18 +1016,7 @@ void Engine::draw_frame ()
 		//Bottom quad
 	};
 
-	//int vert_count = 36;
-	int vert_count = 8;
-
-
-	//Creating a model matrix, whose rotation is dictated by the state.x and state.y
-	//Quat yaw(((state.x*2.0f)-1.0f) * HALF_PI*0.5f,Vec3::UP());
-	//Quat pitch(((state.y*2.0f)-1.0f) * HALF_PI*0.5f,(yaw*Vec3::RIGHT()));
-	//Quat rot = pitch*yaw;
-	//Mat4 model_rot = Mat4::ROTATE(rot);
-
 	camera->pos = Vec3::ZERO();
-
 	camera->angles = Vec3::ZERO();
 	//Pitch
 	camera->angles.x = ((0.5f - state.y) * TWO_PI);
@@ -1040,9 +1027,6 @@ void Engine::draw_frame ()
 	camera->update_view_matrix();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glUseProgram(gl_program);
-
-
 
 	//Referencing vertices by index
 	unsigned int cube_tris[] =
@@ -1067,15 +1051,6 @@ void Engine::draw_frame ()
 	//Bind the buffer to set the data
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)/*size of indices*/, cube_tris, GL_STATIC_DRAW);
-
-	//Have to bind the data before a call (taken care of above)
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-
-	/*test_shader->bind_shader();
-	test_shader->bind_shader_value(Shader::PARAM_VERTICES,(void*)cube_vertices);
-	test_shader->bind_shader_value(Shader::PARAM_VERT_UV1,(void*)cube_uvs);
-	test_shader->bind_shader_value(Shader::PARAM_VERT_COLORS,(void*)cube_colors);
-	test_shader->bind_shader_value(Shader::PARAM_TEXTURE_DIFFUSE,(void*)texture_id);*/
 
 	//Getting the texture gl_id
 	GLuint tex_gl_id = test_texture->gl_id;
@@ -1118,194 +1093,13 @@ void Engine::draw_frame ()
 					mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex_gl_id);
 					mat_blue->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 				}
-				//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
 			}
 		}
 	}
+	//================================== End Drawing test boxes ==========================================
 
-
-	//Here is where we are going to test skeletal animation shader.
-
-	//This model has 2 vertically stretched boxes, which are weighted to different bones.
-	const float joint_vertices[] =
-	{
-		//Front quad
-		-0.1f, 0.1f, 1.0f,
-		0.1f, 0.1f, 1.0f,
-		0.1f, 0.1f, 0.1f,
-		-0.1f, 0.1f, 0.1f,
-		//Back quad
-		0.1f, -0.1f, 1.0f,
-		-0.1f, -0.1f, 1.0f,
-		-0.1f, -0.1f, 0.1f,
-		0.1f, -0.1f, 0.1f,
-		//Right quad
-		//Left quad
-		//Top quad
-		//Bottom quad
-
-		//Second box
-		-0.1f, 0.1f, -0.1f,
-		0.1f, 0.1f, -0.1f,
-		0.1f, 0.1f, -1.0f,
-		-0.1f, 0.1f, -1.0f,
-		0.1f, -0.1f, -0.1f,
-		-0.1f, -0.1f, -0.1f,
-		-0.1f, -0.1f, -1.0f,
-		0.1f, -0.1f, -1.0f
-	};
-
-	//Referencing vertices by index
-	unsigned int joint_tris[] =
-	{
-		//Front quad
-		0, 1, 2, 2, 3, 0,
-		//Back quad
-		4, 5, 6, 6, 7, 4,
-		//Right quad
-		1, 4, 7, 7, 2, 1,
-		//Left quad
-		0, 3, 6, 6, 5, 0,
-		//Top quad
-		4, 1, 0, 0, 5, 4,
-		//Bottom quad
-		6, 3, 2, 2, 7, 6,
-
-		//Second box
-		//Front quad
-		8, 9, 10, 10, 11, 8,
-		//Back quad
-		12, 13, 14, 14, 15, 12,
-		//Right quad
-		9, 12, 15, 15, 10, 9,
-		//Left quad
-		8, 11, 14, 14, 13, 8,
-		//Top quad
-		12, 9, 8, 8, 13, 12,
-		//Bottom quad
-		14, 11, 10, 10, 15, 14
-	};
-
-	GLuint element_buffer2;
-	glGenBuffers(1, &element_buffer2);
-	//Bind the buffer to set the data
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer2);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 72 * sizeof(unsigned int)/*size of indices*/, joint_tris, GL_STATIC_DRAW);
-
-
-	const float joint_uvs[] =
-	{
-		//Front quad
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		//Back quad
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f
-	};
-
-	//All vertices must have valid indices for 3 bones,
-	// since we do not check in the shader whether an index is valid or not
-	// however, the respective weight of unused bones for a vert should be 0.0f,
-	// thereby negating the bone's influence on the vertex
-	const float joint_bone_indices[] =
-	{
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f
-	};
-
-	//First 8 verts are weighted by both bones
-	//Last 8 verts are only weighted by the first bone
-	const float joint_bone_weights[] =
-	{
-		0.9848f,0.1736f,0.0f,
-		0.9848f,0.1736f,0.0f,
-		0.9848f,0.1736f,0.0f,
-		0.9848f,0.1736f,0.0f,
-		0.9848f,0.1736f,0.0f,
-		0.9848f,0.1736f,0.0f,
-		0.9848f,0.1736f,0.0f,
-		0.9848f,0.1736f,0.0f,
-
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f,
-		0.0f,1.0f,0.0f
-	};
-
-
-	Vec3 pos(0,7,0);
-
-	Mat4 model_pos = Mat4::TRANSLATE(pos);
-	Mat4 model_transform = model_pos;
 	Mat4 vp = camera->persp_proj_m * camera->view_m;
-	Mat4 mvp = vp * model_transform;
-
-	int BONE_COUNT = 2;
-	float* joint_matrices = (float*) malloc(sizeof(float) * (BONE_COUNT*16));
-	Mat4 id = Mat4::IDENTITY();
-
-	static float angle = 0.0f;
-	angle += 0.1f;
-	if(angle > 360.0f)
-		angle = 0.0f;
-
-	Quat rot(angle,Vec3::FRONT());
-	Mat4 rot_matrix = Mat4::ROTATE(rot);
-
-
-	//Copying identity matrices
-	for(i = 0; i < 16; i++)
-	{
-		//The first bone's matrix
-		joint_matrices[i] = id.m[i];
-		//The second bone's matrix
-		joint_matrices[16+i] = rot_matrix.m[i];
-	}
-
-	skeletal_mat->bind_material();
-	skeletal_mat->bind_value(Shader::PARAM_VERTICES, (void*) joint_vertices);
-	skeletal_mat->bind_value(Shader::PARAM_VERT_UV1, (void*) joint_uvs);
-	skeletal_mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void*) tex_gl_id);
-	skeletal_mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
-	skeletal_mat->bind_value(Shader::PARAM_BONE_INDICES,(void*)joint_bone_indices);
-	skeletal_mat->bind_value(Shader::PARAM_BONE_WEIGHTS,(void*)joint_bone_weights);
-	skeletal_mat->bind_values(Shader::PARAM_BONE_MATRICES,joint_matrices,BONE_COUNT);
-
-	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
-	glDrawElements(GL_TRIANGLES, 72, GL_UNSIGNED_INT, (void *) 0);
 
 	if(state.x > 0.95f && player_skel->playing_anim)
 		player_skel->stop_anim();

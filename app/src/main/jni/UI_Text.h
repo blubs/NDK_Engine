@@ -29,6 +29,8 @@ public:
 	//Vec3 maxs;
 	//Or some other alternative:
 
+	float font_size;
+
 	Vec3 color;//color to multiply texture by
 	Vec3 add_color;
 
@@ -69,17 +71,28 @@ public:
 			-0.5f,0.5f,0.0f
 		};
 
+		Vec3 char_ofs = Vec3::ZERO();
+
 		for(int i = 0; i < text_length; i++)
 		{
 			char c = text[i];
-			if(c <= ' ' || c > '~')
+			if(c == '\n')
+			{
+				char_ofs.x = 0.0f;
+				char_ofs.y -= 1.0f;
 				continue;
+			}
+
+
+			if(c <= ' ' || c > '~')
+			{
+				char_ofs.x += 0.9f;
+				continue;
+			}
 			c = c - '!';
 
 			float index_x = char_index_x[c];
 			float index_y = char_index_y[c];
-
-			//LOGE("place of char: %c, (%f,%f)\n",(c+'!'),index_x,index_y);
 
 			float cell_size = 0.09765625f;//this is 10 cells of size 100 px fitting in 1024 pixels, with 24 wasted pixels
 
@@ -91,8 +104,6 @@ public:
 			float bottom = corner_y + cell_size;
 			float right = corner_x + cell_size;
 
-			Vec3 letter_offset(i*0.9f,0.0f,0.0f);
-
 			const float quad_uvs[] =
 			{
 				left,top,
@@ -103,10 +114,36 @@ public:
 				left,top
 			};
 
+			{
+				//TEMPORARY DRAWING OF BOUNDS:
+				//======================================================================================================================
+				float semi_rand1 = ((i * 37447) % 38217) / 38217.0f;
+				float semi_rand2 = (((i+57503) * 12163) % 11287) / 11287.0f;
+				float semi_rand3 = (((i+69247) * 56527) % 57487) / 57487.0f;
+
+				const float mult_col2[] = { 0.0f,0.0f,0.0f,0.0f };
+				const float add_col2[] = { semi_rand1,semi_rand2,semi_rand3,1.0f };
+
+				float char_size = 1.0f - (char_pre_space[c] + char_suf_space[c]);
+
+				Mat4 mvp = vp * Mat4::ROT_TRANS(angles,pos) * Mat4::SCALE(font_size,font_size,font_size) * Mat4::SCALE(char_size,1.0f,1.0f) * Mat4::TRANSLATE(char_ofs + Vec3(char_pre_space[c],0.0f,0.0f));
+				mat->bind_material();
+				mat->bind_value(Shader::PARAM_VERTICES,(void*) quad_verts);
+				mat->bind_value(Shader::PARAM_VERT_UV1,(void*) quad_uvs);
+				mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) charset->gl_id);
+				mat->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
+
+				mat->bind_value(Shader::PARAM_COLOR_MULT, (void *) mult_col2);
+				mat->bind_value(Shader::PARAM_COLOR_ADD, (void *) add_col2);
+
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+				//=====================================================================================================================
+			}
+
 			const float mult_col[] = { color.x,color.y,color.z,opacity };
 			const float add_col[] = { add_color.x,add_color.y,add_color.z,0.0f };
 
-			Mat4 mvp = vp * Mat4::ROT_TRANS(angles,pos) * Mat4::SCALE(100.0f,100.0f,100.0f) * Mat4::TRANSLATE(letter_offset);
+			Mat4 mvp = vp * Mat4::ROT_TRANS(angles,pos) * Mat4::SCALE(font_size,font_size,font_size) * Mat4::TRANSLATE(char_ofs);
 			mat->bind_material();
 			mat->bind_value(Shader::PARAM_VERTICES,(void*) quad_verts);
 			mat->bind_value(Shader::PARAM_VERT_UV1,(void*) quad_uvs);
@@ -117,6 +154,8 @@ public:
 			mat->bind_value(Shader::PARAM_COLOR_ADD, (void *) add_col);
 
 			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			char_ofs.x += 1.1f;
 		}
 
 
@@ -145,28 +184,18 @@ public:
 		}
 	}
 
-	//Beginning with drawing text to the screen
-	//	Need to load characters texture and initialize the gl side of it
-	//	Need to create a method that parses a string and
-	//	Need to create arrays that hold information about character spacing/size/where it is on the charset
-	//	Need to create a method for drawing a generic quad to the screen
-
 	int init(Material* m, Texture* tex)
 	{
 		text = NULL;
 		text_length = 0;
-		//pos = Vec3(0.5f * 1440.0f,0.5f * 2560.0f,0.5f);
-		pos = Vec3(-500.0f,0.0f,0.5f);
+		pos = Vec3(0.0f,0.0f,0.5f);
 		angles = Vec3::ZERO();
-		//This has very ugly results actually
-		//color = Vec3(0.0f,0.0f,0.0f);
-		//add_color = Vec3(1.0f,1.0f,1.0f);
 		color = Vec3(1.0f,1.0f,1.0f);
 		add_color = Vec3(0.0f,0.0f,0.0f);
 
 		opacity = 1.0f;
 		visible = false;
-
+		font_size = 100.0f;
 		mat = m;
 		charset = tex;
 
@@ -174,13 +203,7 @@ public:
 	}
 	void term()
 	{
-	}
-	int init_gl()
-	{
-		return 1;
-	}
-	void term_gl()
-	{
+		clear_text();
 	}
 };
 

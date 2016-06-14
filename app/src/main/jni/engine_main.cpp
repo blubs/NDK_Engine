@@ -89,7 +89,7 @@ void android_main(struct android_app *app)
 #ifdef DEBUG_MODE
 				LOGI("LIFECYCLE: Exiting application.\n");
 #endif
-				engine.term_data();
+				engine.term();
 				return;
 			}
 		}
