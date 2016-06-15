@@ -13,19 +13,8 @@
 class Skel_Model
 {
 public:
-	//Holds some transform variables
-	Vec3 pos;
-	Vec3 angles;
+	//Skeletal model holds no local transform variables, because the modelis wherever the skeleton is
 
-	//Holds a reference to the parent transform (for getting to object space, then iterating up to world space)
-	//somevartype* parent;//I guess it can only be a child of objects, not other meshes,
-	//so whatever our gameobject / entity type is, use that as parent reference.
-	//unless we bind it to a bone transform directly, have to figure this one out
-
-	//Holds a reference to skeleton (todo: Skeleton class)
-	//	skeleton holds reference to animations (todo: Animation class )
-
-	//holds all attributes
 	unsigned int vertex_count;
 	unsigned int tri_vert_count;
 
@@ -51,10 +40,6 @@ public:
 	GLuint tri_verts_buffer;
 
 	int render(Mat4 mvp);
-
-
-	//Should MeshUtils be its own class, or should we just add a method here for parsing a mesh file into a Mesh structure?
-
 
 	//We will eventually need methods for combining Meshes, and copying Meshes
 

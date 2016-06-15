@@ -5,20 +5,47 @@
 #ifndef ENGINE_STATIC_MODEL_H
 #define ENGINE_STATIC_MODEL_H
 
-//Class definition for models that have the following features
-//No animations
-//Vertices
-//Triangles
-//Normals
-//UV1
-//UV2
-//... do we need tangents?
+#include "common.h"
+#include "Material.h"
+#include "File_Utils.h"
+#include "Skeleton.h"
+
 class Static_Model
 {
 public:
-	char* data;
-	//should we just reference everything?
-	//or should we split up the references to normals, uvs, vertices as their own pointers?
+	//Holds some transform variables
+	Vec3 pos;
+	Vec3 angles;
+
+	unsigned int vertex_count;
+	unsigned int tri_vert_count;
+
+
+	const unsigned int* raw_data = NULL;
+	const float* verts;
+
+	const unsigned int* tri_verts;
+
+
+	//arrays of vertex attributes
+	//	uvs
+	//	normals
+	//		do we need tangents?
+
+	Material* mat;
+
+	GLuint tri_verts_buffer;
+
+	int render(Mat4 mvp);
+
+	//We will eventually need methods for combining Meshes, and copying Meshes
+	int load_model(const char* filepath);
+
+	int init_gl();
+
+	void term_gl();
+	void unload_model();
+
 };
 
 #endif //ENGINE_STATIC_MODEL_H

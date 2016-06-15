@@ -40,17 +40,17 @@ Engine::Engine (struct android_app *droid_app)
 
 	test_shader = (Shader *) malloc(sizeof(Shader));
 
-	test_skeletal_shader = (Shader *) malloc(sizeof(Shader));
-
 	mat_red = (Material *) malloc(sizeof(Material));
 	mat_blue = (Material *) malloc(sizeof(Material));
 
-	skeletal_mat = (Material *) malloc(sizeof(Material));
+	skel_color_shader = (Shader*) malloc(sizeof(Shader));
+	skel_color_mat = (Material*) malloc(sizeof(Material));
 
-	mesh_shader = (Shader*) malloc(sizeof(Shader));
-	mesh_mat = (Material*) malloc(sizeof(Material));
+	static_color_shader = (Shader*) malloc(sizeof(Shader));
+	static_color_mat = (Material*) malloc(sizeof(Material));
 
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
+	test_torso = (Static_Model*) malloc(sizeof(Static_Model));
 
 	test_texture = (Texture*) malloc(sizeof(Texture));
 
@@ -59,6 +59,7 @@ Engine::Engine (struct android_app *droid_app)
 	text_shader = (Shader*) malloc(sizeof(Shader));
 	text_mat = (Material*) malloc(sizeof(Material));
 	test_text = (UI_Text*) malloc(sizeof(UI_Text));
+	test_img = (UI_Image*) malloc(sizeof(UI_Image));
 
 	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
 	player_skel = new Skeleton;
@@ -247,9 +248,9 @@ int Engine::init_display ()
 int Engine::load_shaders ()
 {
 	test_shader->load("minimal.vert","minimal.frag");
-	test_skeletal_shader->load("test_skeletal.vert","test_skeletal.frag");
-	mesh_shader->load("minimal_mesh.vert","minimal_mesh.frag");
-	text_shader->load("text.vert","text.frag");
+	skel_color_shader->load("skeletal_color.vert","skeletal_color.frag");
+	static_color_shader->load("static_color.vert","static_color.frag");
+	text_shader->load("monochrome_transparent.vert","monochrome_transparent.frag");
 	return 1;
 }
 
@@ -262,8 +263,10 @@ int Engine::load_assets ()
 	char_set->load("char_set.pkm",2048,2048);
 
 	test_arms->load_model("test_arms.skmf");
+	test_torso->load_model("test_static_shirt.stmf");
 
 	player_skel->load("player_skeleton.sksf");
+	player_skel->load_animation("run.skaf");
 	player_skel->load_animation("showcase_hands.skaf");
 	player_skel->load_animation("speed_vault.skaf");
 	return 1;
@@ -275,8 +278,8 @@ int Engine::load_assets ()
 void Engine::unload_shaders ()
 {
 	test_shader->unload();
-	test_skeletal_shader->unload();
-	mesh_shader->unload();
+	skel_color_shader->unload();
+	static_color_shader->unload();
 	text_shader->unload();
 }
 
@@ -289,7 +292,8 @@ void Engine::unload_assets ()
 
 	if(test_arms)
 		test_arms->unload_model();
-
+	if(test_torso)
+		test_torso->unload_model();
 	if(player_skel)
 		player_skel->unload();
 }
@@ -672,33 +676,6 @@ int Engine::init_gl ()
 	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, color_blue, sizeof(float) * 4);
 
 
-	//================================Initializing the skeletal shaders======================================
-	GLuint skel_param_types[] =
-	{
-		Shader::PARAM_VERTICES,
-		Shader::PARAM_VERT_UV1,
-		Shader::PARAM_TEXTURE_DIFFUSE,
-		Shader::PARAM_MVP_MATRIX,
-		Shader::PARAM_BONE_MATRICES,
-		Shader::PARAM_BONE_INDICES,
-		Shader::PARAM_BONE_WEIGHTS
-	};
-	const char *skel_param_names[] =
-	{
-		"vert_pos",
-		"src_tex_coord",
-		"tex",
-		"mvp",
-		"bone",
-		"bone_index",
-		"bone_weight"
-	};
-	test_skeletal_shader->init_gl(skel_param_types, skel_param_names, 7);
-
-	skeletal_mat->initialize();
-	skeletal_mat->set_shader(test_skeletal_shader);
-
-
 	//======================================= Initializing the UI text shader =================================
 	GLuint text_param_types[] =
 	{
@@ -727,7 +704,7 @@ int Engine::init_gl ()
 
 	//========================================= Initializing the mesh shader ================================
 
-	GLuint mesh_shader_param_types[] =
+	GLuint skel_mesh_params[] =
 	{
 		Shader::PARAM_VERTICES,
 		Shader::PARAM_MVP_MATRIX,
@@ -735,7 +712,7 @@ int Engine::init_gl ()
 		Shader::PARAM_BONE_WEIGHTS,
 		Shader::PARAM_BONE_MATRICES
 	};
-	const char *mesh_shader_param_names[] =
+	const char *skel_mesh_param_names[] =
 	{
 		"vert_pos",
 		"mvp",
@@ -743,10 +720,31 @@ int Engine::init_gl ()
 		"bone_weight",
 		"bone"
 	};
-	mesh_shader->init_gl(mesh_shader_param_types, mesh_shader_param_names, 5);
+	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 5);
 
-	mesh_mat->initialize();
-	mesh_mat->set_shader(mesh_shader);
+	skel_color_mat->initialize();
+	skel_color_mat->set_shader(skel_color_shader);
+
+
+	//=========================================== Initializing Static Mesh Color Shader =====================
+
+	GLuint static_mesh_params[] =
+	{
+		Shader::PARAM_VERTICES,
+		Shader::PARAM_MVP_MATRIX,
+		Shader::PARAM_COLOR_MULT
+	};
+	const char *static_mesh_param_names[] =
+	{
+		"vert_pos",
+		"mvp",
+		"color"
+	};
+	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 5);
+
+	static_color_mat->initialize();
+	static_color_mat->set_shader(static_color_shader);
+
 
 
 	//==================================== Loading textures =======================================
@@ -755,6 +753,7 @@ int Engine::init_gl ()
 
 	//==================================== Setting up Mesh VBOs ====================================
 	test_arms->init_gl();
+	test_torso->init_gl();
 	//========================================================================
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
@@ -770,18 +769,19 @@ void Engine::term_gl ()
 	//Terminating all loaded materials
 	mat_blue->term();
 	mat_red->term();
-	mesh_mat->term();
-	skeletal_mat->term();
+	skel_color_mat->term();
+	static_color_mat->term();
 	text_mat->term();
 	//Terminating all loaded shaders
 	test_shader->term_gl();
-	test_skeletal_shader->term_gl();
-	mesh_shader->term_gl();
+	skel_color_shader->term_gl();
+	static_color_shader->term_gl();
 	text_shader->term_gl();
 
 
 	//Terminating all loaded models
 	test_arms->term_gl();
+	test_torso->term_gl();
 
 
 
@@ -823,23 +823,21 @@ void Engine::term()
 	if(test_shader)
 		free(test_shader);
 
-	if(test_skeletal_shader)
-		free(test_skeletal_shader);
-
 	if(mat_red)
 		free(mat_red);
 
 	if(mat_blue)
 		free(mat_blue);
 
-	if(skeletal_mat)
-		free(skeletal_mat);
+	if(skel_color_shader)
+		free(skel_color_shader);
+	if(static_color_shader)
+		free(static_color_shader);
 
-	if(mesh_shader)
-		free(mesh_shader);
-
-	if(mesh_mat)
-		free(mesh_mat);
+	if(skel_color_mat)
+		free(skel_color_mat);
+	if(static_color_mat)
+		free(static_color_mat);
 
 	if(text_mat)
 		free(text_mat);
@@ -848,6 +846,8 @@ void Engine::term()
 
 	if(test_arms)
 		free(test_arms);
+	if(test_torso)
+		free(test_torso);
 
 	if(test_texture)
 		free(test_texture);
@@ -860,12 +860,9 @@ void Engine::term()
 	if(text_mat)
 		free(text_mat);
 	if(test_text)
-	{
-		//TODO: we need a method that terminates all objects that were initialized in the first frame call... something like end_frame
-		//TODO: when we have that, move the following term() call there (and any others)
-		test_text->term();
 		free(test_text);
-	}
+	if(test_img)
+		free(test_img);
 
 	if(player_skel)
 		delete player_skel;
@@ -876,6 +873,52 @@ void Engine::term()
 		delete camera;
 	if(cam_to_bone)
 		delete cam_to_bone;
+}
+
+void Engine::first_frame()
+{
+	player_skel->set_default_anim(0,Skeleton::END_TYPE_LOOP);
+	test_arms->mat = skel_color_mat;
+	test_arms->skel = player_skel;
+
+	test_torso->mat = static_color_mat;
+
+	test_text->init(text_mat,char_set);
+	//test_text->set_text("test\nT  E\n\nST !@\n#$%^&*()");
+	test_text->set_text("Pause\npause\nPAUSE\n\nPlay\nplay\nPLAY\n\nExit\nexit\nEXIT\n\ntest_text->set_text(\"Stuff\")");
+
+	//Place in top leftish corner
+	test_text->pos.x = -width * 0.4f;
+	test_text->pos.y = height * 0.4f;
+
+	test_img->init(text_mat,test_texture);
+	test_img->pos.x = width*0.5f - 100.0f;
+	test_img->pos.y = height*0.5f - 100.0f;
+	test_img->scale.x = 200.0f;
+	test_img->uv_maxs.x = 0.6f;
+	test_img->uv_mins.y = 0.5f;
+	test_img->maintain_aspect_ratio = true;
+
+	//test_img->scale.x = 0.2f;
+
+	player->model = test_arms;
+	player->skel = player_skel;
+
+
+	camera->parent = cam_to_bone;
+	cam_to_bone->parent_skel = player_skel;
+	cam_to_bone->parent_bone_index = 8; //head bone is at index 8, we could add methods for finding the bone
+	// but we don't need all of that at the moment (since camera is never going to be parented to anything but that bone)
+	player_skel->parent = player;
+	camera->set_persp_view(90.0f * DEG_TO_RAD, width,height, 0.01f, 1000.0f);
+	camera->set_ortho_view(width,height,0.0001f,1.0f);
+}
+
+//This is where we terminate any memory that was alllocated mid-game
+void Engine::last_frame()
+{
+	test_text->term();
+	test_img->term();
 }
 
 void Engine::draw_frame ()
@@ -909,39 +952,12 @@ void Engine::draw_frame ()
 		return;
 	}
 
-	static bool first_frame = true;
+	static bool is_first_frame = true;
 
-	//====================================== First frame set up code TODO: move this elsewhere ==========================
-	if(first_frame)
+	if(is_first_frame)
 	{
-		//FIXME: have a method that runs on the first frame to set up the game logic
-		//This is a valid place to run first frame things for now...
-
-		test_arms->mat = mesh_mat;
-		test_arms->skel = player_skel;
-
-		test_text->init(text_mat,char_set);
-		//test_text->set_text("test\nT  E\n\nST !@\n#$%^&*()");
-		test_text->set_text("!\"#$%&'()*\n+,-./01234\n56789:;<=>\n?@ABCDEFGH\nIJKLMNOPQR\nSTUVWXYZ[\\\n]^_`abcdef\nghijklmnop\nqrstuvwxyz\n{|}~");
-
-		//Place in top leftish corner
-		test_text->pos.x = -width * 0.4f;
-		test_text->pos.y = height * 0.4f;
-
-
-		player->model = test_arms;
-		player->skel = player_skel;
-
-
-		camera->parent = cam_to_bone;
-		cam_to_bone->parent_skel = player_skel;
-		cam_to_bone->parent_bone_index = 8; //head bone is at index 8, we could add methods for finding the bone
-		// but we don't need all of that at the moment (since camera is never going to be parented to anything but that bone)
-		player_skel->parent = player;
-		camera->set_persp_view(90.0f * DEG_TO_RAD, width,height, 0.01f, 1000.0f);
-		camera->set_ortho_view(width,height,0.0001f,1.0f);
-		//==================================================================================================================
-		first_frame = false;
+		first_frame();
+		is_first_frame = false;
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -1104,10 +1120,10 @@ void Engine::draw_frame ()
 	if(state.x > 0.95f && player_skel->playing_anim)
 		player_skel->stop_anim();
 	if(state.x < 0.05f && !player_skel->playing_anim)
-		player_skel->play_anim(0);
+		player_skel->play_anim(1,Skeleton::END_TYPE_DEFAULT_ANIM);
 	player->render(vp);
-	test_text->render(camera->ortho_proj_m);//Identity for drawing in view space
-
+	test_text->render(camera->ortho_proj_m);
+	test_img->render(camera->ortho_proj_m);
 	eglSwapBuffers(egl_display, egl_surface);
 }
 

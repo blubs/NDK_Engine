@@ -18,6 +18,8 @@
 #include "Skeleton.h"
 #include "Texture.h"
 #include "UI_Text.h"
+#include "UI_Image.h"
+#include "Static_Model.h"
 
 
 // Saved State Data
@@ -87,28 +89,16 @@ public:
 	bool data_initialized = false;
 
 
-
-	//FIXME remove this after shader.h is done
-/*
-	GLuint test_frag_shader = 0;
-	GLuint test_vert_shader = 0;
-		GLint shader_vert_pos_loc = -1;
-		GLint shader_fill_color_loc = -1;
-		GLint shader_tex_loc = -1;
-		GLint shader_uv_loc = -1;
-		GLint shader_mvp_loc = -1;
-	GLuint gl_program = 0;
-*/
 	Shader* test_shader = NULL;
-	Shader* test_skeletal_shader = NULL;
 
 	Material* mat_red = NULL;
 	Material* mat_blue = NULL;
 
-	Shader* mesh_shader = NULL;
-	Material* mesh_mat = NULL;
+	Shader* skel_color_shader = NULL;
+	Material* skel_color_mat= NULL;
 
-	Material* skeletal_mat = NULL;
+	Shader* static_color_shader = NULL;
+	Material* static_color_mat = NULL;
 
 	Shader* text_shader = NULL;
 	Material* text_mat = NULL;
@@ -121,8 +111,13 @@ public:
 	Skel_Model* test_arms = NULL;
 	Skeleton* player_skel = NULL;
 
+	Static_Model* test_torso = NULL;
+
 
 	void draw_frame();
+
+	void first_frame();
+	void last_frame();
 
 	EGLDisplay egl_display = 0;
 	EGLSurface egl_surface = 0;
@@ -146,6 +141,7 @@ public:
 	Entity_Bone_Joint* cam_to_bone = NULL;
 
 	UI_Text* test_text = NULL;
+	UI_Image* test_img = NULL;
 
 	static float delta_time;
 };

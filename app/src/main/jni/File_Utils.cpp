@@ -30,6 +30,36 @@ const char* File_Utils::load_raw_asset (const char *file_path)
 	//How and when am I going to clear this array that is allocated?
 	memcpy(alloced_data,asset_buffer,(size_t)file_size);
 	AAsset_close(asset);
+
+	//if(file_path[0] == 's' && (file_path[1] == 'k' || file_path[1] == 't'))
+	if(file_path[0] == 'm' && (file_path[1] == 'o' || file_path[1] == 'i'))
+	{
+		//temporarily print the array for debug.
+		LOGE("========= Shader %s ============",file_path);
+		char* temp_shader = (char*) malloc(sizeof(char) * file_size);
+		int index = 0;
+		for(int i = 0; i < file_size; i++)
+		{
+			temp_shader[index] = alloced_data[i];
+			//if(temp_shader[index] == '\n')
+			//{
+			//	temp_shader[index] = '\0';
+			//	LOGE("src:%s",temp_shader);
+			//	temp_shader[index] = '\n';
+			//	index = 0;
+			//}
+			//else if(temp_shader[index] == '\0')
+			//{
+			//	LOGE("src:%s",temp_shader);
+			//	index = 0;
+			//}
+			LOGE("char: %c (%d)",temp_shader[i],temp_shader[i]);
+			index++;
+		}
+		free(temp_shader);
+	}
+
+
 	return alloced_data;
 }
 
