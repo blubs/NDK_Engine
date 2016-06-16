@@ -4,11 +4,11 @@
 
 #include "Skel_Model.h"
 
-int Skel_Model::render(Mat4 mvp)
+int Skel_Model::render(Mat4 mvp, Material* mat)
 {
 	if(!mat)
 	{
-		LOGW("Warning: tried rendering a skeletal model without assigning material\n");
+		LOGW("Warning: tried rendering a skeletal model without passing a material\n");
 		return 0;
 	}
 	if(!skel)
@@ -17,7 +17,6 @@ int Skel_Model::render(Mat4 mvp)
 		return 0;
 	}
 
-	mat->bind_material();
 	mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
 	mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
 

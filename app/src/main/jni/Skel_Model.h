@@ -13,8 +13,6 @@
 class Skel_Model
 {
 public:
-	//Skeletal model holds no local transform variables, because the modelis wherever the skeleton is
-
 	unsigned int vertex_count;
 	unsigned int tri_vert_count;
 
@@ -32,14 +30,11 @@ public:
 	//	uvs
 	//	normals
 	//		do we need tangents?
-
-	Material* mat;
-
 	Skeleton* skel;
 
 	GLuint tri_verts_buffer;
 
-	int render(Mat4 mvp);
+	int render(Mat4 mvp,Material* mat);
 
 	//We will eventually need methods for combining Meshes, and copying Meshes
 

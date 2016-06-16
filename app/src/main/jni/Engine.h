@@ -113,6 +113,9 @@ public:
 
 	Static_Model* test_torso = NULL;
 
+	Static_Model* model_prim_cube = NULL;
+	Static_Model* model_prim_quad = NULL;
+
 
 	void draw_frame();
 
@@ -139,6 +142,8 @@ public:
 	Camera* camera = NULL;
 	Player* player = NULL;
 	Entity_Bone_Joint* cam_to_bone = NULL;
+
+	Entity* test_sound_source = NULL;
 
 	UI_Text* test_text = NULL;
 	UI_Image* test_img = NULL;

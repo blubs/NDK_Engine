@@ -19,18 +19,6 @@ GLuint GL_Utils::load_shader(const char* shader_src, const char* shader_path, GL
 
 	glShaderSource(shader, 1, &shader_src, NULL);
 	glCompileShader(shader);
-
-	LOGE("about to compile shader: %s",shader_path);
-	//char* temp_shader = (char*) malloc(sizeof(char) * sizeof(shader_src));
-	//for(int i = 0; i < sizeof(shader_src); i++)
-	//{
-	//	temp_shader[i] = shader_src[i];
-	//	if(temp_shader[i] == '\n')
-	//		temp_shader[i] = '@';
-	//}
-	//LOGE("Shader src:%s",temp_shader);
-	//free(temp_shader);
-
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 	if(compiled == GL_FALSE)
 	{

@@ -4,20 +4,18 @@
 
 #include "Static_Model.h"
 
-int Static_Model::render(Mat4 mvp)
+int Static_Model::render(Mat4 mvp,Material* mat)
 {
 	if(!mat)
 	{
-		LOGW("Warning: tried rendering a skeletal model without assigning material\n");
+		LOGW("Warning: tried rendering a static model without assigning material\n");
 		return 0;
 	}
 
-	mat->bind_material();
 	mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
 	mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_verts_buffer);
-
 	glDrawElements(GL_TRIANGLES, tri_vert_count, GL_UNSIGNED_INT, (void *) 0);
 
 	return 1;
@@ -42,7 +40,8 @@ int Static_Model::load_model(const char* filepath)
 
 	verts = (float*) (raw_data + 2);
 
-	tri_verts = raw_data + 2 + (vertex_count*3) + (vertex_count*3) + (vertex_count*3);
+	tri_verts = raw_data + 2 + (vertex_count*3);
+
 	return 1;
 }
 

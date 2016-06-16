@@ -13,19 +13,21 @@ class Player : public Entity
 public:
 	Skeleton* skel;
 	//Have to store an array of all models that make up the player
-	Skel_Model* model;
+	Skel_Model* player_model;
 
 	int render(Mat4 vp)
 	{
-
+		if(!mat)
+			return 1;
 		/*if(!skel->playing_anim)
 		{
 			skel->play_anim(0);
 		}*/
 
 		//TODO: render all playermodels
+		mat->bind_material();
 		skel->update_frame();
-		model->render(vp * get_world_transform());
+		player_model->render(vp * get_world_transform(),mat);
 		return 1;
 	}
 };

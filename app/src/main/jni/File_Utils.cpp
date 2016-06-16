@@ -26,40 +26,11 @@ const char* File_Utils::load_raw_asset (const char *file_path)
 
 	//LOGW("File_read_to_buffer: %s\n",asset_buffer);
 	//Allocating the file data.
-	char* alloced_data = (char*)malloc(sizeof(char) * file_size);
-	//How and when am I going to clear this array that is allocated?
+	char* alloced_data = (char*)malloc(sizeof(char) * (file_size+1));//adding an extra space for null termination
 	memcpy(alloced_data,asset_buffer,(size_t)file_size);
+	//setting the last character to be null terminated, in case it already isn't
+	alloced_data[file_size] = '\0';
 	AAsset_close(asset);
-
-	//if(file_path[0] == 's' && (file_path[1] == 'k' || file_path[1] == 't'))
-	if(file_path[0] == 'm' && (file_path[1] == 'o' || file_path[1] == 'i'))
-	{
-		//temporarily print the array for debug.
-		LOGE("========= Shader %s ============",file_path);
-		char* temp_shader = (char*) malloc(sizeof(char) * file_size);
-		int index = 0;
-		for(int i = 0; i < file_size; i++)
-		{
-			temp_shader[index] = alloced_data[i];
-			//if(temp_shader[index] == '\n')
-			//{
-			//	temp_shader[index] = '\0';
-			//	LOGE("src:%s",temp_shader);
-			//	temp_shader[index] = '\n';
-			//	index = 0;
-			//}
-			//else if(temp_shader[index] == '\0')
-			//{
-			//	LOGE("src:%s",temp_shader);
-			//	index = 0;
-			//}
-			LOGE("char: %c (%d)",temp_shader[i],temp_shader[i]);
-			index++;
-		}
-		free(temp_shader);
-	}
-
-
 	return alloced_data;
 }
 

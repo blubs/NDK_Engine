@@ -36,6 +36,8 @@ Engine::Engine (struct android_app *droid_app)
 
 	cam_to_bone = new Entity_Bone_Joint;
 
+	test_sound_source = new Entity;
+
 	//=============== Setting up graphics objects (materials/shaders) ===========
 
 	test_shader = (Shader *) malloc(sizeof(Shader));
@@ -51,6 +53,9 @@ Engine::Engine (struct android_app *droid_app)
 
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
 	test_torso = (Static_Model*) malloc(sizeof(Static_Model));
+
+	model_prim_cube = (Static_Model*) malloc(sizeof(Static_Model));
+	model_prim_quad = (Static_Model*) malloc(sizeof(Static_Model));
 
 	test_texture = (Texture*) malloc(sizeof(Texture));
 
@@ -264,6 +269,8 @@ int Engine::load_assets ()
 
 	test_arms->load_model("test_arms.skmf");
 	test_torso->load_model("test_static_shirt.stmf");
+	model_prim_cube->load_model("primitive_cube.stmf");
+	model_prim_quad->load_model("primitive_quad.stmf");
 
 	player_skel->load("player_skeleton.sksf");
 	player_skel->load_animation("run.skaf");
@@ -294,6 +301,10 @@ void Engine::unload_assets ()
 		test_arms->unload_model();
 	if(test_torso)
 		test_torso->unload_model();
+	if(model_prim_cube)
+		model_prim_cube->unload_model();
+	if(model_prim_quad)
+		model_prim_quad->unload_model();
 	if(player_skel)
 		player_skel->unload();
 }
@@ -740,7 +751,7 @@ int Engine::init_gl ()
 		"mvp",
 		"color"
 	};
-	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 5);
+	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 3);
 
 	static_color_mat->initialize();
 	static_color_mat->set_shader(static_color_shader);
@@ -754,6 +765,8 @@ int Engine::init_gl ()
 	//==================================== Setting up Mesh VBOs ====================================
 	test_arms->init_gl();
 	test_torso->init_gl();
+	model_prim_cube->init_gl();
+	model_prim_quad->init_gl();
 	//========================================================================
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
@@ -782,6 +795,8 @@ void Engine::term_gl ()
 	//Terminating all loaded models
 	test_arms->term_gl();
 	test_torso->term_gl();
+	model_prim_cube->term_gl();
+	model_prim_quad->term_gl();
 
 
 
@@ -848,6 +863,10 @@ void Engine::term()
 		free(test_arms);
 	if(test_torso)
 		free(test_torso);
+	if(model_prim_cube)
+		free(model_prim_cube);
+	if(model_prim_quad)
+		free(model_prim_quad);
 
 	if(test_texture)
 		free(test_texture);
@@ -869,6 +888,8 @@ void Engine::term()
 	//	free(player_skel);
 	if(player)
 		delete player;
+	if(test_sound_source)
+		delete test_sound_source;
 	if(camera)
 		delete camera;
 	if(cam_to_bone)
@@ -878,10 +899,16 @@ void Engine::term()
 void Engine::first_frame()
 {
 	player_skel->set_default_anim(0,Skeleton::END_TYPE_LOOP);
-	test_arms->mat = skel_color_mat;
+	player->mat = skel_color_mat;
 	test_arms->skel = player_skel;
 
-	test_torso->mat = static_color_mat;
+	float temp_color[] = {1.0f, 1.0f, 0.0f, 1.0f};
+	static_color_mat->set_fixed_shader_param(Shader::PARAM_COLOR_MULT,temp_color,sizeof(float)*4);
+
+
+
+	test_sound_source->model = model_prim_cube;
+	test_sound_source->mat = static_color_mat;
 
 	test_text->init(text_mat,char_set);
 	//test_text->set_text("test\nT  E\n\nST !@\n#$%^&*()");
@@ -901,7 +928,7 @@ void Engine::first_frame()
 
 	//test_img->scale.x = 0.2f;
 
-	player->model = test_arms;
+	player->player_model = test_arms;
 	player->skel = player_skel;
 
 
@@ -973,6 +1000,7 @@ void Engine::draw_frame ()
 	player_skel->transform_calculated = false;
 	camera->transform_calculated = false;
 	player->transform_calculated = false;
+	test_sound_source->transform_calculated = false;
 	cam_to_bone->transform_calculated = false;
 
 
@@ -1122,6 +1150,16 @@ void Engine::draw_frame ()
 	if(state.x < 0.05f && !player_skel->playing_anim)
 		player_skel->play_anim(1,Skeleton::END_TYPE_DEFAULT_ANIM);
 	player->render(vp);
+
+	float t = time();
+
+	//Making the test audio source rotate about the player
+	test_sound_source->pos = Vec3(5.0f * cosf(t),5.0f * sinf(t),0.0f);
+	test_sound_source->angles.y = fmodf(t*2.0f,TWO_PI);
+	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
+	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
+	test_sound_source->render(vp);
+
 	test_text->render(camera->ortho_proj_m);
 	test_img->render(camera->ortho_proj_m);
 	eglSwapBuffers(egl_display, egl_surface);

@@ -6,6 +6,7 @@
 #define ENGINE_ENTITY_H
 
 #include "math/math.h"
+#include "Static_Model.h"
 
 
 //Outlines a class for a generic game entity
@@ -34,6 +35,9 @@ public:
 class Entity : public Game_Object
 {
 public:
+	Static_Model* model = NULL;
+	Material* mat = NULL;
+
 	Mat4 get_world_transform()
 	{
 		if(transform_calculated)
@@ -49,6 +53,17 @@ public:
 
 		transform_calculated = true;
 		return world_transform;
+	}
+
+	virtual int render(Mat4 vp)
+	{
+		if(!model)
+			return 1;
+		if(!mat)
+			return 1;
+		mat->bind_material();
+		model->render(vp * get_world_transform(),mat);
+		return 1;
 	}
 
 };

@@ -8,15 +8,10 @@
 #include "common.h"
 #include "Material.h"
 #include "File_Utils.h"
-#include "Skeleton.h"
-
+#include "math/math.h"
 class Static_Model
 {
 public:
-	//Holds some transform variables
-	Vec3 pos;
-	Vec3 angles;
-
 	unsigned int vertex_count;
 	unsigned int tri_vert_count;
 
@@ -32,11 +27,9 @@ public:
 	//	normals
 	//		do we need tangents?
 
-	Material* mat;
-
 	GLuint tri_verts_buffer;
 
-	int render(Mat4 mvp);
+	int render(Mat4 mvp,Material* mat);
 
 	//We will eventually need methods for combining Meshes, and copying Meshes
 	int load_model(const char* filepath);
