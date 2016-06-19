@@ -7,7 +7,6 @@
 
 #include "Game_Object.h"
 #include "Skel_Model.h"
-#include "Engine.h"
 
 class Player : public Entity
 {

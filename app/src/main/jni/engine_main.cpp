@@ -38,14 +38,14 @@ void android_main(struct android_app *app)
 
 	//Test audio file loading
 	const Asset_File* test_sound_file = File_Utils::load_asset("raw_1000_10_5_sec_sweep_stereo.raw");
-	engine.snd_ch.data = (char*)test_sound_file->data;
+	engine.audio_engine->snd_ch.data = (char*)test_sound_file->data;
 	//We want the length in sound samples
-	engine.snd_ch.length = (test_sound_file->len)/sizeof(Stereo_Sample);
-	engine.snd_ch.used = false;
+	engine.audio_engine->snd_ch.length = (test_sound_file->len)/sizeof(Stereo_Sample);
+	engine.audio_engine->snd_ch.used = false;
 	//Only needed the Asset_File to get the length
 	free((void*)test_sound_file);
 
-	engine.play_sound();
+	engine.audio_engine->play_sound();
 
 	float last_frame_time = 0.0;
 
@@ -90,7 +90,6 @@ void android_main(struct android_app *app)
 				LOGI("LIFECYCLE: Exiting application.\n");
 #endif
 				engine.last_frame();
-				engine.term();
 				return;
 			}
 		}
