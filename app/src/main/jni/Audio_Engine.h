@@ -7,6 +7,7 @@
 
 #include "SL_Utils.h"
 #include "common.h"
+#include "Sound_Source.h"
 
 class Audio_Engine
 {
@@ -32,8 +33,7 @@ public:
 	void start_audio();
 	void stop_audio();
 	void pause_audio();
-	void play_sound();
-
+	void play_test_sound();
 
 	//Engine Sound Data
 	Stereo_Sample audio_buffer1[SND_AUDIO_BUFFER_SIZE];
@@ -43,6 +43,15 @@ public:
 	//Sound playing_sound[8];
 	//Test methods for testing audio file playing
 	Sound_Channel snd_ch;
+
+
+	//List of sound sources
+	Sound_Source* sources;
+
+	const int MAX_SOUND_SOURCES = 32;
+
+
+	int play_sound (Sound_Sample* sound,int sound_priority,float volume);
 };
 
 #endif //ENGINE_AUDIO_ENGINE_H

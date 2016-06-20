@@ -65,7 +65,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 
 
 
-void Audio_Engine::play_sound ()
+void Audio_Engine::play_test_sound ()
 {
 	if(snd_ch.data == NULL)
 		return;
@@ -79,12 +79,22 @@ int Audio_Engine::init()
 	if(!init_sl())
 		return 0;
 	instance = this;
+
+	//Initializing the sound sources
+	sources = (Sound_Source*) malloc(sizeof(Sound_Source) * MAX_SOUND_SOURCES);
+
+	//TODO: initialize memory for objects
+	//for(int i = 0; i < MAX_SOUND_SOURCES; i++)
+	//{
+	//}
+
 	return 1;
 }
 
 void Audio_Engine::term()
 {
 	term_sl();
+	free(sources);
 }
 
 int Audio_Engine::init_sl ()
@@ -314,4 +324,27 @@ void Audio_Engine::stop_audio ()
 void Audio_Engine::pause_audio ()
 {
 	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface, SL_PLAYSTATE_PAUSED);
+}
+
+int Audio_Engine::play_sound (Sound_Sample* sound,int sound_priority,float volume)
+{
+	//TODO:
+	// iterate through all sources, looking for a free sound source and use that
+/*
+	for(int i = 0; i < MAX_SOUND_SOURCES; i++)
+	{
+		if(sources[i].used == false)
+		{
+			//do something
+		}
+	}
+*/
+	// if there are no free sound sources...
+		//look for a lower priority sound source to override
+		//FIXME: this will lead to audio clipping, so consider fading out the previous sound source before fading in the new one?
+		//A system of sounds that were playing, and sounds that are going to play would work for this
+			//This would entail a double list of sound_sources, but would allow for fading in and out between sounds
+		//OR we could avoid this overriding functionality altogether, and opt to not override
+		//if there isn't a free sound slot, simply don't play the sound
+	return 1;
 }
