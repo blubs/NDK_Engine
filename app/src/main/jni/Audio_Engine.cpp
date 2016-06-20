@@ -346,5 +346,12 @@ int Audio_Engine::play_sound (Sound_Sample* sound,int sound_priority,float volum
 			//This would entail a double list of sound_sources, but would allow for fading in and out between sounds
 		//OR we could avoid this overriding functionality altogether, and opt to not override
 		//if there isn't a free sound slot, simply don't play the sound
+
+	//Variables that need to be set to play a sound
+	//if(snd_ch.data == NULL)
+	//	return;
+
+	//snd_ch.used = true;
+	//snd_ch.position = 0;
 	return 1;
 }

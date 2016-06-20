@@ -70,6 +70,8 @@ Engine::Engine (struct android_app *droid_app)
 
 	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
 	player_skel = new Skeleton;
+	//============================ Setting up temp sound containers =============
+	test_pulse = (Sound_Sample*) malloc(sizeof(Sound_Sample));
 	//===========================================================================
 }
 
@@ -82,6 +84,9 @@ Engine::~Engine()
 	}
 
 	term_data();
+
+	if(test_pulse)
+		free(test_pulse);
 
 	if(test_shader)
 		free(test_shader);
@@ -348,6 +353,9 @@ int Engine::load_assets ()
 	player_skel->load_animation("run.skaf");
 	player_skel->load_animation("showcase_hands.skaf");
 	player_skel->load_animation("speed_vault.skaf");
+
+	//Sounds
+	test_pulse->load("test_audio_pulse.raw");
 	return 1;
 }
 
@@ -364,11 +372,16 @@ void Engine::unload_shaders ()
 
 void Engine::unload_assets ()
 {
+	//Sounds
+	if(test_pulse)
+		test_pulse->unload();
+	//Textures
 	if(test_texture)
 		test_texture->unload();
 	if(char_set)
 		char_set->unload();
 
+	//Models
 	if(test_arms)
 		test_arms->unload_model();
 	if(test_torso)
@@ -377,6 +390,7 @@ void Engine::unload_assets ()
 		model_prim_cube->unload_model();
 	if(model_prim_quad)
 		model_prim_quad->unload_model();
+	//Skeletons
 	if(player_skel)
 		player_skel->unload();
 }
@@ -862,6 +876,14 @@ void Engine::draw_frame ()
 	player->render(vp);
 
 	float t = time();
+
+	//=========== Test Audio Playing every 2 seconds ==============
+	static float time_to_play_audio = 0.0f;
+	if(t > time_to_play_audio)
+	{
+		time_to_play_audio = t + 5.0f;
+		test_sound_source->play_sound(test_pulse);
+	}
 
 	//Making the test audio source rotate about the player
 	test_sound_source->pos = Vec3(5.0f * cosf(t),5.0f * sinf(t),0.0f);

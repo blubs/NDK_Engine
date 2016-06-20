@@ -2,11 +2,13 @@
 // Created by F1 on 6/3/2016.
 //
 
-#ifndef ENGINE_ENTITY_H
+#ifndef ENGINE_ENTITY_Hgr
 #define ENGINE_ENTITY_H
 
 #include "math/math.h"
 #include "Static_Model.h"
+#include "Sound_Sample.h"
+#include "Audio_Engine.h"
 
 
 //Outlines a class for a generic game entity
@@ -63,6 +65,23 @@ public:
 			return 1;
 		mat->bind_material();
 		model->render(vp * get_world_transform(),mat);
+		return 1;
+	}
+
+	int play_sound(Sound_Sample* sample)
+	{
+		if(!sample)
+		{
+			LOGW("Warning: tried playing sound with null sample");
+			return 1;
+		}
+		if(sample->raw_data == NULL)
+		{
+			LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)");
+		}
+
+		Audio_Engine::instance->play_sound(sample,)
+
 		return 1;
 	}
 

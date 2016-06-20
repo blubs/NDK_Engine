@@ -61,6 +61,7 @@ public:
 	void term_data();
 	bool data_initialized = false;
 
+	Sound_Sample* test_pulse = NULL;
 
 	Shader* test_shader = NULL;
 
