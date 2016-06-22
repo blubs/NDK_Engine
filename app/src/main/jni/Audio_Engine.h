@@ -61,7 +61,8 @@ public:
 
 
 
-	int play_sound (Sound_Sample* sound,int sound_priority,float volume);
+	static int play_sound (Sound_Sample* sound,Entity* ent,Vec3 pos,int sound_priority,float volume);
+	int play_sound_sample (Sound_Sample* sound,Entity* ent,Vec3 pos,int sound_priority,float volume);
 };
 
 #endif //ENGINE_AUDIO_ENGINE_H

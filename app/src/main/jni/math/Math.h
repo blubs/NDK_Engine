@@ -456,6 +456,12 @@ struct Mat4
 		return result;
 	}
 
+	//Returns the transform position of matrix
+	Vec3 get_pos()
+	{
+		return Vec3(m[12],m[13],m[14]);
+	}
+
 	//Static method that returns an identity matrix
 	static Mat4 IDENTITY()
 	{

@@ -25,38 +25,68 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 
 
 	//Populate the current audio buffer with the whatever sounds that are playing.
-	if(e->snd_ch.used)
+	for(int i = 0; i < e->MAX_SOUND_SOURCES; i++)
 	{
-		//float falloff = 1.0f / (50.0f * (e->state.x) / ((float) e->width));
-		float falloff = 1.0f;
-		falloff = fminf(1.0f, falloff);
-		falloff = fmaxf(0.0f, falloff);
-		float last_falloff = e->snd_ch.last_falloff;
-		e->snd_ch.last_falloff = falloff;
+		Sound_Source* source = &e->sources[i];
+		if(!source->used)
+			continue;
 
-		float faloff_slope = (falloff - last_falloff) / SND_AUDIO_BUFFER_SIZE;
-		//Calculate "distance" falloff (our fingers x coordinate)
+		//Calculating sound world position
+		//FIXME: assuming camera position at world origin, have to add method for getting world camera position
+		Mat4 world_trans = source->get_world_transform();
+		Vec3 pos = world_trans.get_pos();
+
+		float left_falloff;
+		float right_falloff;
+
+
+		float distance_falloff = 1.0f / pos.len();//This is for inverse falloff
+
+		distance_falloff = fminf(1.0f, distance_falloff);
+		distance_falloff = fmaxf(0.0f, distance_falloff);
+		//TODO: handle constant and inverse square falloff
+		right_falloff = pos * Vec3::RIGHT();
+		//Bringing dot product between 0 and 1
+		right_falloff = 0.5f * (right_falloff + 1.0f);
+		//Left falloff is inverse of right
+		left_falloff = 1.0f - right_falloff;
+
+
+		float last_left_falloff = source->last_falloff_L;
+		float last_right_falloff = source->last_falloff_R;
+		source->last_falloff_L = left_falloff;
+		source->last_falloff_R = right_falloff;
+
+		float left_falloff_slope = (left_falloff - last_left_falloff) / SND_AUDIO_BUFFER_SIZE;
+		float right_falloff_slope = (right_falloff - last_right_falloff) / SND_AUDIO_BUFFER_SIZE;
+
+		//Calculate "distance" falloff
 		//Distance emulated between 0 and 50 meters
 
-		//Need file length, and audio
-		int smpls_cp = SND_AUDIO_BUFFER_SIZE < (e->snd_ch.length - e->snd_ch.position) ? SND_AUDIO_BUFFER_SIZE :
-		(e->snd_ch.length - e->snd_ch.position);
+		//How many samples to copy? Until this buffer is full, or the sound file is over (whichever happens first)
+		int smpls_to_copy = SND_AUDIO_BUFFER_SIZE < (source->sound->length - source->sound_pos) ?
+							SND_AUDIO_BUFFER_SIZE : (source->sound->length - source->sound_pos);
 
-
-		for(int i = 0; i < smpls_cp; i++)
+		for(int j = 0; j < smpls_to_copy; j++)
 		{
 			//Calculating current lerped falloff
-			falloff = faloff_slope * i + last_falloff;
+			left_falloff = left_falloff_slope * j + source->last_falloff_L;
+			right_falloff = right_falloff_slope * j + source->last_falloff_R;
 
-			Stereo_Sample smp = *((Stereo_Sample *) (e->snd_ch.data) + (i + e->snd_ch.position));
-			smp.l *= falloff;
-			smp.r *= falloff;
-			e->active_audio_buffer[i] = smp;
+
+			Stereo_Sample smp = *((Stereo_Sample *) (source->sound->raw_data) + (j + source->sound_pos));
+			smp.l *= left_falloff;
+			smp.r *= right_falloff;
+			e->active_audio_buffer[j].l += smp.l;
+			e->active_audio_buffer[j].r += smp.r;
+			//FIXME: this will lead to clipping for loud audio sources, need to add sounds using a different method
 		}
-		e->snd_ch.position += smpls_cp;
-		if((e->snd_ch.position) >= e->snd_ch.length)
+
+		source->sound_pos += smpls_to_copy;
+
+		if(source->sound_pos >= source->sound->length)
 		{
-			e->snd_ch.used = false;
+			source->used = false;
 		}
 	}
 	//Send the prepared audio buffer
@@ -67,11 +97,11 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 
 void Audio_Engine::play_test_sound ()
 {
-	if(snd_ch.data == NULL)
-		return;
-
-	snd_ch.used = true;
-	snd_ch.position = 0;
+	//if(snd_ch.data == NULL)
+	//	return;
+	//
+	//snd_ch.used = true;
+	//snd_ch.position = 0;
 }
 
 int Audio_Engine::init()
@@ -326,26 +356,39 @@ void Audio_Engine::pause_audio ()
 	(*sl_audio_player_interface)->SetPlayState(sl_audio_player_interface, SL_PLAYSTATE_PAUSED);
 }
 
-int Audio_Engine::play_sound (Sound_Sample* sound,int sound_priority,float volume)
+int Audio_Engine::play_sound_sample(Sound_Sample* sound_sample,Entity* ent,Vec3 position, int sound_priority, float vol)
 {
-	//TODO:
-	// iterate through all sources, looking for a free sound source and use that
-/*
+	Sound_Source* source = NULL;
+
 	for(int i = 0; i < MAX_SOUND_SOURCES; i++)
 	{
-		if(sources[i].used == false)
+		if(!sources[i].used)
 		{
-			//do something
+			source = &(instance->sources[i]);
+			break;
 		}
 	}
-*/
+	if(!source)
+	{
+		LOGW("Warning: couldn't play sound, no free sound sources");
+		return 0;
+	}
+
+	source->used = true;
+	source->sound = sound_sample;
+	source->sound_pos = 0;
+	source->parent = ent;
+	source->pos = position;
+	source->priority = sound_priority;
+	source->volume = vol;
+
 	// if there are no free sound sources...
-		//look for a lower priority sound source to override
-		//FIXME: this will lead to audio clipping, so consider fading out the previous sound source before fading in the new one?
-		//A system of sounds that were playing, and sounds that are going to play would work for this
-			//This would entail a double list of sound_sources, but would allow for fading in and out between sounds
-		//OR we could avoid this overriding functionality altogether, and opt to not override
-		//if there isn't a free sound slot, simply don't play the sound
+	//look for a lower priority sound source to override
+	//FIXME: this will lead to audio clipping, so consider fading out the previous sound source before fading in the new one?
+	//A system of sounds that were playing, and sounds that are going to play would work for this
+	//This would entail a double list of sound_sources, but would allow for fading in and out between sounds
+	//OR we could avoid this overriding functionality altogether, and opt to not override
+	//if there isn't a free sound slot, simply don't play the sound
 
 	//Variables that need to be set to play a sound
 	//if(snd_ch.data == NULL)
@@ -354,4 +397,17 @@ int Audio_Engine::play_sound (Sound_Sample* sound,int sound_priority,float volum
 	//snd_ch.used = true;
 	//snd_ch.position = 0;
 	return 1;
+
+	return 1;
+}
+
+int Audio_Engine::play_sound (Sound_Sample* sound,Entity* ent,Vec3 pos,int sound_priority,float volume)
+{
+	if(instance == NULL)
+	{
+		LOGW("Warning: tried to play sound without an Audio_Engine instance!\n");
+		return 0;
+	}
+
+	return instance->play_sound_sample(sound,ent,pos,sound_priority,volume);
 }

@@ -15,13 +15,14 @@ public:
 	int priority = 0;//the lower the priority, the more important
 	float volume = 0.0f;
 	//TODO: maybe add priority constant identifiers for standardized values
+	int sound_pos = 0;
 
 	Sound_Sample* sound = NULL;
 	//TODO:need a variable for end style
 
-	//FIXME: How do we use these from within the object that calls them, AND know how to find them from the engine?
-	//FIXME: I sense hardcoding inbound..., though a general solution would be nice
-
+	//Need duplicate parameters for each audio effect
+	float last_falloff_L = 1.0f;
+	float last_falloff_R = 1.0f;
 };
 
 #endif //ENGINE_SOUND_SOURCE_H

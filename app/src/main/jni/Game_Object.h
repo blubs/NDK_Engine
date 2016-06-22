@@ -7,9 +7,9 @@
 
 #include "math/math.h"
 #include "Static_Model.h"
-#include "Sound_Sample.h"
-#include "Audio_Engine.h"
 
+//Forward declaration
+class Sound_Sample;
 
 //Outlines a class for a generic game entity
 //Used to construct Entity hierarchy for parenting entities to each other
@@ -68,22 +68,7 @@ public:
 		return 1;
 	}
 
-	int play_sound(Sound_Sample* sample)
-	{
-		if(!sample)
-		{
-			LOGW("Warning: tried playing sound with null sample");
-			return 1;
-		}
-		if(sample->raw_data == NULL)
-		{
-			LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)");
-		}
-
-		Audio_Engine::instance->play_sound(sample,)
-
-		return 1;
-	}
+	int play_sound(Sound_Sample* sample);
 
 };
 
