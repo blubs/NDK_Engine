@@ -8,6 +8,7 @@
 #include "Game_Object.h"
 #include "Sound_Sample.h"
 
+//class Sound_Source : public Entity
 class Sound_Source : public Entity
 {
 public:
@@ -21,8 +22,8 @@ public:
 	//TODO:need a variable for end style
 
 	//Need duplicate parameters for each audio effect
-	float last_falloff_L = 1.0f;
-	float last_falloff_R = 1.0f;
+	float last_falloff_L = 0.0f;
+	float last_falloff_R = 0.0f;
 };
 
 #endif //ENGINE_SOUND_SOURCE_H

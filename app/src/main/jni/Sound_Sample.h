@@ -21,7 +21,7 @@ public:
 	int load(const char* filepath)
 	{
 		//Test audio file loading
-		const Asset_File* sound_file_asset = File_Utils::load_asset("raw_1000_10_5_sec_sweep_stereo.raw");
+		const Asset_File* sound_file_asset = File_Utils::load_asset(filepath);
 		raw_data = (char*) sound_file_asset->data;
 
 		if(!raw_data)

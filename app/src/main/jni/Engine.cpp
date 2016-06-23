@@ -159,7 +159,6 @@ void Engine::handle_cmd (struct android_app *app, int32_t cmd)
 		//Saving our current state
 		case APP_CMD_SAVE_STATE:
 			eng->app->savedState = malloc(sizeof(struct saved_state));
-			//*((struct saved_state*) eng->app->savedState) = *(eng->state);
 			*((struct saved_state *) eng->app->savedState) = (eng->state);
 
 			eng->app->savedStateSize = sizeof(struct saved_state);
@@ -877,20 +876,23 @@ void Engine::draw_frame ()
 
 	float t = time();
 
-	//=========== Test Audio Playing every 2 seconds ==============
-	static float time_to_play_audio = 0.0f;
-	if(t > time_to_play_audio)
-	{
-		time_to_play_audio = t + 5.0f;
-		test_sound_source->play_sound(test_pulse);
-	}
-
 	//Making the test audio source rotate about the player
-	test_sound_source->pos = Vec3(5.0f * cosf(t),5.0f * sinf(t),0.0f);
+	//float distance = 5.0f + 2.0f * cosf(t*12.75f);
+	float distance = 5.0f;
+	test_sound_source->pos = Vec3(distance * cosf(2.0f*t),distance * sinf(2.0f*t),0.0f);
 	test_sound_source->angles.y = fmodf(t*2.0f,TWO_PI);
 	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
 	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
 	test_sound_source->render(vp);
+
+	//=========== Test Audio Playing every 0.5 seconds ==============
+	static float time_to_play_audio = 0.0f;
+	if(t > time_to_play_audio)
+	{
+		time_to_play_audio = t + 0.5f;
+		test_sound_source->play_sound(test_pulse);
+	}
+
 
 	test_text->render(camera->ortho_proj_m);
 	test_img->render(camera->ortho_proj_m);

@@ -2,7 +2,7 @@
 // Created by F1 on 6/3/2016.
 //
 
-#ifndef ENGINE_ENTITY_Hgr
+#ifndef ENGINE_ENTITY_H
 #define ENGINE_ENTITY_H
 
 #include "math/math.h"

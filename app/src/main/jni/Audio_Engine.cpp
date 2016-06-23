@@ -4,6 +4,8 @@
 
 #include "Audio_Engine.h"
 
+#include "misc.h"
+
 Audio_Engine* Audio_Engine::instance = NULL;
 
 //Callback for swapping audio buffers
@@ -31,8 +33,11 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		if(!source->used)
 			continue;
 
+		source->transform_calculated = false;
+
 		//Calculating sound world position
-		//FIXME: assuming camera position at world origin, have to add method for getting world camera position
+		//FIXME: assuming camera position at world origin and not rotated
+		// FIXME: have to add method for getting world camera position and orientation
 		Mat4 world_trans = source->get_world_transform();
 		Vec3 pos = world_trans.get_pos();
 
@@ -45,17 +50,31 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		distance_falloff = fminf(1.0f, distance_falloff);
 		distance_falloff = fmaxf(0.0f, distance_falloff);
 		//TODO: handle constant and inverse square falloff
-		right_falloff = pos * Vec3::RIGHT();
+		right_falloff = pos.normalized() * Vec3::RIGHT();
 		//Bringing dot product between 0 and 1
 		right_falloff = 0.5f * (right_falloff + 1.0f);
 		//Left falloff is inverse of right
 		left_falloff = 1.0f - right_falloff;
 
+		right_falloff *= distance_falloff * source->volume;
+		left_falloff *= distance_falloff * source->volume;
+
 
 		float last_left_falloff = source->last_falloff_L;
 		float last_right_falloff = source->last_falloff_R;
+
 		source->last_falloff_L = left_falloff;
 		source->last_falloff_R = right_falloff;
+
+		//NOTE: This is done because we set the last falloff to be 0 when we first play the sound
+		//This led to a smoothing effect as the falloff was lerped in over a whole sample
+		//Instead, if we have no falloff, just use the current falloff as the last
+		//If we ever run into weird artifacts at the beginning of sound effects,
+		//	remove these lines to revert to the subtle fading in effect
+		if(last_left_falloff == 0.0f)
+			last_left_falloff = left_falloff;
+		if(last_right_falloff == 0.0f)
+			last_right_falloff = right_falloff;
 
 		float left_falloff_slope = (left_falloff - last_left_falloff) / SND_AUDIO_BUFFER_SIZE;
 		float right_falloff_slope = (right_falloff - last_right_falloff) / SND_AUDIO_BUFFER_SIZE;
@@ -70,9 +89,8 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		for(int j = 0; j < smpls_to_copy; j++)
 		{
 			//Calculating current lerped falloff
-			left_falloff = left_falloff_slope * j + source->last_falloff_L;
-			right_falloff = right_falloff_slope * j + source->last_falloff_R;
-
+			left_falloff = left_falloff_slope * j + last_left_falloff;
+			right_falloff = right_falloff_slope * j + last_right_falloff;
 
 			Stereo_Sample smp = *((Stereo_Sample *) (source->sound->raw_data) + (j + source->sound_pos));
 			smp.l *= left_falloff;
@@ -111,12 +129,8 @@ int Audio_Engine::init()
 	instance = this;
 
 	//Initializing the sound sources
-	sources = (Sound_Source*) malloc(sizeof(Sound_Source) * MAX_SOUND_SOURCES);
-
-	//TODO: initialize memory for objects
-	//for(int i = 0; i < MAX_SOUND_SOURCES; i++)
-	//{
-	//}
+	//These require more than the trivial initializer because of function overloading.
+	sources = new Sound_Source[MAX_SOUND_SOURCES];
 
 	return 1;
 }
@@ -124,7 +138,7 @@ int Audio_Engine::init()
 void Audio_Engine::term()
 {
 	term_sl();
-	free(sources);
+	delete[] sources;
 }
 
 int Audio_Engine::init_sl ()
@@ -358,6 +372,11 @@ void Audio_Engine::pause_audio ()
 
 int Audio_Engine::play_sound_sample(Sound_Sample* sound_sample,Entity* ent,Vec3 position, int sound_priority, float vol)
 {
+	if(sound_sample->raw_data == NULL)
+	{
+		LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)");
+		return 0;
+	}
 	Sound_Source* source = NULL;
 
 	for(int i = 0; i < MAX_SOUND_SOURCES; i++)
@@ -382,6 +401,9 @@ int Audio_Engine::play_sound_sample(Sound_Sample* sound_sample,Entity* ent,Vec3 
 	source->priority = sound_priority;
 	source->volume = vol;
 
+	source->last_falloff_L = 0.0f;
+	source->last_falloff_R = 0.0f;
+
 	// if there are no free sound sources...
 	//look for a lower priority sound source to override
 	//FIXME: this will lead to audio clipping, so consider fading out the previous sound source before fading in the new one?
@@ -389,14 +411,6 @@ int Audio_Engine::play_sound_sample(Sound_Sample* sound_sample,Entity* ent,Vec3 
 	//This would entail a double list of sound_sources, but would allow for fading in and out between sounds
 	//OR we could avoid this overriding functionality altogether, and opt to not override
 	//if there isn't a free sound slot, simply don't play the sound
-
-	//Variables that need to be set to play a sound
-	//if(snd_ch.data == NULL)
-	//	return;
-
-	//snd_ch.used = true;
-	//snd_ch.position = 0;
-	return 1;
 
 	return 1;
 }
