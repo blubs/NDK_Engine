@@ -25,6 +25,13 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 	//Last value to current value in SND_AUDIO_BUFFER_SIZE.
 	//equation: lerped_effect = i*((cur_effect - last_effect)/SND_AUDIO_BUFFER_SIZE) + last_effect
 
+	Vec3 listener_pos = Vec3::ZERO();
+	Vec3 listener_right = Vec3::RIGHT();
+	if(e->listener != NULL)
+	{
+		listener_pos = (e->listener->get_world_transform(false)).get_pos();
+		listener_right = e->listener->right;
+	}
 
 	//Populate the current audio buffer with the whatever sounds that are playing.
 	for(int i = 0; i < e->MAX_SOUND_SOURCES; i++)
@@ -37,9 +44,8 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 
 		//Calculating sound world position
 		//FIXME: assuming camera position at world origin and not rotated
-		// FIXME: have to add method for getting world camera position and orientation
-		Mat4 world_trans = source->get_world_transform();
-		Vec3 pos = world_trans.get_pos();
+		// FIXME: have to add method for getting world camera position and orientation;
+		Vec3 pos = (source->get_world_transform(false)).get_pos() - listener_pos;
 
 		float left_falloff;
 		float right_falloff;
@@ -50,7 +56,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		distance_falloff = fminf(1.0f, distance_falloff);
 		distance_falloff = fmaxf(0.0f, distance_falloff);
 		//TODO: handle constant and inverse square falloff
-		right_falloff = pos.normalized() * Vec3::RIGHT();
+		right_falloff = pos.normalized() * listener_right;
 		//Bringing dot product between 0 and 1
 		right_falloff = 0.5f * (right_falloff + 1.0f);
 		//Left falloff is inverse of right
@@ -112,6 +118,23 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 }
 
 
+Audio_Engine::Audio_Engine()
+{
+	if(!init_sl())
+		LOGE("Error: failed to initialize audio engine!\n");
+	instance = this;
+
+	//Initializing the sound sources
+	//These require more than the trivial initializer because of function overloading.
+	sources = new Sound_Source[MAX_SOUND_SOURCES];
+
+}
+
+Audio_Engine::~Audio_Engine()
+{
+	term_sl();
+	delete[] sources;
+}
 
 void Audio_Engine::play_test_sound ()
 {
@@ -120,25 +143,6 @@ void Audio_Engine::play_test_sound ()
 	//
 	//snd_ch.used = true;
 	//snd_ch.position = 0;
-}
-
-int Audio_Engine::init()
-{
-	if(!init_sl())
-		return 0;
-	instance = this;
-
-	//Initializing the sound sources
-	//These require more than the trivial initializer because of function overloading.
-	sources = new Sound_Source[MAX_SOUND_SOURCES];
-
-	return 1;
-}
-
-void Audio_Engine::term()
-{
-	term_sl();
-	delete[] sources;
 }
 
 int Audio_Engine::init_sl ()
@@ -353,6 +357,17 @@ void Audio_Engine::term_sl ()
 		sl_engine = NULL;
 		sl_engine_interface = NULL;
 	}
+}
+
+int Audio_Engine::set_audio_listener (Camera *cam)
+{
+	if(instance == NULL)
+	{
+		LOGW("Warning: tried setting an audio listener without an Audio_Engine instance!\n");
+		return 0;
+	}
+	instance->listener = cam;
+	return 1;
 }
 
 void Audio_Engine::start_audio ()

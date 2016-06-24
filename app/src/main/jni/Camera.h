@@ -54,7 +54,7 @@ public:
 
 		transform = Mat4::ROT_TRANS(angles,pos,&right,&up,&forward) * Mat4::ROTATE(flip_y_and_z);
 		if(parent)
-			world_transform = parent->get_world_transform() * transform;
+			world_transform = parent->get_world_transform(true) * transform;
 		else
 			world_transform = transform;
 

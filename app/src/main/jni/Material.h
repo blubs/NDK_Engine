@@ -11,17 +11,14 @@ class Material
 {
 public:
 	//We need to keep track of all of the fixed parameters and all of the varying parameters
-	//
-
+	Material();
+	~Material();
 
 	Shader* shader;
 	//has all parameters of shader (textures, color values, other parameters)
 	void** alloced_params;//parameters we have allocated
 	void** params;//pointers to externally allocated memory
 	uint param_count;
-
-	//Should only be called at startup, to clear out our fields.
-	int initialize();
 
 	//Assigns shader value and creates params array
 	int set_shader(Shader* shad);

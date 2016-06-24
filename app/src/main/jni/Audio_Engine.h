@@ -8,6 +8,7 @@
 #include "SL_Utils.h"
 #include "common.h"
 #include "Sound_Source.h"
+#include "Camera.h"
 
 class Audio_Engine
 {
@@ -18,8 +19,9 @@ public:
 
 	//May be a hack, but hold a static pointer to the audio_engine instance we are using
 	static Audio_Engine* instance;
-	int init();
-	void term();
+
+	Audio_Engine();
+	~Audio_Engine();
 
 	//OSL Sound Engine Data
 	SLObjectItf sl_engine = NULL;
@@ -63,6 +65,10 @@ public:
 
 	static int play_sound (Sound_Sample* sound,Entity* ent,Vec3 pos,int sound_priority,float volume);
 	int play_sound_sample (Sound_Sample* sound,Entity* ent,Vec3 pos,int sound_priority,float volume);
+
+	Camera* listener;
+
+	static int set_audio_listener(Camera* lstnr);
 };
 
 #endif //ENGINE_AUDIO_ENGINE_H

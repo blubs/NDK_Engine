@@ -89,6 +89,7 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 		{
 			//Attributes
 			case PARAM_VERTICES:
+			case PARAM_VERT_NORMALS:
 			case PARAM_VERT_COLORS:
 			case PARAM_VERT_UV1:
 			case PARAM_BONE_WEIGHTS:
@@ -222,6 +223,7 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 	switch(param_type[index])
 	{
 		case PARAM_VERTICES:
+		case PARAM_VERT_NORMALS:
 			uloc = *((GLuint*)(param_location[index]));
 			glVertexAttribPointer(uloc, 3, GL_FLOAT, GL_FALSE, 0, (float *) data);
 			glEnableVertexAttribArray(uloc);

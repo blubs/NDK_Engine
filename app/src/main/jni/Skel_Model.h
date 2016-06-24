@@ -19,6 +19,7 @@ public:
 
 	const unsigned int* raw_data = NULL;
 	const float* verts;
+	const float* normals;
 
 	const float* bone_indices;
 	const float* bone_weights;

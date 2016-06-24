@@ -27,91 +27,86 @@ Engine::Engine (struct android_app *droid_app)
 		state = *(struct saved_state *) droid_app->savedState;
 	}
 
-	audio_engine = new Audio_Engine;
+	audio_engine = new Audio_Engine();
 
-	//============== Setting up game world objects/structs ======================
-	///... how do I want to hold game structs?
+	//===================== Setting up game world objects =======================
 
-	camera = new Camera;
-
-	player = new Player;
-
-	cam_to_bone = new Entity_Bone_Joint;
-
-	test_sound_source = new Entity;
-
-	//=============== Setting up graphics objects (materials/shaders) ===========
-
+	//========================== Instantiating shaders ==========================
 	test_shader = (Shader *) malloc(sizeof(Shader));
-
-	mat_red = (Material *) malloc(sizeof(Material));
-	mat_blue = (Material *) malloc(sizeof(Material));
-
 	skel_color_shader = (Shader*) malloc(sizeof(Shader));
-	skel_color_mat = (Material*) malloc(sizeof(Material));
-
 	static_color_shader = (Shader*) malloc(sizeof(Shader));
-	static_color_mat = (Material*) malloc(sizeof(Material));
+	text_shader = (Shader*) malloc(sizeof(Shader));
 
+	//========================= Instantiating materials =========================
+	mat_red = new Material();
+	mat_blue = new Material();
+	skel_color_mat = new Material();
+	static_color_mat = new Material();
+	text_mat = new Material();
+
+	//===================== Creating Skeletal Models ============================
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
-	test_torso = (Static_Model*) malloc(sizeof(Static_Model));
 
+	//================== Instantiating Static Models ============================
+	test_torso = (Static_Model*) malloc(sizeof(Static_Model));
 	model_prim_cube = (Static_Model*) malloc(sizeof(Static_Model));
 	model_prim_quad = (Static_Model*) malloc(sizeof(Static_Model));
 
+	//======================= Instantiating Textures ==========================
 	test_texture = (Texture*) malloc(sizeof(Texture));
-
 	char_set = (Texture*) malloc(sizeof(Texture));
 
-	text_shader = (Shader*) malloc(sizeof(Shader));
-	text_mat = (Material*) malloc(sizeof(Material));
+	//======================= Instantiating UI Objects ========================
 	test_text = (UI_Text*) malloc(sizeof(UI_Text));
 	test_img = (UI_Image*) malloc(sizeof(UI_Image));
 
-	//player_skel = (Skeleton*) malloc(sizeof(Skeleton));
-	player_skel = new Skeleton;
-	//============================ Setting up temp sound containers =============
+	//====================== Instantiating Objects ============================
+	player_skel = new Skeleton();
+	camera = new Camera();
+	player = new Player();
+	cam_to_bone = new Entity_Bone_Joint();
+	test_sound_source = new Entity();
+
+	//=================== Setting up temp sound containers ====================
 	test_pulse = (Sound_Sample*) malloc(sizeof(Sound_Sample));
+
 	//===========================================================================
 }
 
 Engine::~Engine()
 {
 	if(audio_engine)
-	{
-		audio_engine->term();
 		delete audio_engine;
-	}
 
 	term_data();
 
 	if(test_pulse)
 		free(test_pulse);
 
+	//Deleting Materials
+	if(mat_red)
+		delete mat_red;
+	if(mat_blue)
+		delete mat_blue;
+	if(skel_color_mat)
+		delete skel_color_mat;
+	if(static_color_mat)
+		delete static_color_mat;
+	if(text_mat)
+		delete text_mat;
+
+
+	//Freeing shaders
 	if(test_shader)
 		free(test_shader);
-
-	if(mat_red)
-		free(mat_red);
-
-	if(mat_blue)
-		free(mat_blue);
-
 	if(skel_color_shader)
 		free(skel_color_shader);
 	if(static_color_shader)
 		free(static_color_shader);
-
-	if(skel_color_mat)
-		free(skel_color_mat);
-	if(static_color_mat)
-		free(static_color_mat);
-
-	if(text_mat)
-		free(text_mat);
 	if(text_shader)
 		free(text_shader);
 
+	//Freeing models
 	if(test_arms)
 		free(test_arms);
 	if(test_torso)
@@ -121,24 +116,19 @@ Engine::~Engine()
 	if(model_prim_quad)
 		free(model_prim_quad);
 
+	//Freeing textures
 	if(test_texture)
 		free(test_texture);
 	if(char_set)
 		free(char_set);
-
-
-	if(text_shader)
-		free(text_shader);
-	if(text_mat)
-		free(text_mat);
 	if(test_text)
 		free(test_text);
 	if(test_img)
 		free(test_img);
 
+	//Deleting other objects
 	if(player_skel)
 		delete player_skel;
-	//	free(player_skel);
 	if(player)
 		delete player;
 	if(test_sound_source)
@@ -467,17 +457,6 @@ int Engine::init_gl ()
 
 	test_shader->init_gl(param_types, param_names,param_count);
 
-	mat_red->initialize();
-	mat_red->set_shader(test_shader);
-	float color_red[] = {1.0f, 0.4f, 0.4f, 1.0f};
-	mat_red->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, color_red, sizeof(float) * 4);
-
-	mat_blue->initialize();
-	mat_blue->set_shader(test_shader);
-	float color_blue[] = {0.4f, 0.4f, 1.0f, 1.0f};
-	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, color_blue, sizeof(float) * 4);
-
-
 	//======================================= Initializing the UI text shader =================================
 	GLuint text_param_types[] =
 	{
@@ -501,14 +480,12 @@ int Engine::init_gl ()
 
 	text_shader->init_gl(text_param_types, text_param_names,text_param_count);
 
-	text_mat->initialize();
-	text_mat->set_shader(text_shader);
-
 	//========================================= Initializing the mesh shader ================================
 
 	GLuint skel_mesh_params[] =
 	{
 		Shader::PARAM_VERTICES,
+		Shader::PARAM_VERT_NORMALS,
 		Shader::PARAM_MVP_MATRIX,
 		Shader::PARAM_BONE_INDICES,
 		Shader::PARAM_BONE_WEIGHTS,
@@ -517,16 +494,13 @@ int Engine::init_gl ()
 	const char *skel_mesh_param_names[] =
 	{
 		"vert_pos",
+		"vert_nor",
 		"mvp",
 		"bone_index",
 		"bone_weight",
 		"bone"
 	};
-	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 5);
-
-	skel_color_mat->initialize();
-	skel_color_mat->set_shader(skel_color_shader);
-
+	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 6);
 
 	//=========================================== Initializing Static Mesh Color Shader =====================
 
@@ -543,11 +517,6 @@ int Engine::init_gl ()
 		"color"
 	};
 	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 3);
-
-	static_color_mat->initialize();
-	static_color_mat->set_shader(static_color_shader);
-
-
 
 	//==================================== Loading textures =======================================
 	test_texture->init_gl();
@@ -570,12 +539,6 @@ int Engine::init_gl ()
 
 void Engine::term_gl ()
 {
-	//Terminating all loaded materials
-	mat_blue->term();
-	mat_red->term();
-	skel_color_mat->term();
-	static_color_mat->term();
-	text_mat->term();
 	//Terminating all loaded shaders
 	test_shader->term_gl();
 	skel_color_shader->term_gl();
@@ -590,8 +553,6 @@ void Engine::term_gl ()
 	model_prim_quad->term_gl();
 
 
-
-
 	test_texture->term_gl();
 	char_set->term_gl();
 
@@ -601,8 +562,6 @@ void Engine::term_gl ()
 int Engine::init_data ()
 {
 	LOGI("init_data...\n");
-	if(!audio_engine->init())
-		return 0;
 	if(!load_shaders())
 		return 0;
 	if(!load_assets())
@@ -625,9 +584,26 @@ void Engine::first_frame()
 	player->mat = skel_color_mat;
 	test_arms->skel = player_skel;
 
+	//============================= Setting up materials ================================
+
+	mat_red->set_shader(test_shader);
+	mat_blue->set_shader(test_shader);
+	text_mat->set_shader(text_shader);
+	skel_color_mat->set_shader(skel_color_shader);
+	static_color_mat->set_shader(static_color_shader);
+
+
+	//Setting up fixed shader parameters
 	float temp_color[] = {1.0f, 1.0f, 0.0f, 1.0f};
 	static_color_mat->set_fixed_shader_param(Shader::PARAM_COLOR_MULT,temp_color,sizeof(float)*4);
+	float temp_color_red[] = {1.0f, 0.4f, 0.4f, 1.0f};
+	mat_red->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, temp_color_red, sizeof(float) * 4);
+	float temp_color_blue[] = {0.4f, 0.4f, 1.0f, 1.0f};
+	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, temp_color_blue, sizeof(float) * 4);
 
+
+
+	//===================================================================================
 
 
 	test_sound_source->model = model_prim_cube;
@@ -662,6 +638,8 @@ void Engine::first_frame()
 	player_skel->parent = player;
 	camera->set_persp_view(90.0f * DEG_TO_RAD, width,height, 0.01f, 1000.0f);
 	camera->set_ortho_view(width,height,0.0001f,1.0f);
+
+	Audio_Engine::set_audio_listener(camera);
 }
 
 //This is where we terminate any memory that was alllocated mid-game

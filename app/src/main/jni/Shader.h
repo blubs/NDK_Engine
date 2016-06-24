@@ -25,7 +25,7 @@ public:
 
 	//Static types for parameters
 	static const int PARAM_VERTICES = 1;
-	//static const int PARAM_NORMALS = 2; TODO: later
+	static const int PARAM_VERT_NORMALS = 2;
 	static const int PARAM_VERT_COLORS = 3;
 	static const int PARAM_VERT_UV1 = 4;
 	//static const int PARAM_VERT_UV2 = 5; TODO: later

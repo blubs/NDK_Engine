@@ -82,7 +82,7 @@ public:
 	Skeleton* parent_skel = NULL;
 	int parent_bone_index = 0;
 
-	Mat4 get_world_transform()
+	Mat4 get_world_transform(bool modify_trans)
 	{
 		if(!parent_skel)
 		{
@@ -96,11 +96,12 @@ public:
 
 		transform = parent_skel->get_bone_transform(parent_bone_index) * parent_skel->get_bone_rest_transform(parent_bone_index);
 
-		transform_calculated = true;
+		if(modify_trans)
+			transform_calculated = true;
 		//Bone transforms seem to introduce a roll of 90 degrees, so undoing it
 		Quat fix_roll(HALF_PI, Vec3::FRONT());
 
-		return parent_skel->get_world_transform() * transform * Mat4::ROTATE(fix_roll);
+		return parent_skel->get_world_transform(modify_trans) * transform * Mat4::ROTATE(fix_roll);
 	}
 };
 

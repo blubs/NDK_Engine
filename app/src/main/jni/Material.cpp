@@ -6,10 +6,24 @@
 
 
 //Should only be called at startup, to clear out our fields.
-int Material::initialize ()
+Material::Material()
 {
 	alloced_params = NULL;
 	params = NULL;
+	param_count = 0;
+	shader = NULL;
+}
+
+
+//has a function for terminating this material
+Material::~Material()
+{
+	if(params)
+	{
+		clear_all_params();
+		free(params);
+		free(alloced_params);
+	}
 	param_count = 0;
 	shader = NULL;
 }
@@ -136,19 +150,6 @@ int Material::bind_values (GLuint type, void *value, int count)
 		return 0;
 	}
 	return shader->bind_shader_value(type, value, count);
-}
-
-//has a function for terminating this material
-void Material::term ()
-{
-	if(params)
-	{
-		clear_all_params();
-		free(params);
-		free(alloced_params);
-	}
-	param_count = 0;
-	shader = NULL;
 }
 
 void Material::clear_all_params ()

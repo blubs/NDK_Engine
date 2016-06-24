@@ -1,5 +1,6 @@
 uniform mat4 mvp;
 attribute vec4 vert_pos;
+attribute vec3 vert_nor;
 
 attribute vec3 bone_weight;
 attribute vec3 bone_index;
@@ -12,7 +13,7 @@ uniform mat4 bone[58];
 void main()
 {
 	vert_color = vec4(1.0,1.0,1.0,1.0);
-	vert_color = vec4(bone_index.x / 57.0,bone_index.y / 57.0,bone_index.z / 57.0,1.0);
+	vert_color = vec4( vert_nor.x , vert_nor.y , vert_nor.z ,1.0);
 	vec4 bone1;
 	vec4 bone2;
 	vec4 bone3;

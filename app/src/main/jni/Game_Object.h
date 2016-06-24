@@ -30,7 +30,7 @@ public:
 	Vec3 angles;
 
 	//Goes through parent hierarchy until parent is null, multiplying by all transformation matrices along the way
-	virtual Mat4 get_world_transform() = 0;
+	virtual Mat4 get_world_transform(bool modify_trans) = 0;
 };
 
 //Used for entities that actually exist in the game world
@@ -40,7 +40,7 @@ public:
 	Static_Model* model = NULL;
 	Material* mat = NULL;
 
-	Mat4 get_world_transform()
+	Mat4 get_world_transform(bool modify_trans)
 	{
 		if(transform_calculated)
 		{
@@ -49,11 +49,12 @@ public:
 		transform = Mat4::ROT_TRANS(angles,pos);
 
 		if(parent)
-			world_transform = parent->get_world_transform() * transform;
+			world_transform = parent->get_world_transform(modify_trans) * transform;
 		else
 			world_transform = transform;
 
-		transform_calculated = true;
+		if(modify_trans)
+			transform_calculated = true;
 		return world_transform;
 	}
 
@@ -63,8 +64,22 @@ public:
 			return 1;
 		if(!mat)
 			return 1;
+
+		//LOGE("Material set: %p",mat);
+		//LOGE("Material shader: %p, shader gl program: %d",mat->shader,mat->shader->gl_program);
+		//LOGE("Model: %p, gl buffer %d",model,model->tri_verts_buffer);
+
+		//Tri verts are good
+		//LOGE("Printing mat params\n");
+		//for(int i = 0; i < mat->shader->param_count; i++)
+		//{
+		//	LOGE("location: %d, type: %d\n",*(int*)(mat->shader->param_location[i]),mat->shader->param_type[i]);
+		//}
+		//Shader parameters and locations look good too...
+		//next up to test: material params
+
 		mat->bind_material();
-		model->render(vp * get_world_transform(),mat);
+		model->render(vp * get_world_transform(true),mat);
 		return 1;
 	}
 

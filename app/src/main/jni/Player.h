@@ -27,7 +27,7 @@ public:
 		//TODO: render all playermodels
 		mat->bind_material();
 		skel->update_frame();
-		player_model->render(vp * get_world_transform(),mat);
+		player_model->render(vp * get_world_transform(true),mat);
 		return 1;
 	}
 };
