@@ -89,7 +89,7 @@ public:
 			LOGE("Error: Entity_Bone_Joint skeletal parent not set.\n");
 			return Mat4::IDENTITY();
 		}
-		if(transform_calculated)
+		if(transform_calculated && modify_trans)
 		{
 			return world_transform;
 		}

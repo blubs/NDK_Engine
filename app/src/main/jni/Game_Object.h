@@ -42,7 +42,7 @@ public:
 
 	Mat4 get_world_transform(bool modify_trans)
 	{
-		if(transform_calculated)
+		if(transform_calculated && modify_trans)
 		{
 			return world_transform;
 		}

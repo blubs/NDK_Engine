@@ -18,7 +18,7 @@ int Skel_Model::render(Mat4 mvp, Material* mat)
 	}
 
 	mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
-	mat->bind_value(Shader::PARAM_VERT_NORMALS, (void*) verts);
+	mat->bind_value(Shader::PARAM_VERT_NORMALS, (void*) normals);
 	mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
 
 	mat->bind_value(Shader::PARAM_BONE_INDICES, (void*) bone_indices);

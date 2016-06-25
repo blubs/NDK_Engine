@@ -29,7 +29,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 	Vec3 listener_right = Vec3::RIGHT();
 	if(e->listener != NULL)
 	{
-		listener_pos = (e->listener->get_world_transform(false)).get_pos();
+		listener_pos = e->listener->world_transform.get_pos();
 		listener_right = e->listener->right;
 	}
 
@@ -43,8 +43,6 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		source->transform_calculated = false;
 
 		//Calculating sound world position
-		//FIXME: assuming camera position at world origin and not rotated
-		// FIXME: have to add method for getting world camera position and orientation;
 		Vec3 pos = (source->get_world_transform(false)).get_pos() - listener_pos;
 
 		float left_falloff;

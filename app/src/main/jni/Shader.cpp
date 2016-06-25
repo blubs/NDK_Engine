@@ -252,15 +252,14 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 		case PARAM_BONE_MATRICES:
 		{
 			//extra data holds the matrix count
-			for(int i = 0; i < extra_data; i++)
-			{
-				glUniformMatrix4fv( (((GLint*)param_location[index])[i]), 1, GL_FALSE, ((float*) data)+(16*i));
-			}
+			//for(int i = 0; i < extra_data; i++)
+			//{
+			//	glUniformMatrix4fv( (((GLint*)param_location[index])[i]), 1, GL_FALSE, ((float*) data)+(16*i));
+			//}
 
-			//TODO: try this
-			//We might be able to replace the above line like this:
-			// (and we actually then wouldn't need to store an array of all bone matrix locations, just the first one)
-			//glUniformMatrix4fv( (((GLint*)param_location[index])[0]), extra_data, GL_FALSE, ((float*) data));
+			//In the case that all bone matrices are contiguous and sequential in memory, we can just use the line below
+			//This line just placed all matrices starting at the location of the first matrix
+			glUniformMatrix4fv( (((GLint*)param_location[index])[0]), extra_data, GL_FALSE, ((float*) data));
 			break;
 		}
 		case PARAM_BONE_WEIGHTS:

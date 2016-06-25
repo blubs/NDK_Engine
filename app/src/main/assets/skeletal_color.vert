@@ -13,7 +13,7 @@ uniform mat4 bone[58];
 void main()
 {
 	vert_color = vec4(1.0,1.0,1.0,1.0);
-	vert_color = vec4( vert_nor.x , vert_nor.y , vert_nor.z ,1.0);
+	vert_color = vec4( (vert_nor.x + 1.0) * 0.5, (vert_nor.y + 1.0) * 0.5 , (vert_nor.z + 1.0) * 0.5 ,1.0);
 	vec4 bone1;
 	vec4 bone2;
 	vec4 bone3;
