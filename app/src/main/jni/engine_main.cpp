@@ -29,24 +29,6 @@ void android_main(struct android_app *app)
 	free((char*)data);
 	File_Utils::write_savedata("test.dat");*/
 
-
-	//	Reads a file containing 5 floating point values (0.0-4.0)
-	/*const char* float_arr = File_Utils::load_raw_asset("test_float_array.skmf");
-	LOGE("float arr: [%f,%f,%f,%f,%f]\n",((float*)float_arr)[0],((float*)float_arr)[1],((float*)float_arr)[2],((float*)float_arr)[3],((float*)float_arr)[4]);
-	free((void*)float_arr);*/
-
-
-	//Test audio file loading
-//	const Asset_File* test_sound_file = File_Utils::load_asset("raw_1000_10_5_sec_sweep_stereo.raw");
-//	engine.audio_engine->snd_ch.data = (char*)test_sound_file->data;
-	//We want the length in sound samples
-//	engine.audio_engine->snd_ch.length = (test_sound_file->len)/sizeof(Stereo_Sample);
-//	engine.audio_engine->snd_ch.used = false;
-	//Only needed the Asset_File to get the length
-//	free((void*)test_sound_file);
-
-//	engine.audio_engine->play_sound();
-
 	float last_frame_time = 0.0;
 
 	//run the engine loop

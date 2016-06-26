@@ -37,9 +37,6 @@ public:
 
 	int bind_values(GLuint type, void* value, int count);
 
-	//has a function for terminating this material
-	void term();
-
 private:
 	void clear_all_params();
 };

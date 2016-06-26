@@ -487,6 +487,7 @@ int Engine::init_gl ()
 		Shader::PARAM_VERTICES,
 		Shader::PARAM_VERT_NORMALS,
 		Shader::PARAM_MVP_MATRIX,
+		Shader::PARAM_M_IT_MATRIX,
 		Shader::PARAM_BONE_INDICES,
 		Shader::PARAM_BONE_WEIGHTS,
 		Shader::PARAM_BONE_MATRICES
@@ -496,11 +497,12 @@ int Engine::init_gl ()
 		"vert_pos",
 		"vert_nor",
 		"mvp",
+		"m_IT",
 		"bone_index",
 		"bone_weight",
 		"bone"
 	};
-	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 6);
+	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 7);
 
 	//=========================================== Initializing Static Mesh Color Shader =====================
 
@@ -509,6 +511,7 @@ int Engine::init_gl ()
 		Shader::PARAM_VERTICES,
 		Shader::PARAM_VERT_NORMALS,
 		Shader::PARAM_MVP_MATRIX,
+		Shader::PARAM_M_IT_MATRIX,
 		Shader::PARAM_COLOR_MULT
 	};
 	const char *static_mesh_param_names[] =
@@ -516,9 +519,10 @@ int Engine::init_gl ()
 		"vert_pos",
 		"vert_nor",
 		"mvp",
+		"m_IT",
 		"color"
 	};
-	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 4);
+	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 5);
 
 	//==================================== Loading textures =======================================
 	test_texture->init_gl();
@@ -859,8 +863,8 @@ void Engine::draw_frame ()
 	//Making the test audio source rotate about the player
 	//float distance = 5.0f + 2.0f * cosf(t*12.75f);
 	float distance = 5.0f;
-	test_sound_source->pos = Vec3(distance * cosf(2.0f*t),distance * sinf(2.0f*t),0.0f);
-	test_sound_source->angles.y = fmodf(t*16.0f,TWO_PI);
+	test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
+	test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
 	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
 	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
 	test_sound_source->render(vp);

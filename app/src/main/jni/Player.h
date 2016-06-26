@@ -19,15 +19,11 @@ public:
 	{
 		if(!mat)
 			return 1;
-		/*if(!skel->playing_anim)
-		{
-			skel->play_anim(0);
-		}*/
 
 		//TODO: render all playermodels
 		mat->bind_material();
 		skel->update_frame();
-		player_model->render(vp * get_world_transform(true),mat);
+		player_model->render(get_world_transform(true),vp,mat);
 		return 1;
 	}
 };

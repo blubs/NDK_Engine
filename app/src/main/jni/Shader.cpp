@@ -100,6 +100,7 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 				break;
 			//Uniforms
 			case PARAM_MVP_MATRIX:
+			case PARAM_M_IT_MATRIX:
 			case PARAM_TEXTURE_DIFFUSE:
 			case PARAM_COLOR_MULT:
 			case PARAM_COLOR_ADD:
@@ -109,6 +110,7 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 				*((GLint*)(param_location[i])) = glGetUniformLocation(gl_program, param_identifiers[i]);
 				break;
 			case PARAM_BONE_MATRICES:
+			case PARAM_BONE_IT_MATRICES:
 			{
 				int matrix_count = 0;
 				//we need to know how many bones the shader supports
@@ -238,6 +240,10 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 			glVertexAttribPointer(uloc, 2, GL_FLOAT, GL_FALSE, 0, (float *) data);
 			glEnableVertexAttribArray(uloc);
 			break;
+		case PARAM_M_IT_MATRIX:
+			loc = *((GLint*)(param_location[index]));
+			glUniformMatrix3fv(loc, 1, GL_FALSE, ((float *) data));
+			break;
 		case PARAM_MVP_MATRIX:
 			loc = *((GLint*)(param_location[index]));
 			glUniformMatrix4fv(loc, 1, GL_FALSE, ((float *) data));
@@ -260,6 +266,11 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 			//In the case that all bone matrices are contiguous and sequential in memory, we can just use the line below
 			//This line just placed all matrices starting at the location of the first matrix
 			glUniformMatrix4fv( (((GLint*)param_location[index])[0]), extra_data, GL_FALSE, ((float*) data));
+			break;
+		}
+		case PARAM_BONE_IT_MATRICES:
+		{
+			glUniformMatrix3fv( (((GLint*)param_location[index])[0]), extra_data, GL_FALSE, ((float*) data));
 			break;
 		}
 		case PARAM_BONE_WEIGHTS:

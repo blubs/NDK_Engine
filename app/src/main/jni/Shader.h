@@ -30,15 +30,17 @@ public:
 	static const int PARAM_VERT_UV1 = 4;
 	//static const int PARAM_VERT_UV2 = 5; TODO: later
 	static const int PARAM_MVP_MATRIX = 6;
-	static const int PARAM_TEXTURE_DIFFUSE = 7;
-	//static const int PARAM_TEXTURE_NORMAL = 8; TODO: later
-	//static const int PARAM_TEXTURE_MISC = 9; TODO: later
-	//static const int PARAM_TEXTURE_LIGHTMAP = 10; TODO: later
-	static const int PARAM_BONE_MATRICES = 11;
-	static const int PARAM_BONE_INDICES = 12;
-	static const int PARAM_BONE_WEIGHTS = 13;
-	static const int PARAM_COLOR_MULT = 14;
-	static const int PARAM_COLOR_ADD = 15;
+	static const int PARAM_M_IT_MATRIX = 7;
+	static const int PARAM_TEXTURE_DIFFUSE = 8;
+	//static const int PARAM_TEXTURE_NORMAL = 9; TODO: later
+	//static const int PARAM_TEXTURE_MISC = 10; TODO: later
+	//static const int PARAM_TEXTURE_LIGHTMAP = 11; TODO: later
+	static const int PARAM_BONE_MATRICES = 12;
+	static const int PARAM_BONE_IT_MATRICES = 13;
+	static const int PARAM_BONE_INDICES = 14;
+	static const int PARAM_BONE_WEIGHTS = 15;
+	static const int PARAM_COLOR_MULT = 16;
+	static const int PARAM_COLOR_ADD = 17;
 	static const int PARAM_TEST_FIELD = 20;
 	//TODO: do cubemap textures need their own distinct texture types for each face?
 	//TODO: any other parameter types

@@ -4,7 +4,7 @@
 
 #include "Skel_Model.h"
 
-int Skel_Model::render(Mat4 mvp, Material* mat)
+int Skel_Model::render(Mat4 m,Mat4 vp, Material* mat)
 {
 	if(!mat)
 	{
@@ -19,11 +19,17 @@ int Skel_Model::render(Mat4 mvp, Material* mat)
 
 	mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
 	mat->bind_value(Shader::PARAM_VERT_NORMALS, (void*) normals);
+
+	Mat4 mvp = vp * m;
 	mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
+
+	Mat3 m_it = m.inverted_then_transposed().get_mat3();
+	mat->bind_value(Shader::PARAM_M_IT_MATRIX, (void*) m_it.m);
 
 	mat->bind_value(Shader::PARAM_BONE_INDICES, (void*) bone_indices);
 	mat->bind_value(Shader::PARAM_BONE_WEIGHTS, (void*) bone_weights);
 
+	//TODO: get inverse transpose of each bone in current frame and pass that into the material
 
 	float* pose_data = skel->get_current_pose();
 

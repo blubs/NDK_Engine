@@ -35,7 +35,7 @@ public:
 
 	GLuint tri_verts_buffer;
 
-	int render(Mat4 mvp,Material* mat);
+	int render(Mat4 m,Mat4 vp,Material* mat);
 
 	//We will eventually need methods for combining Meshes, and copying Meshes
 

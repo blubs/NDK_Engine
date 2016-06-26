@@ -79,7 +79,7 @@ public:
 		//next up to test: material params
 
 		mat->bind_material();
-		model->render(vp * get_world_transform(true),mat);
+		model->render(get_world_transform(true),vp,mat);
 		return 1;
 	}
 

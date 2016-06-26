@@ -165,7 +165,6 @@ struct Vec3
 	}*/ //wait a sec, I may be able to do this with quaternions instead
 
 	//TODO:
-	// cross product
 	// vec to angle
 	// angle to vec
 
@@ -275,6 +274,118 @@ struct Quat
 	// let temp2 = ( temp1.w * sin(  (t*theta)/2  ), temp1.v * sin (  (t*theta)/2  ));
 	// current = initial * temp2;
 
+};
+
+//This implementation is a column major-3x3 matrix (as OGL expects them)
+//The following shows the mapping between index and matrix element
+//[ 0  3  6 ]
+//[ 1  4  7 ]
+//[ 2  5  8 ]
+struct Mat3
+{
+	float m[9];
+
+	//Is it more useful to default to zero matrix? or to identity?
+	//Default behavior returns 0 matrix
+	Mat3()
+	{
+		m[0] = m[1] = m[2] =
+		m[3] = m[4] = m[5] =
+		m[6] = m[7] = m[8] = 0.0f;
+	}
+
+	Mat3(const float a0,const float a1,const float a2,
+	const float a3,const float a4,const float a5,
+	const float a6,const float a7,const float a8)
+	{
+		m[0] = a0;
+		m[1] = a1;
+		m[2] = a2;
+		m[3] = a3;
+		m[4] = a4;
+		m[5] = a5;
+		m[6] = a6;
+		m[7] = a7;
+		m[8] = a8;
+	}
+
+	//This assumes ptr has 9 float values
+	Mat3(const float* ptr)
+	{
+		m[0] = ptr[0];
+		m[1] = ptr[1];
+		m[2] = ptr[2];
+		m[3] = ptr[3];
+		m[4] = ptr[4];
+		m[5] = ptr[5];
+		m[6] = ptr[6];
+		m[7] = ptr[7];
+		m[8] = ptr[8];
+	}
+
+	Mat3 operator =(const Mat3& other)
+	{
+		m[0] = other.m[0];
+		m[1] = other.m[1];
+		m[2] = other.m[2];
+		m[3] = other.m[3];
+		m[4] = other.m[4];
+		m[5] = other.m[5];
+		m[6] = other.m[6];
+		m[7] = other.m[7];
+		m[8] = other.m[8];
+		return *this;
+	}
+
+	friend Mat3 operator*(const Mat3& l, const Mat3& r)
+	{
+		Mat3 result;
+
+		result.m[0]  = l.m[0] * r.m[0]  + l.m[3] * r.m[1]  + l.m[6]  * r.m[2];
+		result.m[1]  = l.m[1] * r.m[0]  + l.m[4] * r.m[1]  + l.m[7]  * r.m[2];
+		result.m[2]  = l.m[2] * r.m[0]  + l.m[5] * r.m[1]  + l.m[8] * r.m[2];
+
+		result.m[3]  = l.m[0] * r.m[3]  + l.m[3] * r.m[4]  + l.m[6] * r.m[5];
+		result.m[4]  = l.m[1] * r.m[3]  + l.m[4] * r.m[4]  + l.m[7] * r.m[5];
+		result.m[5]  = l.m[2] * r.m[3]  + l.m[5] * r.m[4]  + l.m[8] * r.m[5];
+
+		result.m[6]  = l.m[0] * r.m[6]  + l.m[3] * r.m[7]  + l.m[6] * r.m[8];
+		result.m[7]  = l.m[1] * r.m[6]  + l.m[4] * r.m[7]  + l.m[7] * r.m[8];
+		result.m[8]  = l.m[2] * r.m[6]  + l.m[5] * r.m[7]  + l.m[8] * r.m[8];
+
+		return result;
+	}
+
+	//Left multiplying Vec3
+	//Treating vec3 as row vector
+	friend Vec3 operator*(const Vec3& l,const Mat3& r)
+	{
+		Vec3 result;
+		result.x =l.x*r.m[0] + l.y*r.m[1] + l.z*r.m[2];
+		result.y =l.x*r.m[3] + l.y*r.m[4] + l.z*r.m[5];
+		result.z =l.x*r.m[6] + l.y*r.m[7] + l.z*r.m[8];
+		return result;
+	}
+
+	//Right multiplying Vec3
+	//Treating vec3 as column vector
+	friend Vec3 operator*(const Mat3& l,const Vec3& r)
+	{
+		Vec3 result;
+		result.x =r.x*l.m[0] + r.y*l.m[3] + r.z*l.m[6];
+		result.y =r.x*l.m[1] + r.y*l.m[4] + r.z*l.m[7];
+		result.z =r.x*l.m[2] + r.y*l.m[5] + r.z*l.m[8];
+		return result;
+	}
+
+
+	//Static method that returns an identity matrix
+	static Mat3 IDENTITY()
+	{
+		Mat3 result;
+		result.m[0] = result.m[4] = result.m[8] = 1.0f;
+		return result;
+	}
 };
 
 //This implementation is a column major-matrix (as OGL expects them)
@@ -415,11 +526,6 @@ struct Mat4
 		return result;
 	}
 
-	//[ 0  4  8  12 ]
-	//[ 1  5  9  13 ]
-	//[ 2  6  10 14 ]
-	//[ 3  7  11 15 ]
-
 	//The following two functions return the inverse matrix
 	//They assume the matrices represent rigid body transformations (i.e. only rotation and translation)
 	//This can be used to find view matrix as well
@@ -438,7 +544,7 @@ struct Mat4
 		m[3] = 0.0f;	m[7] = 0.0f;	m[11]= 0.0f;	m[15] = 1.0f;
 	}
 	//This returns a copy of the inverted matrix
-	Mat4 inverted()
+	Mat4 inverted() const
 	{
 		Mat4 result;
 
@@ -456,10 +562,91 @@ struct Mat4
 		return result;
 	}
 
+	//This actually transposes the matrix
+	Mat4 transpose()
+	{
+		Mat4 original = *this;
+		//0 is unmodified
+		m[1] = original.m[4];
+		m[2] = original.m[8];
+		m[3] = original.m[12];
+
+		m[4] = original.m[1];
+		//5 is unmodified
+		m[6] = original.m[9];
+		m[7] = original.m[13];
+
+		m[8] = original.m[2];
+		m[9] = original.m[6];
+		//10 is unmodified
+		m[11] = original.m[14];
+
+		m[12] = original.m[3];
+		m[13] = original.m[7];
+		m[14] = original.m[11];
+		//15 is unmodified
+	}
+	//Returns a transposed copy of this matrix
+	Mat4 transposed() const
+	{
+		Mat4 result;
+		result.m[0] = m[0];
+		result.m[1] = m[4];
+		result.m[2] = m[8];
+		result.m[3] = m[12];
+
+		result.m[4] = m[1];
+		result.m[5] = m[5];
+		result.m[6] = m[9];
+		result.m[7] = m[13];
+
+		result.m[8] = m[2];
+		result.m[9] = m[6];
+		result.m[10] = m[10];
+		result.m[11] = m[14];
+
+		result.m[12] = m[3];
+		result.m[13] = m[7];
+		result.m[14] = m[11];
+		result.m[15] = m[15];
+		return result;
+	}
+
+	//Inverts then tranposes this matrix
+	Mat4 invert_then_transpose()
+	{
+		invert();
+		transpose();
+	}
+	//Returns a copy of this matrix inverted then transposed
+	Mat4 inverted_then_transposed() const
+	{
+		Mat4 result = inverted();
+		result.transpose();
+		return result;
+	}
+
 	//Returns the transform position of matrix
-	Vec3 get_pos()
+	Vec3 get_pos() const
 	{
 		return Vec3(m[12],m[13],m[14]);
+	}
+
+
+	//returns the upper left 3x3 Matrix of this 4x4 Matrix
+	Mat3 get_mat3() const
+	{
+		Mat3 result;
+		result.m[0] = m[0];
+		result.m[1] = m[1];
+		result.m[2] = m[2];
+		result.m[3] = m[4];
+		result.m[4] = m[5];
+		result.m[5] = m[6];
+		result.m[6] = m[8];
+		result.m[7] = m[9];
+		result.m[8] = m[10];
+		return result;
 	}
 
 	//Static method that returns an identity matrix
@@ -630,7 +817,6 @@ struct Mat4
 
 		return result;
 	}
-
 	//Additional methods to perhaps implement (depending on if I ever find the need for them)
 	//Scalar multiplication / division of a matrix
 	//addition / subtraction of a matrices

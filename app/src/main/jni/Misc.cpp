@@ -53,6 +53,14 @@ void print_mat4(float* mat)
 		mat[2],mat[6],mat[10],mat[14],
 		mat[3],mat[7],mat[11],mat[15]);
 }
+//Prints the elements of a Mat3 matrix
+void print_mat3(float* mat)
+{
+	LOGI("[ %.2f , %.2f , %.2f ]\n[ %.2f , %.2f , %.2f ]\n[ %.2f , %.2f , %.2f ]\n",
+		mat[0],mat[3],mat[6],
+		mat[1],mat[4],mat[7],
+		mat[2],mat[5],mat[8]);
+}
 
 
 
