@@ -856,14 +856,17 @@ void Engine::draw_frame ()
 		player_skel->stop_anim();
 	if(state.x < 0.05f && !player_skel->playing_anim)
 		player_skel->play_anim(1,Skeleton::END_TYPE_LOOP);
-	player->render(vp);
 
 	float t = time();
+
+	player->angles.y = fmodf(t*2.0f,TWO_PI);
+	player->render(vp);
 
 	//Making the test audio source rotate about the player
 	//float distance = 5.0f + 2.0f * cosf(t*12.75f);
 	float distance = 5.0f;
-	test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
+	//test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
+	test_sound_source->pos = Vec3(0,distance,0);
 	test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
 	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
 	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
@@ -874,7 +877,9 @@ void Engine::draw_frame ()
 	if(t > time_to_play_audio)
 	{
 		time_to_play_audio = t + 0.5f;
+		LOGI("play sound called\n");
 		test_sound_source->play_sound(test_pulse);
+		LOGE("play sound finished\n");
 	}
 
 

@@ -11,16 +11,18 @@ Audio_Engine* Audio_Engine::instance = NULL;
 //Callback for swapping audio buffers
 void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 {
+	LOGI("sl buffer callback started\n");
 	Audio_Engine *e = ((Audio_Engine *) c);
 
 	//Swap the audio buffers
 	Stereo_Sample *other_buffer = e->active_audio_buffer;
 	e->active_audio_buffer = e->inactive_audio_buffer;
 	e->inactive_audio_buffer = other_buffer;
+	LOGI("sl buffer callback 1\n");
 
 	//Wipe the current audio buffer
 	memset(e->active_audio_buffer, 0, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
-
+	LOGI("sl buffer callback 2\n");
 	//For sound effect interpolation
 	//Last value to current value in SND_AUDIO_BUFFER_SIZE.
 	//equation: lerped_effect = i*((cur_effect - last_effect)/SND_AUDIO_BUFFER_SIZE) + last_effect
@@ -32,6 +34,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		listener_pos = e->listener->world_transform.get_pos();
 		listener_right = e->listener->right;
 	}
+	LOGI("sl buffer callback 3\n");
 
 	//Populate the current audio buffer with the whatever sounds that are playing.
 	for(int i = 0; i < e->MAX_SOUND_SOURCES; i++)
@@ -39,6 +42,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		Sound_Source* source = &e->sources[i];
 		if(!source->used)
 			continue;
+		LOGI("sl buffer callback 3.1\n");
 
 		source->transform_calculated = false;
 
@@ -82,6 +86,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 
 		float left_falloff_slope = (left_falloff - last_left_falloff) / SND_AUDIO_BUFFER_SIZE;
 		float right_falloff_slope = (right_falloff - last_right_falloff) / SND_AUDIO_BUFFER_SIZE;
+		LOGI("sl buffer callback 3.2\n");
 
 		//Calculate "distance" falloff
 		//Distance emulated between 0 and 50 meters
@@ -89,6 +94,7 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		//How many samples to copy? Until this buffer is full, or the sound file is over (whichever happens first)
 		int smpls_to_copy = SND_AUDIO_BUFFER_SIZE < (source->sound->length - source->sound_pos) ?
 							SND_AUDIO_BUFFER_SIZE : (source->sound->length - source->sound_pos);
+		LOGI("sl buffer callback 3.3\n");
 
 		for(int j = 0; j < smpls_to_copy; j++)
 		{
@@ -110,9 +116,12 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		{
 			source->used = false;
 		}
+		LOGI("sl buffer callback 3.3\n");
 	}
+	LOGI("sl buffer callback 4\n");
 	//Send the prepared audio buffer
 	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
+	LOGI("sl buffer callback finished\n");
 }
 
 
@@ -145,7 +154,7 @@ void Audio_Engine::play_test_sound ()
 
 int Audio_Engine::init_sl ()
 {
-
+	LOGI("Audio Engine init started\n");
 	//=================================== Creating the SL Sound Engine ======================================
 	const SLuint32 eng_mix_iid_count = 1;
 	const SLInterfaceID eng_mix_iids[] = {SL_IID_ENGINE};
@@ -319,6 +328,7 @@ int Audio_Engine::init_sl ()
 	//	{
 	//		osl_engine.mSounds[i].mUsed = false;
 	//	}
+	LOGI("Audio Engine init finished\n");
 	return 1;
 }
 
