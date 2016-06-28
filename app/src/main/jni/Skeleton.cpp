@@ -111,6 +111,16 @@ float* Skeleton::get_current_pose()
 	return ((anims[current_anim]) + (bone_count * 16 * current_frame));
 }
 
+//Returns a pointer to the current frame's inverse-transpose matrices
+float* Skeleton::get_current_pose_IT()
+{
+	if(!playing_anim)
+	{
+		return rest_pose_ident_mat3s;
+	}
+	return ((anims[current_anim]) + (bone_count * 16 * current_frame));
+}
+
 
 //Returns the ith bone's current transform matrix (within animation)
 Mat4 Skeleton::get_bone_transform(int i)
@@ -144,12 +154,19 @@ int Skeleton::load(const char* filepath)
 	rest_pose = (float*) raw_data + 1;
 
 	//Populating a list of identity matrices for displaying the skeleton's rest post
-	Mat4 ident = Mat4::IDENTITY();
+	Mat4 ident4 = Mat4::IDENTITY();
 	rest_pose_ident_mat4s = (float*) malloc(sizeof(float) * bone_count*16);
 	for(int i = 0; i < 16; i++)
 	{
 		for(int j = 0; j < bone_count; j++)
-			rest_pose_ident_mat4s[j*16 + i] = ident.m[i];
+			rest_pose_ident_mat4s[j*16 + i] = ident4.m[i];
+	}
+	Mat3 ident3 = Mat3::IDENTITY();
+	rest_pose_ident_mat3s = (float*) malloc(sizeof(float) * bone_count * 9);
+	for(int i = 0; i < 9; i++)
+	{
+		for(int j = 0; j < bone_count; j++)
+			rest_pose_ident_mat3s[j*9 + i] = ident3.m[i];
 	}
 
 	return 1;
@@ -179,10 +196,13 @@ void Skeleton::unload()
 		free(all_anims_raw_data);
 
 		free(anims);
+		free(anims_IT);
 		free(anim_lengths);
 	}
 	if(rest_pose_ident_mat4s)
 		free(rest_pose_ident_mat4s);
+	if(rest_pose_ident_mat3s)
+		free(rest_pose_ident_mat3s);
 }
 
 int Skeleton::load_animation(const char* filepath)
@@ -198,17 +218,18 @@ int Skeleton::load_animation(const char* filepath)
 	if(loaded_anim[0] != bone_count)
 	{
 		LOGE("Error: cannot load animation with %ud bones to a skeleton with %ud bones!\n",loaded_anim[0],bone_count);
+		return 0;
 	}
 
 	anim_count++;
 
 	//Creating new arrays that can hold all of the animations
-
 	const unsigned int** new_anims_data = (const unsigned int**) malloc(sizeof(int*) * anim_count);
 	unsigned int* new_anim_lengths = (unsigned int*) malloc(sizeof(unsigned int) * anim_count);
 	float** new_anims = (float**) malloc(sizeof(float*) * anim_count);
+	float** new_anims_IT = (float**) malloc(sizeof(float*) * anim_count);
 
-	if(all_anims_raw_data && anim_lengths && anims)
+	if(all_anims_raw_data && anim_lengths && anims && anims_IT)
 	{
 		//Copying all of the old values
 		for(int i = 0; i < anim_count - 1; i++)
@@ -216,17 +237,19 @@ int Skeleton::load_animation(const char* filepath)
 			new_anims_data[i] = all_anims_raw_data[i];
 			new_anim_lengths[i] = anim_lengths[i];
 			new_anims[i] = anims[i];
+			new_anims_IT[i] = anims_IT[i];
 		}
-
 		//Freeing the old arrays
 		free(all_anims_raw_data);
 		free(anim_lengths);
 		free(anims);
+		free(anims_IT);
 	}
 	//Handing off the array location to the class variables
 	all_anims_raw_data = new_anims_data;
 	anim_lengths = new_anim_lengths;
 	anims = new_anims;
+	anims_IT = new_anims_IT;
 
 	int cindex = anim_count - 1;
 
@@ -235,13 +258,14 @@ int Skeleton::load_animation(const char* filepath)
 	//Second int is the frame count
 	//List thereafter is a list of frames
 	//Each frame holds a list of matrices per bone
+	//List thereafter is a list of frames
+	//Each frame in this list holds the inverse transpose 3x3 Matrix of the bone matrices
 	//animation_bone_count = animation_raw_data[0];
-
 
 	//Assigning the new just-loaded stuff
 	all_anims_raw_data[cindex] = loaded_anim;
 	anim_lengths[cindex] = all_anims_raw_data[cindex][1];
 	anims[cindex] = (float*) all_anims_raw_data[cindex] + 2;
-
+	anims_IT[cindex] = (float*) all_anims_raw_data[cindex] + 2 + (16 * bone_count * anim_lengths[cindex]);
 	return 1;
 }

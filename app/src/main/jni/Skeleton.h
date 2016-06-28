@@ -16,6 +16,8 @@ public:
 	float* rest_pose;
 
 	float* rest_pose_ident_mat4s;
+	float* rest_pose_ident_mat3s;
+
 
 	const unsigned int* raw_data = NULL;
 
@@ -36,7 +38,11 @@ public:
 	//Arrays of pointers or values for all animations
 	const unsigned int** all_anims_raw_data = NULL;
 	unsigned int* anim_lengths;
+	//Array of matrices representing all animation frames
 	float** anims;
+	//Array of matrices representing all animation frames (this is the inverse-transpose of the previous array of matrices)
+	//Used for normal calculation
+	float** anims_IT;
 
 	int anim_count = 0;
 
@@ -61,6 +67,9 @@ public:
 
 	//Returns a pointer to the current frame matrices
 	float* get_current_pose();
+
+	//Returns a pointer to the current frame inverse-transpose matrices
+	float* get_current_pose_IT();
 
 	//Returns the ith bone's current transform matrix (within animation)
 	Mat4 get_bone_transform(int i);
