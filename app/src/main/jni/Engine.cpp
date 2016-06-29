@@ -480,7 +480,7 @@ int Engine::init_gl ()
 
 	text_shader->init_gl(text_param_types, text_param_names,text_param_count);
 
-	//========================================= Initializing the mesh shader ================================
+	//========================================= Initializing the skeletal mesh shader ================================
 
 	GLuint skel_mesh_params[] =
 	{
@@ -490,7 +490,8 @@ int Engine::init_gl ()
 		Shader::PARAM_M_IT_MATRIX,
 		Shader::PARAM_BONE_INDICES,
 		Shader::PARAM_BONE_WEIGHTS,
-		Shader::PARAM_BONE_MATRICES
+		Shader::PARAM_BONE_MATRICES,
+		Shader::PARAM_BONE_IT_MATRICES
 	};
 	const char *skel_mesh_param_names[] =
 	{
@@ -500,9 +501,10 @@ int Engine::init_gl ()
 		"m_IT",
 		"bone_index",
 		"bone_weight",
-		"bone"
+		"bone",
+		"bone_IT"
 	};
-	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 7);
+	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 8);
 
 	//=========================================== Initializing Static Mesh Color Shader =====================
 
@@ -859,6 +861,7 @@ void Engine::draw_frame ()
 
 	float t = time();
 
+	//Make player spin
 	player->angles.y = fmodf(t*2.0f,TWO_PI);
 	player->render(vp);
 
@@ -879,7 +882,7 @@ void Engine::draw_frame ()
 		time_to_play_audio = t + 0.5f;
 		LOGI("play sound called\n");
 		test_sound_source->play_sound(test_pulse);
-		LOGE("play sound finished\n");
+		LOGI("play sound finished\n");
 	}
 
 

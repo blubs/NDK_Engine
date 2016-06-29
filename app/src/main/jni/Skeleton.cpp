@@ -118,7 +118,7 @@ float* Skeleton::get_current_pose_IT()
 	{
 		return rest_pose_ident_mat3s;
 	}
-	return ((anims[current_anim]) + (bone_count * 16 * current_frame));
+	return ((anims_IT[current_anim]) + (bone_count * 9 * current_frame));
 }
 
 

@@ -29,11 +29,14 @@ int Skel_Model::render(Mat4 m,Mat4 vp, Material* mat)
 	mat->bind_value(Shader::PARAM_BONE_INDICES, (void*) bone_indices);
 	mat->bind_value(Shader::PARAM_BONE_WEIGHTS, (void*) bone_weights);
 
-	//TODO: get inverse transpose of each bone in current frame and pass that into the material
 
 	float* pose_data = skel->get_current_pose();
 
 	mat->bind_values(Shader::PARAM_BONE_MATRICES, (void*) (pose_data),skel->bone_count);
+
+	float* pose_IT_data = skel->get_current_pose_IT();
+	mat->bind_values(Shader::PARAM_BONE_IT_MATRICES, (void*) (pose_IT_data),skel->bone_count);
+
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_verts_buffer);
 

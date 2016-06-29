@@ -270,6 +270,10 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 		}
 		case PARAM_BONE_IT_MATRICES:
 		{
+			//for(int i = 0; i < extra_data; i++)
+			//{
+			//	glUniformMatrix3fv( (((GLint*)param_location[index])[i]), 1, GL_FALSE, ((float*) data)+(9*i));
+			//}
 			glUniformMatrix3fv( (((GLint*)param_location[index])[0]), extra_data, GL_FALSE, ((float*) data));
 			break;
 		}
