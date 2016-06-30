@@ -12,6 +12,10 @@ int Static_Model::render(Mat4 m,Mat4 vp,Material* mat)
 	}
 
 	mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
+
+	mat->bind_value(Shader::PARAM_VERT_UV1, (void*) uv_coords_1);
+	mat->bind_value(Shader::PARAM_VERT_UV2, (void*) uv_coords_2);
+
 	mat->bind_value(Shader::PARAM_VERT_NORMALS, (void*) normals);
 
 	Mat4 mvp = vp * m;
@@ -39,6 +43,8 @@ int Static_Model::load_model(const char* filepath)
 	//First float is the vertex count
 	//Second float is the triangle count * 3
 	//List thereafter is the position (3 floats) of all vertices
+	//List thereafter is the uv tex coords of the 1st uv map (2 floats) of all vertices
+	//List thereafter is the uv tex coords of the 2nd uv map (2 floats) of all vertices
 	//List thereafter is the normal (3 floats) of all vertices
 	//List thereafter is the indices vertices that make up the triangles
 	vertex_count = raw_data[0];
@@ -46,9 +52,12 @@ int Static_Model::load_model(const char* filepath)
 
 	verts = (float*) (raw_data + 2);
 
-	normals = (float*) raw_data + 2 + (vertex_count*3);
+	uv_coords_1 = (float*) raw_data + 2 + (vertex_count*3);
+	uv_coords_2 = (float*) raw_data + 2 + (vertex_count*3) + (vertex_count*2);
 
-	tri_verts = raw_data + 2 + 2*(vertex_count*3);
+	normals = (float*) raw_data + 2 + (vertex_count*3) + 2*(vertex_count*2);
+
+	tri_verts = raw_data + 2 + 2*(vertex_count*3) + 2*(vertex_count*2);
 
 	return 1;
 }

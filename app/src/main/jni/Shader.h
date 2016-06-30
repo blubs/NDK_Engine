@@ -28,7 +28,7 @@ public:
 	static const int PARAM_VERT_NORMALS = 2;
 	static const int PARAM_VERT_COLORS = 3;
 	static const int PARAM_VERT_UV1 = 4;
-	//static const int PARAM_VERT_UV2 = 5; TODO: later
+	static const int PARAM_VERT_UV2 = 5;
 	static const int PARAM_MVP_MATRIX = 6;
 	static const int PARAM_M_IT_MATRIX = 7;
 	static const int PARAM_TEXTURE_DIFFUSE = 8;

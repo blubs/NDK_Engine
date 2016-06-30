@@ -18,6 +18,8 @@ public:
 
 	const unsigned int* raw_data = NULL;
 	const float* verts;
+	const float* uv_coords_1;
+	const float* uv_coords_2;
 	const float* normals;
 
 	const unsigned int* tri_verts;

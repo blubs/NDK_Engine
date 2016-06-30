@@ -1,20 +1,22 @@
 uniform mat4 mvp;
 uniform mat3 m_IT;
 attribute vec4 vert_pos;
+attribute vec2 vert_uv;
 attribute vec3 vert_nor;
 
 attribute vec3 bone_weight;
 attribute vec3 bone_index;
 
-varying vec4 vert_color;
-varying vec3 normal;
-varying vec2 dest_tex_coord;
+varying vec4 v_color;
+varying vec2 v_uv;
+varying vec3 v_normal;
 
 uniform mat4 bone[58];
 uniform mat3 bone_IT[58];
 
 void main()
 {
+	v_uv = vert_uv;
 	vec4 bone1;
 	vec4 bone2;
 	vec4 bone3;
@@ -41,10 +43,8 @@ void main()
 
 	//Averaging out the bone weights
 	pos = bone1 * bone_weight.x + bone2 * bone_weight.y + bone3 * bone_weight.z;
-	normal = m_IT * (bone1_nor * bone_weight.x + bone2_nor * bone_weight.y + bone3_nor * bone_weight.z);
-	//normal = m_IT * bone1_nor;//just use the first bone's normal
-	//normal = m_IT * vert_nor;//use no bone normals
-	vert_color = vec4(0.0,0.0,0.0,1.0);
+	v_normal = m_IT * (bone1_nor * bone_weight.x + bone2_nor * bone_weight.y + bone3_nor * bone_weight.z);
+	v_color = vec4(0.0,0.0,0.0,1.0);
 
 	gl_Position = mvp * pos;
 }

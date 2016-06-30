@@ -485,6 +485,7 @@ int Engine::init_gl ()
 	GLuint skel_mesh_params[] =
 	{
 		Shader::PARAM_VERTICES,
+		Shader::PARAM_VERT_UV1,
 		Shader::PARAM_VERT_NORMALS,
 		Shader::PARAM_MVP_MATRIX,
 		Shader::PARAM_M_IT_MATRIX,
@@ -496,6 +497,7 @@ int Engine::init_gl ()
 	const char *skel_mesh_param_names[] =
 	{
 		"vert_pos",
+		"vert_uv",
 		"vert_nor",
 		"mvp",
 		"m_IT",
@@ -504,13 +506,15 @@ int Engine::init_gl ()
 		"bone",
 		"bone_IT"
 	};
-	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 8);
+	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 9);
 
 	//=========================================== Initializing Static Mesh Color Shader =====================
 
 	GLuint static_mesh_params[] =
 	{
 		Shader::PARAM_VERTICES,
+		Shader::PARAM_VERT_UV1,
+		Shader::PARAM_VERT_UV2,
 		Shader::PARAM_VERT_NORMALS,
 		Shader::PARAM_MVP_MATRIX,
 		Shader::PARAM_M_IT_MATRIX,
@@ -519,12 +523,14 @@ int Engine::init_gl ()
 	const char *static_mesh_param_names[] =
 	{
 		"vert_pos",
+		"vert_uv_1",
+		"vert_uv_2",
 		"vert_nor",
 		"mvp",
 		"m_IT",
 		"color"
 	};
-	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 5);
+	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 7);
 
 	//==================================== Loading textures =======================================
 	test_texture->init_gl();
