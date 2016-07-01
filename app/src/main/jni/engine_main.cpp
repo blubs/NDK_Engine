@@ -29,6 +29,14 @@ void android_main(struct android_app *app)
 	free((char*)data);
 	File_Utils::write_savedata("test.dat");*/
 
+	Cube_Map* cube = new Cube_Map();
+
+	cube->load("stuff/test_file_path.pkm",512,512);
+
+	delete cube;
+
+
+
 	float last_frame_time = 0.0;
 
 	//run the engine loop

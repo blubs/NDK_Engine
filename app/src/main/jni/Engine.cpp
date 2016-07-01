@@ -48,7 +48,6 @@ Engine::Engine (struct android_app *droid_app)
 	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
 
 	//================== Instantiating Static Models ============================
-	test_torso = (Static_Model*) malloc(sizeof(Static_Model));
 	model_prim_cube = (Static_Model*) malloc(sizeof(Static_Model));
 	model_prim_quad = (Static_Model*) malloc(sizeof(Static_Model));
 
@@ -109,8 +108,6 @@ Engine::~Engine()
 	//Freeing models
 	if(test_arms)
 		free(test_arms);
-	if(test_torso)
-		free(test_torso);
 	if(model_prim_cube)
 		free(model_prim_cube);
 	if(model_prim_quad)
@@ -334,7 +331,6 @@ int Engine::load_assets ()
 	char_set->load("char_set.pkm",2048,2048);
 
 	test_arms->load_model("test_arms.skmf");
-	test_torso->load_model("test_static_shirt.stmf");
 	model_prim_cube->load_model("primitive_cube.stmf");
 	model_prim_quad->load_model("primitive_quad.stmf");
 
@@ -373,8 +369,6 @@ void Engine::unload_assets ()
 	//Models
 	if(test_arms)
 		test_arms->unload_model();
-	if(test_torso)
-		test_torso->unload_model();
 	if(model_prim_cube)
 		model_prim_cube->unload_model();
 	if(model_prim_quad)
@@ -538,7 +532,6 @@ int Engine::init_gl ()
 
 	//==================================== Setting up Mesh VBOs ====================================
 	test_arms->init_gl();
-	test_torso->init_gl();
 	model_prim_cube->init_gl();
 	model_prim_quad->init_gl();
 	//========================================================================
@@ -562,7 +555,6 @@ void Engine::term_gl ()
 
 	//Terminating all loaded models
 	test_arms->term_gl();
-	test_torso->term_gl();
 	model_prim_cube->term_gl();
 	model_prim_quad->term_gl();
 
@@ -886,9 +878,7 @@ void Engine::draw_frame ()
 	if(t > time_to_play_audio)
 	{
 		time_to_play_audio = t + 0.5f;
-		LOGI("play sound called\n");
 		test_sound_source->play_sound(test_pulse);
-		LOGI("play sound finished\n");
 	}
 
 

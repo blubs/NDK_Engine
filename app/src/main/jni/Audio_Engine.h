@@ -42,10 +42,6 @@ public:
 	Stereo_Sample audio_buffer2[SND_AUDIO_BUFFER_SIZE];
 	Stereo_Sample* active_audio_buffer;
 	Stereo_Sample* inactive_audio_buffer;
-	//Sound playing_sound[8];
-	//Test methods for testing audio file playing
-	Sound_Channel snd_ch;
-
 
 	//List of sound sources
 	Sound_Source* sources;

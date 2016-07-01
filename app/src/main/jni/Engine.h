@@ -20,6 +20,7 @@
 #include "UI_Text.h"
 #include "UI_Image.h"
 #include "Static_Model.h"
+#include "Cube_Map.h"
 
 
 // Saved State Data
@@ -84,8 +85,6 @@ public:
 
 	Skel_Model* test_arms = NULL;
 	Skeleton* player_skel = NULL;
-
-	Static_Model* test_torso = NULL;
 
 	Static_Model* model_prim_cube = NULL;
 	Static_Model* model_prim_quad = NULL;
