@@ -25,6 +25,7 @@ public:
 
 	Mat4 persp_proj_m;
 	Mat4 ortho_proj_m;
+	Mat4 inf_proj_m;
 	Mat4 view_m;
 
 	//Update the view attributes
@@ -38,13 +39,14 @@ public:
 
 		//Calculate the projection matrix
 		persp_proj_m = Mat4::PROJECT_PERSPECTIVE(near_plane,far_plane,aspect,fov);
+		//Calculate the infinite projection matrix
+		inf_proj_m = Mat4::PROJECT_INFINITE(near_plane,aspect,fov);
 	}
 	void set_ortho_view(int width, int height, float near_clipping_plane, float far_clipping_plane)
 	{
 		//Calculate the projection matrix
 		ortho_proj_m = Mat4::PROJECT_ORTHO(near_clipping_plane,far_clipping_plane,(float)width,(float)height);
 	}
-
 
 
 	//Converts angles to forward,right,and up vectors, and sets the view matrix

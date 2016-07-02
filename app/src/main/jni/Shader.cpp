@@ -100,6 +100,7 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 				*((GLint*)(param_location[i])) = glGetAttribLocation(gl_program, param_identifiers[i]);
 				break;
 			//Uniforms
+			case PARAM_CUBE_MAP:
 			case PARAM_MVP_MATRIX:
 			case PARAM_M_IT_MATRIX:
 			case PARAM_TEXTURE_DIFFUSE:
@@ -254,6 +255,13 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 			loc = *((GLint*)(param_location[index]));
 			glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
 			glBindTexture(GL_TEXTURE_2D, (GLuint) data);
+			glUniform1i(loc, bound_textures);
+			bound_textures++;
+			break;
+		case PARAM_CUBE_MAP:
+			loc = *((GLint*)(param_location[index]));
+			glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
+			glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint) data);
 			glUniform1i(loc, bound_textures);
 			bound_textures++;
 			break;

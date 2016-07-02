@@ -66,6 +66,9 @@ Engine::Engine (struct android_app *droid_app)
 	cam_to_bone = new Entity_Bone_Joint();
 	test_sound_source = new Entity();
 
+	skybox = new Skybox();
+	test_cube_map = (Cube_Map*) malloc(sizeof(Cube_Map));
+
 	//=================== Setting up temp sound containers ====================
 	test_pulse = (Sound_Sample*) malloc(sizeof(Sound_Sample));
 
@@ -134,6 +137,11 @@ Engine::~Engine()
 		delete camera;
 	if(cam_to_bone)
 		delete cam_to_bone;
+
+	if(test_cube_map)
+		free(test_cube_map);
+	if(skybox)
+		delete skybox;
 }
 
 
@@ -319,6 +327,7 @@ int Engine::load_shaders ()
 	skel_color_shader->load("skeletal_color.vert","skeletal_color.frag");
 	static_color_shader->load("static_color.vert","static_color.frag");
 	text_shader->load("monochrome_transparent.vert","monochrome_transparent.frag");
+	skybox->load_shader();
 	return 1;
 }
 
@@ -329,6 +338,8 @@ int Engine::load_assets ()
 	//Loading the test texture.
 	test_texture->load("tex.pkm",512,512);
 	char_set->load("char_set.pkm",2048,2048);
+
+	test_cube_map->load("cube_maps/test_cube_map.pkm",512);
 
 	test_arms->load_model("test_arms.skmf");
 	model_prim_cube->load_model("primitive_cube.stmf");
@@ -353,6 +364,7 @@ void Engine::unload_shaders ()
 	skel_color_shader->unload();
 	static_color_shader->unload();
 	text_shader->unload();
+	skybox->unload_shader();
 }
 
 void Engine::unload_assets ()
@@ -365,7 +377,8 @@ void Engine::unload_assets ()
 		test_texture->unload();
 	if(char_set)
 		char_set->unload();
-
+	if(test_cube_map)
+		test_cube_map->unload();
 	//Models
 	if(test_arms)
 		test_arms->unload_model();
@@ -529,11 +542,14 @@ int Engine::init_gl ()
 	//==================================== Loading textures =======================================
 	test_texture->init_gl();
 	char_set->init_gl();
+	test_cube_map->init_gl();
 
 	//==================================== Setting up Mesh VBOs ====================================
 	test_arms->init_gl();
 	model_prim_cube->init_gl();
 	model_prim_quad->init_gl();
+
+	skybox->init_gl();
 	//========================================================================
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
@@ -558,9 +574,11 @@ void Engine::term_gl ()
 	model_prim_cube->term_gl();
 	model_prim_quad->term_gl();
 
+	skybox->term_gl();
 
 	test_texture->term_gl();
 	char_set->term_gl();
+	test_cube_map->term_gl();
 
 	gl_initialized = false;
 }
@@ -611,6 +629,7 @@ void Engine::first_frame()
 
 	//===================================================================================
 
+	skybox->set_cube_map(test_cube_map);
 
 	test_sound_source->model = model_prim_cube;
 	test_sound_source->mat = static_color_mat;
@@ -699,7 +718,7 @@ void Engine::draw_frame ()
 	glDepthMask(GL_TRUE);
 
 	//Filling the screen with a color
-	glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
+	//glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
 
 
 
@@ -777,7 +796,7 @@ void Engine::draw_frame ()
 	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Referencing vertices by index
 	unsigned int cube_tris[] =
@@ -860,7 +879,7 @@ void Engine::draw_frame ()
 	float t = time();
 
 	//Make player spin
-	player->angles.y = fmodf(t*2.0f,TWO_PI);
+	//player->angles.y = fmodf(t*2.0f,TWO_PI);
 	player->render(vp);
 
 	//Making the test audio source rotate about the player
@@ -880,10 +899,12 @@ void Engine::draw_frame ()
 		time_to_play_audio = t + 0.5f;
 		test_sound_source->play_sound(test_pulse);
 	}
-
+	Mat4 view_no_translation = camera->inf_proj_m * ((camera->view_m).pos_removed());
+	skybox->render(view_no_translation);
 
 	test_text->render(camera->ortho_proj_m);
 	test_img->render(camera->ortho_proj_m);
+
 	eglSwapBuffers(egl_display, egl_surface);
 }
 

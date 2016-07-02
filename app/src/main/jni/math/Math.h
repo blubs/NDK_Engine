@@ -39,7 +39,7 @@ struct Vec3
 	~Vec3 ()
 	{};
 
-	Vec3& operator =(const Vec3& other)
+	void operator =(const Vec3& other)
 	{
 		x = other.x;
 		y = other.y;
@@ -197,7 +197,7 @@ struct Quat
 		float sin_half_theta = sinf(half_theta);
 		v = dir * sin_half_theta;
 	}
-	Quat& operator =(const Quat& other)
+	void operator =(const Quat& other)
 	{
 		w = other.w;
 		v.x = other.v.x;
@@ -530,7 +530,7 @@ struct Mat4
 	//They assume the matrices represent rigid body transformations (i.e. only rotation and translation)
 	//This can be used to find view matrix as well
 	//This actually inverts the matrix
-	Mat4 invert()
+	void invert()
 	{
 		Vec3 u(m[0],m[1],m[2]);
 		Vec3 v(m[4],m[5],m[6]);
@@ -563,7 +563,7 @@ struct Mat4
 	}
 
 	//This actually transposes the matrix
-	Mat4 transpose()
+	void transpose()
 	{
 		Mat4 original = *this;
 		//0 is unmodified
@@ -613,7 +613,7 @@ struct Mat4
 	}
 
 	//Inverts then tranposes this matrix
-	Mat4 invert_then_transpose()
+	void invert_then_transpose()
 	{
 		invert();
 		transpose();
@@ -630,6 +630,19 @@ struct Mat4
 	Vec3 get_pos() const
 	{
 		return Vec3(m[12],m[13],m[14]);
+	}
+
+	//Removes translational components of this vector
+	void remove_pos()
+	{
+		m[12] = m[13] = m[14] = 0.0f;
+	}
+	//Returns a copy of this matrix with no translational components
+	Mat4 pos_removed()
+	{
+		Mat4 result = *this;
+		result.m[12] = result.m[13] = result.m[14] = 0.0f;
+		return result;
 	}
 
 
@@ -814,6 +827,22 @@ struct Mat4
 		result.m[12] = -(right+left) * inv_width;
 		result.m[13] = -(top+bottom) * inv_height;
 		result.m[14] = -(far+near) * inv_z_dist;
+
+		return result;
+	}
+
+	// Constructs a infinite projection matrix given near plane, aspect ratio, and fov
+	// This matrix is derived by taking the limit of the perspective projection matrix as the far plane goes to infinity
+	static Mat4 PROJECT_INFINITE(const float near,const float aspect,const float fov)
+	{
+		Mat4 result;
+		float inv_tan_fov = 1.0f / (tanf(fov * 0.5f));
+
+		result.m[0] = inv_tan_fov / aspect;
+		result.m[5] = inv_tan_fov;
+		result.m[10] = -1.0f;
+		result.m[11] = -1.0f;
+		result.m[14] = -2.0f * near;
 
 		return result;
 	}

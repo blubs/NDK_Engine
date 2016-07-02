@@ -10,7 +10,6 @@ void android_main(struct android_app *app)
 	//We never leave this scope anyways
 	app->userData = &engine;
 
-
 	//Trying to get files to load.
 	File_Utils::asset_mgr = app->activity->assetManager;
 
@@ -28,14 +27,6 @@ void android_main(struct android_app *app)
 	LOGI("Read file: %s.\n",data);
 	free((char*)data);
 	File_Utils::write_savedata("test.dat");*/
-
-	Cube_Map* cube = new Cube_Map();
-
-	cube->load("stuff/test_file_path.pkm",512,512);
-
-	delete cube;
-
-
 
 	float last_frame_time = 0.0;
 

@@ -17,10 +17,10 @@
 #include "Skel_Model.h"
 #include "Skeleton.h"
 #include "Texture.h"
-#include "UI_Text.h"
-#include "UI_Image.h"
+#include "UI.h"
 #include "Static_Model.h"
 #include "Cube_Map.h"
+#include "Skybox.h"
 
 
 // Saved State Data
@@ -120,6 +120,9 @@ public:
 
 	UI_Text* test_text = NULL;
 	UI_Image* test_img = NULL;
+
+	Skybox* skybox = NULL;
+	Cube_Map* test_cube_map = NULL;
 
 	static float delta_time;
 };

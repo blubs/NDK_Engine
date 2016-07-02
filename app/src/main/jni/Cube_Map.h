@@ -20,29 +20,52 @@ public:
 
 	const char* raw_data_pos_x;
 	int raw_data_p_x_length = 0;
+
+	const char* raw_data_neg_x;
+	int raw_data_n_x_length = 0;
+
 	const char* raw_data_pos_y;
 	int raw_data_p_y_length = 0;
+
+	const char* raw_data_neg_y;
+	int raw_data_n_y_length = 0;
+
 	const char* raw_data_pos_z;
 	int raw_data_p_z_length = 0;
+
+	const char* raw_data_neg_z;
+	int raw_data_n_z_length = 0;
+
 	int width,height = 0;
 
-	//FIXME remove this stuff (these are sorted)
-	//LOGE("pos x: %d",GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	//LOGE("neg x: %d",GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	//LOGE("pos y: %d",GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	//LOGE("neg y: %d",GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	//LOGE("pos z: %d",GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	//LOGE("neg z: %d",GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
-	//=======================
-
-	int load(const char* filepath,int w, int h)
+	int load_single_image(const char* filepath, const char** data, int* len)
 	{
-		//Order of constats: +x -x +y -y +z -z//(in case we need it)
+		const Asset_File* file_asset = File_Utils::load_asset(filepath);
+		*data = file_asset->data;
+		*len = file_asset->len;
+
+		//raw_data_p_x_length = file_asset->len;
+		//raw_data_pos_x = file_asset->data;
+
+		free((void*) file_asset);
+		if(!*data)
+		{
+			LOGE("Error: failed to load image: \"%s\"\n",filepath);
+			unload();
+			return 0;
+		}
+		return 1;
+	}
+	int load(const char* filepath,int w)
+	{
+		LOGI("cubemap load started");
 		//Add a suffix before the extension for the filenames of the cube map name
-		//if salad.pkm is passed, actual filenames are: salad_X.pkm where "X" is replaced with any of the following "l","r","u","d","f", and "b"
+		//Example: if salad.pkm is passed,
+		//	actual filenames are: salad_X.pkm where "X" is replaced with any of the following "l","r","u","d","f", and "b"
+
 		int filename_length = strlen(filepath) + 1;//1 for null char
 
-		char* file_name = (char*) malloc(sizeof(char) * (filename_length + 2));//2 extra chars for the added extension
+		char file_name[filename_length + 2];
 
 		//Index of the letter we are going to modify
 		int index_of_identifier = 0;
@@ -54,7 +77,7 @@ public:
 			{
 				index_of_identifier = i + 1;
 				file_name[i] = '_';
-				file_name[i+1] = 'l';
+				file_name[i+1] = 'X';
 				break;
 			}
 			file_name[i] = filepath[i];
@@ -66,60 +89,105 @@ public:
 			file_name[i+2] = filepath[i];
 		}
 
-		LOGE("%s  -->  %s\n",filepath,file_name);
-
-		//TODO: load the six cubemap images
-
-		/*const Asset_File* file_asset = File_Utils::load_asset(filepath);
-		raw_data_p_x_length = file_asset->len;
-		raw_data_pos_x = file_asset->data;
-		free((void*) file_asset);
-		if(!raw_data_pos_x)
-		{
-			LOGE("Error: failed to load \"%s\"\n",filepath);
+		//======== Actually loading the images =========
+		//=== Loading the positive x-axis image ===
+		file_name[index_of_identifier] = 'r';
+		if(!load_single_image(file_name,&raw_data_pos_x,&raw_data_p_x_length))
 			return 0;
-		}
-		width = w;
-		height = h;*/
+		//=== Loading the negative x-axis image ===
+		file_name[index_of_identifier] = 'l';
+		if(!load_single_image(file_name,&raw_data_neg_x,&raw_data_n_x_length))
+			return 0;
+		//=== Loading the positive y-axis image ===
+		file_name[index_of_identifier] = 'f';
+		if(!load_single_image(file_name,&raw_data_pos_y,&raw_data_p_y_length))
+			return 0;
+		//=== Loading the negative y-axis image ===
+		file_name[index_of_identifier] = 'b';
+		if(!load_single_image(file_name,&raw_data_neg_y,&raw_data_n_y_length))
+			return 0;
+		//=== Loading the positive z-axis image ===
+		file_name[index_of_identifier] = 'u';
+		if(!load_single_image(file_name,&raw_data_pos_z,&raw_data_p_z_length))
+			return 0;
+		//=== Loading the negative z-axis image ===
+		file_name[index_of_identifier] = 'd';
+		if(!load_single_image(file_name,&raw_data_neg_z,&raw_data_n_z_length))
+			return 0;
 
-		free(file_name);
+		width = height = w;
+		LOGI("cubemap load finished");
 		return 1;
 	}
 	void unload()
 	{
-		//TODO: unload the six cubemap images
-		//if(raw_data_pos_x)
-		//	free((void*)raw_data_pos_x);
-		//raw_data_p_x_length = 0;
+		LOGI("cubemap unload started");
+		if(raw_data_pos_x)
+			free((void*)raw_data_pos_x);
+		raw_data_p_x_length = 0;
+
+		if(raw_data_neg_x)
+			free((void*)raw_data_neg_x);
+		raw_data_n_x_length = 0;
+
+		if(raw_data_pos_y)
+			free((void*)raw_data_pos_y);
+		raw_data_p_y_length = 0;
+
+		if(raw_data_neg_y)
+			free((void*)raw_data_neg_y);
+		raw_data_n_y_length = 0;
+
+		if(raw_data_pos_z)
+			free((void*)raw_data_pos_z);
+		raw_data_p_z_length = 0;
+
+		if(raw_data_neg_z)
+			free((void*)raw_data_neg_z);
+		raw_data_n_z_length = 0;
+
+
 		width = height = 0;
+		LOGI("cubemap unload finished");
 	}
 
 	int init_gl()
 	{
-		//TODO: initialize the cubemap and pass in the 6 images
+		LOGI("cubemap init_gl started");
 		GLuint tex_id;
 		glGenTextures(1, &tex_id);
 
-		glBindTexture(GL_TEXTURE_2D, tex_id);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glCompressedTexImage2D(GL_TEXTURE_2D, 0, ETC1_RGB8, width, height, 0, raw_data_p_x_length, (const void *) raw_data_pos_x);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, tex_id);
 
+		//Binding the 6 face images
+		glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, ETC1_RGB8, width, height, 0, raw_data_p_x_length, (const void *) raw_data_pos_x);
+		glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, ETC1_RGB8, width, height, 0, raw_data_n_x_length, (const void *) raw_data_neg_x);
+		glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, ETC1_RGB8, width, height, 0, raw_data_p_y_length, (const void *) raw_data_pos_y);
+		glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, ETC1_RGB8, width, height, 0, raw_data_n_y_length, (const void *) raw_data_neg_y);
+		glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, ETC1_RGB8, width, height, 0, raw_data_p_z_length, (const void *) raw_data_pos_z);
+		glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, ETC1_RGB8, width, height, 0, raw_data_n_z_length, (const void *) raw_data_neg_z);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//GLES 3.0+ only, not sure what the behavior is here.
+		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R GL_CLAMP_TO_EDGE);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 		gl_id = tex_id;
+		LOGI("cubemap init_gl finished");
 		return 1;
 	}
 
 	void term_gl()
 	{
-		//TODO: terminate the cubemap
+		LOGI("cubemap term_gl started");
 		if(gl_id)
 		{
 			glDeleteTextures(1, &gl_id);
 		}
 		gl_id = 0;
+		LOGI("cubemap term_gl finished");
 	}
 };
 
