@@ -19,18 +19,14 @@ public:
 	//Due to simplicity of skybox, we don't require a skybox material, and it can hold its own shaders
 	Skybox()
 	{
-		LOGI("skybox constructor started");
 		shader = (Shader*) malloc(sizeof(Shader));
-		LOGI("skybox constructor finished");
 	}
 	~Skybox()
 	{
-		LOGI("skybox destructor started");
 		if(shader)
 		{
 			free(shader);
 		}
-		LOGI("skybox destructor finished");
 	}
 
 	int load_shader()
@@ -51,7 +47,6 @@ public:
 
 	int init_gl()
 	{
-		LOGI("skybox init_gl started");
 		//Setting up vertex buffer objects
 		glGenBuffers(1, &tri_verts_buffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_verts_buffer);
@@ -90,18 +85,15 @@ public:
 			"mvp"
 		};
 		shader->init_gl(param_types, param_names,3);
-		LOGI("skybox init_gl finished");
 		return 1;
 	}
 	void term_gl()
 	{
-		LOGI("skybox term_gl started");
 		//Freeing vertex buffer objects
 		glDeleteBuffers(1,&tri_verts_buffer);
 		//Terminating skybox shader
 		if(shader)
 			shader->term_gl();
-		LOGI("skybox term_gl finished");
 	}
 
 	int set_cube_map(Cube_Map* map)
@@ -112,7 +104,6 @@ public:
 
 	int render(Mat4 v_matrix)
 	{
-		LOGI("Skybox render started");
 		if(!cube_map)
 		{
 			LOGW("Warning: tried rendering skybox without running assigning a cube map\n");
@@ -140,7 +131,6 @@ public:
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_verts_buffer);
 		glDrawElements(GL_TRIANGLES, tri_vert_count, GL_UNSIGNED_INT, (void *) 0);
-		LOGI("Skybox render finished");
 	}
 
 };

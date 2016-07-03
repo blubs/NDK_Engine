@@ -796,7 +796,7 @@ void Engine::draw_frame ()
 	camera->angles.z = 0.0f;
 	camera->update_view_matrix();
 
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Referencing vertices by index
 	unsigned int cube_tris[] =
@@ -890,7 +890,6 @@ void Engine::draw_frame ()
 	test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
 	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
 	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
-	test_sound_source->render(vp);
 
 	//=========== Test Audio Playing every 0.5 seconds ==============
 	static float time_to_play_audio = 0.0f;
@@ -901,6 +900,10 @@ void Engine::draw_frame ()
 	}
 	Mat4 view_no_translation = camera->inf_proj_m * ((camera->view_m).pos_removed());
 	skybox->render(view_no_translation);
+
+	//Have to draw transparent sources after skybox
+	test_sound_source->render(vp);
+
 
 	test_text->render(camera->ortho_proj_m);
 	test_img->render(camera->ortho_proj_m);

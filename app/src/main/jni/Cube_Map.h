@@ -9,10 +9,6 @@
 #include "File_Utils.h"
 
 
-//misc TODO: add a Skybox class that holds a reference to a cube_map and renders it
-//misc TODO: add the infinite projection matrix to Mat4 struct and camera
-//mist TODO: add a Skybox shader
-
 class Cube_Map
 {
 public:
@@ -58,7 +54,6 @@ public:
 	}
 	int load(const char* filepath,int w)
 	{
-		LOGI("cubemap load started");
 		//Add a suffix before the extension for the filenames of the cube map name
 		//Example: if salad.pkm is passed,
 		//	actual filenames are: salad_X.pkm where "X" is replaced with any of the following "l","r","u","d","f", and "b"
@@ -116,12 +111,10 @@ public:
 			return 0;
 
 		width = height = w;
-		LOGI("cubemap load finished");
 		return 1;
 	}
 	void unload()
 	{
-		LOGI("cubemap unload started");
 		if(raw_data_pos_x)
 			free((void*)raw_data_pos_x);
 		raw_data_p_x_length = 0;
@@ -148,12 +141,10 @@ public:
 
 
 		width = height = 0;
-		LOGI("cubemap unload finished");
 	}
 
 	int init_gl()
 	{
-		LOGI("cubemap init_gl started");
 		GLuint tex_id;
 		glGenTextures(1, &tex_id);
 
@@ -175,19 +166,16 @@ public:
 		//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R GL_CLAMP_TO_EDGE);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 		gl_id = tex_id;
-		LOGI("cubemap init_gl finished");
 		return 1;
 	}
 
 	void term_gl()
 	{
-		LOGI("cubemap term_gl started");
 		if(gl_id)
 		{
 			glDeleteTextures(1, &gl_id);
 		}
 		gl_id = 0;
-		LOGI("cubemap term_gl finished");
 	}
 };
 
