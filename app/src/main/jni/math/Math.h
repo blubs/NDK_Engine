@@ -378,6 +378,36 @@ struct Mat3
 		return result;
 	}
 
+	//Static method that returns a rotation matrix given a unit quaternion rotation
+	static Mat3 ROTATE(const Quat& q)
+	{
+		Mat3 result;
+		//Precomputing floating point multiplications
+		//TODO: test runtime of this versus not precomputing, is there any benefit?
+		float xx2,yy2,zz2,xy2,xz2,yz2,wx2,wy2,wz2;
+		xx2 = 2.0f * q.v.x * q.v.x;
+		yy2 = 2.0f * q.v.y * q.v.y;
+		zz2 = 2.0f * q.v.z * q.v.z;
+		xz2 = 2.0f * q.v.x * q.v.z;
+		xy2 = 2.0f * q.v.x * q.v.y;
+		yz2 = 2.0f * q.v.y * q.v.z;
+		wx2 = 2.0f * q.w * q.v.x;
+		wy2 = 2.0f * q.w * q.v.y;
+		wz2 = 2.0f * q.w * q.v.z;
+
+		result.m[0] = 1.0f - yy2 - zz2;
+		result.m[1] = xy2 + wz2;
+		result.m[2] = xz2 - wy2;
+		result.m[3] = xy2 - wz2;
+		result.m[4] = 1.0f - xx2 - zz2;
+		result.m[5] = yz2 + wx2;
+		result.m[6] = xz2 + wy2;
+		result.m[7] = yz2 - wx2;
+		result.m[8] = 1.0f - xx2 - yy2;
+		return result;
+	}
+
+
 
 	//Static method that returns an identity matrix
 	static Mat3 IDENTITY()
