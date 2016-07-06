@@ -15,12 +15,19 @@ public:
 	unsigned int bone_count = 0;
 	float* rest_pose;
 
+	float* current_pose_mat4s;
+	float* current_pose_mat3s;
+
 	float* rest_pose_ident_mat4s;
 	float* rest_pose_ident_mat3s;
 
 
 	const unsigned int* raw_data = NULL;
 
+	bool lerp_anim = true;
+	float frame_time = 1/5.0f;
+
+	int set_fps(float fps);
 
 	//Animation playing end types
 	static const int END_TYPE_ROOT_POSE = 0;
@@ -30,7 +37,7 @@ public:
 
 	bool playing_anim = false;
 	int current_frame = 0;
-	//int dest_frame = 0;	TODO: needed later for animation interpolation
+	int dest_frame = 0;
 	int current_anim = -1;
 	int current_anim_end_type = END_TYPE_ROOT_POSE;
 	float time_for_next_frame;
@@ -38,9 +45,10 @@ public:
 	//Arrays of pointers or values for all animations
 	const unsigned int** all_anims_raw_data = NULL;
 	unsigned int* anim_lengths;
-	//Array of matrices representing all animation frames
+	//Array of positions and quaternions representing all animation frame transformations
+	//Structure for each bone per frame is as follows: first 3 floats: translation, next 4 floats: rotation quaternion
 	float** anims;
-	//Array of matrices representing all animation frames (this is the inverse-transpose of the previous array of matrices)
+	//Array of quaternion values representing all animation frames (this is the quat of the inverse-transpose of the bone transforms)
 	//Used for normal calculation
 	float** anims_IT;
 
@@ -63,7 +71,7 @@ public:
 	int stop_anim();
 
 	//Ran every frame to update animation frame logic (calculate interpolation data, increment frame, etc)
-	int update_frame();
+	int update_frame(float TEMP_T);
 
 	//Returns a pointer to the current frame matrices
 	float* get_current_pose();

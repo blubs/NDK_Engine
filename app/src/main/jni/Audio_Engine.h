@@ -62,8 +62,7 @@ public:
 	static int play_sound (Sound_Sample* sound,Entity* ent,Vec3 pos,int sound_priority,float volume);
 	int play_sound_sample (Sound_Sample* sound,Entity* ent,Vec3 pos,int sound_priority,float volume);
 
-	Camera* listener;
-
+	Camera* listener = NULL;
 	static int set_audio_listener(Camera* lstnr);
 };
 

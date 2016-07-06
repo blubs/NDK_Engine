@@ -346,9 +346,9 @@ int Engine::load_assets ()
 	model_prim_quad->load_model("primitive_quad.stmf");
 
 	player_skel->load("player_skeleton.sksf");
-	player_skel->load_animation("run.skaf");
-	player_skel->load_animation("showcase_hands.skaf");
-	player_skel->load_animation("speed_vault.skaf");
+	player_skel->load_animation("player_animations/run.skaf");
+	player_skel->load_animation("player_animations/showcase_hands.skaf");
+	player_skel->load_animation("player_animations/speed_vault.skaf");
 
 	//Sounds
 	test_pulse->load("test_audio_pulse.raw");
@@ -720,6 +720,29 @@ void Engine::draw_frame ()
 	//Filling the screen with a color
 	//glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
 
+	//Testing slerp and lerp
+
+	static float t_lerp = 0.0f;
+	t_lerp += 0.01;
+
+	t_lerp = fminf(t_lerp,1.0f);
+
+
+	Quat q1(PI*1.25f,Vec3::UP());
+	Quat q2(HALF_PI*0.5f,Vec3::RIGHT());
+
+	Quat q3 = Quat::SLERP(q1,q2,t_lerp);
+
+	Vec3 v1(1.0f,0.0f,3.0f);
+	Vec3 v2(0.0f,1.0f,9.0f);
+
+	Vec3 v3 = Vec3::LERP(v1,v2,t_lerp);
+
+	//LOGE("T is %f",t_lerp);
+	//LOGE("Quat: (%f,%f,%f,%f)->(%f,%f,%f,%f): (%f,%f,%f,%f)",q1.w,q1.v.x,q1.v.y,q1.v.z,q2.w,q2.v.x,q2.v.y,q2.v.z,q3.w,q3.v.x,q3.v.y,q3.v.z);
+
+	//LOGE("Vec: (%f,%f,%f)->(%f,%f,%f): (%f,%f,%f)",v1.x,v1.y,v1.z,v2.x,v2.y,v2.z,v3.x,v3.y,v3.z);
+
 
 
 	//Setting all transforms to be recalculated
@@ -789,11 +812,11 @@ void Engine::draw_frame ()
 	camera->pos = Vec3::ZERO();
 	camera->angles = Vec3::ZERO();
 	//Pitch
-	camera->angles.x = ((0.5f - state.y) * TWO_PI);
+	//camera->angles.x = ((0.5f - state.y) * TWO_PI);
 	//Yaw
-	camera->angles.y = (0.5f - state.x) * TWO_PI;
+	//camera->angles.y = (0.5f - state.x) * TWO_PI;
 	//Roll
-	camera->angles.z = 0.0f;
+	//camera->angles.z = 0.0f;
 	camera->update_view_matrix();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -871,8 +894,8 @@ void Engine::draw_frame ()
 
 	Mat4 vp = camera->persp_proj_m * camera->view_m;
 
-	if(state.x > 0.95f && player_skel->playing_anim)
-		player_skel->stop_anim();
+	//if(state.x > 0.95f && player_skel->playing_anim)
+	//	player_skel->stop_anim();
 	if(state.x < 0.05f && !player_skel->playing_anim)
 		player_skel->play_anim(1,Skeleton::END_TYPE_LOOP);
 
@@ -880,7 +903,15 @@ void Engine::draw_frame ()
 
 	//Make player spin
 	//player->angles.y = fmodf(t*2.0f,TWO_PI);
-	player->render(vp);
+	float temp = state.x;
+	if(temp < 0.1f)
+		temp = 0.0f;
+	else if(temp > 0.9f)
+		temp = 1.0f;
+	else
+		temp = (temp - 0.1f)/0.8f;
+
+	player->render(vp,temp);
 
 	//Making the test audio source rotate about the player
 	//float distance = 5.0f + 2.0f * cosf(t*12.75f);
@@ -905,8 +936,9 @@ void Engine::draw_frame ()
 	test_sound_source->render(vp);
 
 
-	test_text->render(camera->ortho_proj_m);
-	test_img->render(camera->ortho_proj_m);
+	//Test UI image
+	//test_text->render(camera->ortho_proj_m);
+	//test_img->render(camera->ortho_proj_m);
 
 	eglSwapBuffers(egl_display, egl_surface);
 }

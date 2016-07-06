@@ -28,9 +28,22 @@ public:
 	Vec3 pos;
 	//Pitch, yaw, roll
 	Vec3 angles;
+	//Whether to use the angles or the quaternion for rotation
+	bool use_quaternion = false;
+	Quat rot;
 
 	//Goes through parent hierarchy until parent is null, multiplying by all transformation matrices along the way
 	virtual Mat4 get_world_transform(bool modify_trans) = 0;
+
+	Game_Object()
+	{
+		transform = Mat4::IDENTITY();
+		world_transform = Mat4::IDENTITY();
+		pos = Vec3::ZERO();
+		angles = Vec3::ZERO();
+		rot = Quat(0.0f,Vec3::RIGHT());
+		use_quaternion = false;
+	}
 };
 
 //Used for entities that actually exist in the game world
@@ -46,7 +59,11 @@ public:
 		{
 			return world_transform;
 		}
-		transform = Mat4::ROT_TRANS(angles,pos);
+
+		if(use_quaternion)
+			transform = Mat4::ROT_TRANS(rot,pos);
+		else
+			transform = Mat4::ROT_TRANS(angles,pos);
 
 		if(parent)
 			world_transform = parent->get_world_transform(modify_trans) * transform;

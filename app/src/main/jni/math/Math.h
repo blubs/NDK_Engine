@@ -36,8 +36,27 @@ struct Vec3
 		z = other.z;
 	}
 
+	Vec3 (const float* val)
+	{
+		x = *val;
+		y = *(val+1);
+		z = *(val+2);
+	}
+
 	~Vec3 ()
 	{};
+
+	//Is equal to operator
+	bool operator==(const Vec3 &other) const
+	{
+		return (x == other.x) && (y == other.y) && (z == other.z);
+	}
+	//Not equal operator
+	bool operator!=(const Vec3 &other) const
+	{
+		return !(*this == other);
+	}
+
 
 	void operator =(const Vec3& other)
 	{
@@ -137,6 +156,16 @@ struct Vec3
 		return result;
 	}
 
+	//Linearly interpolates vectors a to b from t = 0 to t = 1
+	static Vec3 LERP(const Vec3& a, const Vec3& b, const float t)
+	{
+		Vec3 result;
+		result.x = a.x + t*(b.x-a.x);
+		result.y = a.y + t*(b.y-a.y);
+		result.z = a.z + t*(b.z-a.z);
+		return result;
+	}
+
 	//For these rotations, we first apply yaw, then pitch, then roll
 	//Given pitch yaw and roll as a Vec3, returns the forward vector (no roll)
 	/*static Vec3 ANGLES_TO_FORWARD(Vec3 angles)
@@ -188,7 +217,13 @@ struct Quat
 		w = other.w;
 	}
 
-	//TODO: functions/operators for quaternions
+	//Assumes val points to a list of 4 floats
+	Quat (const float* val)
+	{
+		//first float is w, next 3 are the vector component
+		w = *val;
+		v = Vec3(val+1);
+	}
 	//Creates a quaternion from direction and angle about the direction
 	Quat(const float theta,const Vec3& dir)
 	{
@@ -197,6 +232,17 @@ struct Quat
 		float sin_half_theta = sinf(half_theta);
 		v = dir * sin_half_theta;
 	}
+	//Is equal to operator
+	bool operator==(const Quat &other) const
+	{
+		return (w == other.w) && (v == other.v);
+	}
+	//Not equal operator
+	bool operator!=(const Quat &other) const
+	{
+		return !(*this == other);
+	}
+	//Assignment operator
 	void operator =(const Quat& other)
 	{
 		w = other.w;
@@ -214,6 +260,40 @@ struct Quat
 
 		return result;
 	}
+
+	//Adds two quaternions
+	friend Quat operator+(const Quat& l,const Quat& r)
+	{
+		Quat result;
+		result.w = l.w + r.w;
+		result.v = l.v + r.v;
+		return result;
+	}
+
+	//Scales a quaternion
+	friend Quat operator*(const Quat& l,const float f)
+	{
+		Quat result;
+		result.w = l.w * f;
+		result.v = l.v * f;
+		return result;
+	}
+	//Scales a quaternion
+	friend Quat operator*(const float f,const Quat& r)
+	{
+		Quat result;
+		result.w = r.w * f;
+		result.v = r.v * f;
+		return result;
+	}
+	friend Quat operator/(const Quat& l,const float f)
+	{
+		Quat result;
+		result.w = l.w / f;
+		result.v = l.v / f;
+		return result;
+	}
+
 	//Returns the inverted quaternion
 	Quat inverted() const
 	{
@@ -265,13 +345,64 @@ struct Quat
 		return v.x*v.x + v.y*v.y + v.z*v.z + w*w;
 	}
 
+	static float dot(const Quat& a,const Quat& b)
+	{
+		return a.v * b.v + a.w * b.w;
+	}
 
+	//Normalized linear interpolation
+	//Only setback is it isn't constant speed
+	static Quat NLERP(const Quat& a, const Quat& b, const float t)
+	{
+		Quat result;
+
+		result.w = a.w + t*(b.w - a.w);
+		result.v = Vec3::LERP(a.v,b.v,t);
+
+		result.normalize();
+		return result;
+	}
+
+	//Spherical linear interpolation
+	static Quat SLERP(const Quat& a,const Quat& b,const float t)
+	{
+		//If the quaternions are the same, return either
+		if(a == b)
+		{
+			return a;
+		}
+		Quat result;
+
+		float dot_product = dot(a,b);
+
+		//Avoid a divide by zero
+		if(dot_product > 0.995f)
+		{
+			return NLERP(a,b,t);
+		}
+
+		Quat c;
+		//Don't interpolate the long way around, go the short route
+		if(dot_product < 0)
+		{
+			dot_product = -dot_product;
+			c = -1.0f * b;
+		}
+		else
+			c = b;
+
+		float theta = acosf(dot_product);
+		result = (a*sinf(theta*(1-t)) + c*sinf(theta*t))/sinf(theta);
+		//trying this
+		result.normalize();
+		return result;
+	}
 
 	//The following is pseudo code for SLERPING quaternions,
 	// 	implementation will be unclear until we figure out how we are going to call it
 	// let t be the interpolation scalar ranging from 0 to 1
 	// let temp1 = final * initial.invert();
-	// let temp2 = ( temp1.w * sin(  (t*theta)/2  ), temp1.v * sin (  (t*theta)/2  ));
+	// let temp2 = ( temp1.w * cos(  (t*theta)/2  ), temp1.v * sin (  (t*theta)/2  ));
 	// current = initial * temp2;
 
 };
@@ -750,6 +881,22 @@ struct Mat4
 		result.m[15] = 1.0f;
 
 		return result;
+	}
+
+	//Calculated transform matrix given rotation quaternion and position
+	static Mat4 ROT_TRANS(const Quat& rot, const Vec3& pos)
+	{
+		return TRANSLATE(pos)*ROTATE(rot);
+	}
+
+	//Alternate ROT_TRANS, assigns forward right and up vectors that are passed in
+	static Mat4 ROT_TRANS(const Quat& rot, const Vec3& pos, Vec3* right, Vec3* up, Vec3* forward)
+	{
+		Mat4 rot_mat = ROTATE(rot);
+		*right = rot_mat * Vec3::RIGHT();
+		*up = rot_mat * Vec3::UP();
+		*forward = rot_mat * Vec3::FRONT();
+		return TRANSLATE(pos) * rot_mat;
 	}
 
 	//Calculated transform matrix given angles and position

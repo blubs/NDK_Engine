@@ -8,15 +8,25 @@
 
 Audio_Engine* Audio_Engine::instance = NULL;
 
+//#define DEBUG_AUDIO_CALLBACK
 //Callback for swapping audio buffers
 void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 {
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 0 (started)");
+#endif
 	Audio_Engine *e = ((Audio_Engine *) c);
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 1");
+#endif
 
 	//Swap the audio buffers
 	Stereo_Sample *other_buffer = e->active_audio_buffer;
 	e->active_audio_buffer = e->inactive_audio_buffer;
 	e->inactive_audio_buffer = other_buffer;
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 2");
+#endif
 
 	//Wipe the current audio buffer
 	memset(e->active_audio_buffer, 0, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
@@ -24,17 +34,33 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 	//Last value to current value in SND_AUDIO_BUFFER_SIZE.
 	//equation: lerped_effect = i*((cur_effect - last_effect)/SND_AUDIO_BUFFER_SIZE) + last_effect
 
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 3");
+#endif
+
 	Vec3 listener_pos = Vec3::ZERO();
 	Vec3 listener_right = Vec3::RIGHT();
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 4");
+#endif
 	if(e->listener != NULL)
 	{
+#ifdef DEBUG_AUDIO_CALLBACK
+		LOGE("Audio Callback: 4.1");
+#endif
 		listener_pos = e->listener->world_transform.get_pos();
 		listener_right = e->listener->right;
 	}
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 4.2");
+#endif
 
 	//Populate the current audio buffer with the whatever sounds that are playing.
 	for(int i = 0; i < e->MAX_SOUND_SOURCES; i++)
 	{
+#ifdef DEBUG_AUDIO_CALLBACK
+		LOGE("Audio Callback: 5");
+#endif
 		Sound_Source* source = &e->sources[i];
 		if(!source->used)
 			continue;
@@ -43,6 +69,10 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 
 		//Calculating sound world position
 		Vec3 pos = (source->get_world_transform(false)).get_pos() - listener_pos;
+
+#ifdef DEBUG_AUDIO_CALLBACK
+		LOGE("Audio Callback: 5.1");
+#endif
 
 		float left_falloff;
 		float right_falloff;
@@ -81,6 +111,9 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 
 		float left_falloff_slope = (left_falloff - last_left_falloff) / SND_AUDIO_BUFFER_SIZE;
 		float right_falloff_slope = (right_falloff - last_right_falloff) / SND_AUDIO_BUFFER_SIZE;
+#ifdef DEBUG_AUDIO_CALLBACK
+		LOGE("Audio Callback: 5.2");
+#endif
 
 		//Calculate "distance" falloff
 		//Distance emulated between 0 and 50 meters
@@ -102,6 +135,9 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 			e->active_audio_buffer[j].r += smp.r;
 			//FIXME: this will lead to clipping for loud audio sources, need to add sounds using a different method
 		}
+#ifdef DEBUG_AUDIO_CALLBACK
+		LOGE("Audio Callback: 5.3");
+#endif
 
 		source->sound_pos += smpls_to_copy;
 
@@ -109,9 +145,18 @@ void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 		{
 			source->used = false;
 		}
+#ifdef DEBUG_AUDIO_CALLBACK
+		LOGE("Audio Callback: 5.4");
+#endif
 	}
 	//Send the prepared audio buffer
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 6");
+#endif
 	(*(snd_queue))->Enqueue(snd_queue, e->active_audio_buffer, sizeof(Stereo_Sample) * SND_AUDIO_BUFFER_SIZE);
+#ifdef DEBUG_AUDIO_CALLBACK
+	LOGE("Audio Callback: 7 (end)");
+#endif
 }
 
 
