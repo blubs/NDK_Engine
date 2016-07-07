@@ -720,31 +720,6 @@ void Engine::draw_frame ()
 	//Filling the screen with a color
 	//glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
 
-	//Testing slerp and lerp
-
-	static float t_lerp = 0.0f;
-	t_lerp += 0.01;
-
-	t_lerp = fminf(t_lerp,1.0f);
-
-
-	Quat q1(PI*1.25f,Vec3::UP());
-	Quat q2(HALF_PI*0.5f,Vec3::RIGHT());
-
-	Quat q3 = Quat::SLERP(q1,q2,t_lerp);
-
-	Vec3 v1(1.0f,0.0f,3.0f);
-	Vec3 v2(0.0f,1.0f,9.0f);
-
-	Vec3 v3 = Vec3::LERP(v1,v2,t_lerp);
-
-	//LOGE("T is %f",t_lerp);
-	//LOGE("Quat: (%f,%f,%f,%f)->(%f,%f,%f,%f): (%f,%f,%f,%f)",q1.w,q1.v.x,q1.v.y,q1.v.z,q2.w,q2.v.x,q2.v.y,q2.v.z,q3.w,q3.v.x,q3.v.y,q3.v.z);
-
-	//LOGE("Vec: (%f,%f,%f)->(%f,%f,%f): (%f,%f,%f)",v1.x,v1.y,v1.z,v2.x,v2.y,v2.z,v3.x,v3.y,v3.z);
-
-
-
 	//Setting all transforms to be recalculated
 	player_skel->transform_calculated = false;
 	camera->transform_calculated = false;
@@ -918,9 +893,17 @@ void Engine::draw_frame ()
 	float distance = 5.0f;
 	//test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
 	test_sound_source->pos = Vec3(0,distance,0);
-	test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
+	//test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
 	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
 	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
+
+	//Quaternion slerp test:
+	test_sound_source->use_quaternion = true;
+	Quat q1(PI*0.7218f,Vec3(0.7071,0.7071,0));
+	Quat q2(HALF_PI*0.75f, Vec3::FRONT());
+
+	Quat q3 = Quat::SLERP(q1,q2,temp);
+	test_sound_source->rot = q3;
 
 	//=========== Test Audio Playing every 0.5 seconds ==============
 	static float time_to_play_audio = 0.0f;

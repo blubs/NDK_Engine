@@ -125,7 +125,7 @@ int Skeleton::update_frame(float TEMP_T)
 		v_b = (anims[current_anim]) + (bone_count * 7 * dest_frame) + (i*7);
 		q_b = v_b + 3;
 
-		Vec3 v = Vec3::LERP(Vec3(v_a),Vec3(v_b),t);
+		//Vec3 v = Vec3::LERP(Vec3(v_a),Vec3(v_b),t);
 		//Vec3 v = Vec3(v_a);
 
 		Vec3 v1 = Vec3(v_a);
@@ -142,8 +142,9 @@ int Skeleton::update_frame(float TEMP_T)
 
 		Quat q;
 
-		q = Quat::SLERP(q1,q2,t);
-		q.normalize();
+		//q = Quat::SLERP(q1,q2,t);
+		//q = Quat::NLERP(q1,q2,t);
+		//q.normalize();
 
 		//if(q1 != q2)
 		//	LOGE("    Quat: (%f,%f,%f,%f)->(%f,%f,%f,%f) = (%f,%f,%f,%f) @ (%f)",q1.w,q1.v.x,q1.v.y,q1.v.z,q2.w,q2.v.x,q2.v.y,q2.v.z,q.w,q.v.x,q.v.y,q.v.z,t);
@@ -166,17 +167,21 @@ int Skeleton::update_frame(float TEMP_T)
 		//else
 		//	q = q1;
 
-		//q.normalize();
+		Mat4 bone_trans_1 = Mat4::ROT_TRANS(q1,v1);
+		Mat4 bone_trans_2 = Mat4::ROT_TRANS(q2,v2);
 
 		//LOGE("Quat: (%f,%f,%f,%f)->(%f,%f,%f,%f) = (%f,%f,%f,%f) @ (%f)",q1.w,q1.v.x,q1.v.y,q1.v.z,q2.w,q2.v.x,q2.v.y,q2.v.z,q.w,q.v.x,q.v.y,q.v.z,t);
 		//Quat q = Quat(q_a);
 
-		//TODO: calculate interpolated v and q for anim interpolation
-		bone_trans = Mat4::ROT_TRANS(q,v);
+		//bone_trans = Mat4::ROT_TRANS(q,v);
 		//Copying this Mat4 into the float array
 		for(int j = 0; j < 16; j++)
 		{
-			current_pose_mat4s[16*i + j] = bone_trans.m[j];
+			//current_pose_mat4s[16*i + j] = bone_trans.m[j];
+			//Testing just directly lerping the matrix entries
+			float a = bone_trans_1.m[j];
+			float b = bone_trans_2.m[j];
+			current_pose_mat4s[16*i + j] = a + t*(b-a);
 		}
 
 		q_a = (anims_IT[current_anim]) + (bone_count * 4 * current_frame) + (i*4);
