@@ -15,14 +15,14 @@ public:
 	//Have to store an array of all models that make up the player
 	Skel_Model* player_model;
 
-	int render(Mat4 vp, float TEMP_VAR)
+	int render(Mat4 vp)
 	{
 		if(!mat)
 			return 1;
 
 		//TODO: render all playermodels
 		mat->bind_material();
-		skel->update_frame(TEMP_VAR);
+		skel->update_frame();
 		player_model->render(get_world_transform(true),vp,mat);
 		return 1;
 	}

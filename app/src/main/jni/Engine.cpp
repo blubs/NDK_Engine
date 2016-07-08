@@ -871,22 +871,26 @@ void Engine::draw_frame ()
 
 	//if(state.x > 0.95f && player_skel->playing_anim)
 	//	player_skel->stop_anim();
-	if(state.x < 0.05f && player_skel->current_anim != 2)
-		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+
+	static bool played_anim = false;
+	if(state.x < 0.10f)
+	{
+		if( player_skel->current_anim != 2 && !played_anim)
+		{
+			played_anim = true;
+			player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+		}
+	}
+	else
+	{
+		played_anim = false;
+	}
 
 	float t = time();
 
 	//Make player spin
 	//player->angles.y = fmodf(t*2.0f,TWO_PI);
-	float temp = state.x;
-	if(temp < 0.1f)
-		temp = 0.0f;
-	else if(temp > 0.9f)
-		temp = 1.0f;
-	else
-		temp = (temp - 0.1f)/0.8f;
-
-	player->render(vp,temp);
+	player->render(vp);
 
 	//Making the test audio source rotate about the player
 	//float distance = 5.0f + 2.0f * cosf(t*12.75f);
@@ -897,13 +901,6 @@ void Engine::draw_frame ()
 	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
 	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
 
-	//Quaternion slerp test:
-	test_sound_source->use_quaternion = true;
-	Quat q1(PI*0.7218f,Vec3(0.7071,0.7071,0));
-	Quat q2(HALF_PI*0.75f, Vec3::FRONT());
-
-	Quat q3 = Quat::SLERP(q1,q2,temp);
-	test_sound_source->rot = q3;
 
 	//=========== Test Audio Playing every 0.5 seconds ==============
 	static float time_to_play_audio = 0.0f;

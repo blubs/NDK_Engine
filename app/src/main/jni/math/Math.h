@@ -547,6 +547,21 @@ struct Mat3
 		result.m[0] = result.m[4] = result.m[8] = 1.0f;
 		return result;
 	}
+
+	static Mat3 LERP(const Mat3 a, const Mat3 b, const float t)
+	{
+		Mat3 result;
+		result.m[0] =  a.m[0]  + t*(b.m[0]  - a.m[0]);
+		result.m[1] =  a.m[1]  + t*(b.m[1]  - a.m[1]);
+		result.m[2] =  a.m[2]  + t*(b.m[2]  - a.m[2]);
+		result.m[3] =  a.m[3]  + t*(b.m[3]  - a.m[3]);
+		result.m[4] =  a.m[4]  + t*(b.m[4]  - a.m[4]);
+		result.m[5] =  a.m[5]  + t*(b.m[5]  - a.m[5]);
+		result.m[6] =  a.m[6]  + t*(b.m[6]  - a.m[6]);
+		result.m[7] =  a.m[7]  + t*(b.m[7]  - a.m[7]);
+		result.m[8] =  a.m[8]  + t*(b.m[8]  - a.m[8]);
+		return result;
+	}
 };
 
 //This implementation is a column major-matrix (as OGL expects them)

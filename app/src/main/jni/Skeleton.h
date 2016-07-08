@@ -25,7 +25,7 @@ public:
 	const unsigned int* raw_data = NULL;
 
 	bool lerp_anim = true;
-	float frame_time = 1/60.0f;
+	float frame_time = 1/5.0f;
 
 	int set_fps(float fps);
 
@@ -71,7 +71,10 @@ public:
 	int stop_anim();
 
 	//Ran every frame to update animation frame logic (calculate interpolation data, increment frame, etc)
-	int update_frame(float TEMP_T);
+	int update_frame();
+
+	void calc_lerped_pose_mats();
+	void calc_pose_mats();
 
 	//Returns a pointer to the current frame matrices
 	float* get_current_pose();
