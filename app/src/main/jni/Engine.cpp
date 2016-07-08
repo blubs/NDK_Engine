@@ -871,8 +871,8 @@ void Engine::draw_frame ()
 
 	//if(state.x > 0.95f && player_skel->playing_anim)
 	//	player_skel->stop_anim();
-	if(state.x < 0.05f && !player_skel->playing_anim)
-		player_skel->play_anim(1,Skeleton::END_TYPE_LOOP);
+	if(state.x < 0.05f && player_skel->current_anim != 2)
+		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
 
 	float t = time();
 

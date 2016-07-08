@@ -25,7 +25,7 @@ public:
 	const unsigned int* raw_data = NULL;
 
 	bool lerp_anim = true;
-	float frame_time = 1/5.0f;
+	float frame_time = 1/60.0f;
 
 	int set_fps(float fps);
 

@@ -76,10 +76,11 @@ int Skeleton::update_frame(float TEMP_T)
 
 
 	//TEMP TEMP TEMP
+	// Tempoarary interpolation
 	//==========================================================================================================
 	//Going to test interpolating between frame 160 and frame 179 of showcase hands animation
 	//Repopulating our current frame matrices with the new correct bone matrices
-	Mat4 bone_trans;
+	/*Mat4 bone_trans;
 	Mat3 bone_IT_trans;
 	float* v_a;
 	float* q_a;
@@ -189,6 +190,10 @@ int Skeleton::update_frame(float TEMP_T)
 
 		//q = Quat::SLERP(Quat(q_a),Quat(q_b),0.0f);
 		q = Quat(q_a);
+
+		float delta = 0.01f;
+		if(!((q.w > q1.w - delta && q.w < q1.w + delta)&&(q.v.x > q1.v.x - delta && q.v.x < q1.v.x + delta)&&(q.v.y > q1.v.y - delta && q.v.y < q1.v.y + delta)&&(q.v.z > q1.v.z - delta && q.v.z < q1.v.z + delta)))
+			LOGE("Q:(%f,%f,%f,%f): IT:(%f,%f,%f,%f)\n",q1.w,q1.v.x,q1.v.y,q1.v.z,q.w,q.v.x,q.v.y,q.v.z);
 		bone_IT_trans = Mat3::ROTATE(q);
 		//TODO: print q from inverse-transpose and compare it to q from regular transform (might be trivial to calculate)
 			//This would allow us to avoid having it in the model file and just calculating the IT q here
@@ -199,17 +204,18 @@ int Skeleton::update_frame(float TEMP_T)
 			current_pose_mat3s[9*i + j] = bone_IT_trans.m[j];
 		}
 	}
-	return 1;
+	return 1;*/
 	//==========================================================================================================
 	//END TEMP TEMP TEMP
 
-	/*
+
 	float ctime = time();
 	//TODO: interpolate between frames
 	//TODO: interpolate between fading in and out animations
-	int next_frame = current_frame;
 	if(ctime > time_for_next_frame)
 	{
+		current_frame += 1;
+		dest_frame += 1;
 		time_for_next_frame = ctime + frame_time;
 		if(current_frame >= anim_lengths[current_anim])
 		{
@@ -241,17 +247,17 @@ int Skeleton::update_frame(float TEMP_T)
 					break;
 			}
 		}
-		next_frame = current_frame + 1;
-		dest_frame = next_frame;
+		//next_frame = current_frame + 1;
+		//dest_frame = next_frame + 1;
 		//Setting the frame to lerp to
-		if(next_frame >= anim_lengths[current_anim])
+		if(dest_frame >= anim_lengths[current_anim])
 		{
 			switch(current_anim_end_type)
 			{
 				case END_TYPE_ROOT_POSE:
 				default:
 				case END_TYPE_FREEZE:
-					dest_frame = current_frame;
+					dest_frame--;
 					break;
 				case END_TYPE_LOOP:
 					dest_frame = 0;
@@ -261,7 +267,7 @@ int Skeleton::update_frame(float TEMP_T)
 					//TODO / FIXME: this isn't lerped correctly
 					//We have to handle fading different anims before figuring this out
 					//Don't lerp for now. FIXME
-					dest_frame = current_frame;
+					dest_frame = current_frame;//FIXME should be first frame of next anim? or just current frame? (no lerp)
 					break;
 			}
 		}
@@ -303,8 +309,7 @@ int Skeleton::update_frame(float TEMP_T)
 			current_pose_mat3s[9*i + j] = bone_IT_trans.m[j];
 		}
 	}
-	current_frame = next_frame;
-	return 1;*/
+	return 1;
 }
 
 //Returns a pointer to the current frame matrix generation data

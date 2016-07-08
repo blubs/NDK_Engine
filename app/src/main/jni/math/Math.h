@@ -1023,6 +1023,28 @@ struct Mat4
 
 		return result;
 	}
+
+	static Mat4 LERP(const Mat4 a, const Mat4 b, const float t)
+	{
+		Mat4 result;
+		result.m[0] =  a.m[0]  + t*(b.m[0]  - a.m[0]);
+		result.m[1] =  a.m[1]  + t*(b.m[1]  - a.m[1]);
+		result.m[2] =  a.m[2]  + t*(b.m[2]  - a.m[2]);
+		result.m[3] =  a.m[3]  + t*(b.m[3]  - a.m[3]);
+		result.m[4] =  a.m[4]  + t*(b.m[4]  - a.m[4]);
+		result.m[5] =  a.m[5]  + t*(b.m[5]  - a.m[5]);
+		result.m[6] =  a.m[6]  + t*(b.m[6]  - a.m[6]);
+		result.m[7] =  a.m[7]  + t*(b.m[7]  - a.m[7]);
+		result.m[8] =  a.m[8]  + t*(b.m[8]  - a.m[8]);
+		result.m[9] =  a.m[9]  + t*(b.m[9]  - a.m[9]);
+		result.m[10] = a.m[10] + t*(b.m[10] - a.m[10]);
+		result.m[11] = a.m[11] + t*(b.m[11] - a.m[11]);
+		result.m[12] = a.m[12] + t*(b.m[12] - a.m[12]);
+		result.m[13] = a.m[13] + t*(b.m[13] - a.m[13]);
+		result.m[14] = a.m[14] + t*(b.m[14] - a.m[14]);
+		result.m[15] = a.m[15] + t*(b.m[15] - a.m[15]);
+		return result;
+	}
 	//Additional methods to perhaps implement (depending on if I ever find the need for them)
 	//Scalar multiplication / division of a matrix
 	//addition / subtraction of a matrices
