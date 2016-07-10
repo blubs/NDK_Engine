@@ -71,54 +71,37 @@ int Skeleton::stop_anim()
 //Calculate pose matrices somewhere between current_frame and dest_frame
 void Skeleton::calc_lerped_pose_mats()
 {
-	//Repopulating our current frame matrices with the new correct bone matrices
-	Mat4 bone_trans;
-	Mat4 bone_trans_a;
-	Mat4 bone_trans_b;
-	Mat3 bone_IT_trans;
-	Mat3 bone_IT_trans_a;
-	Mat3 bone_IT_trans_b;
-	float* v_a;
-	float* v_b;
-	float* q_a;
-	float* q_b;
-
-
 	//Getting lerping factor:
 	float ctime = time();
 	float t = 1.0f - (time_for_next_frame - ctime)/frame_time;
 	t = fmaxf(fminf(t,1.0f),0.0f);
 
+	//Repopulating our current frame matrices with the new correct bone matrices
+	Mat4 bone_trans;
+	Mat3 bone_IT_trans;
+	float* trans_a;
+	float* trans_b;
+	float* trans_IT_a;
+	float* trans_IT_b;
+
 	for(int i = 0; i < bone_count; i++)
 	{
-		//Calculate interpolated transformation Mat4
-		v_a = (anims[current_anim]) + (bone_count * 7 * current_frame) + (i*7);
-		q_a = v_a + 3;
+		//Calculate transformation Mat4
+		trans_a = (anims[current_anim]) + (bone_count * 16 * current_frame) + (i*16);
+		trans_b = (anims[current_anim]) + (bone_count * 16 * dest_frame) + (i*16);
 
-		v_b = (anims[current_anim]) + (bone_count * 7 * dest_frame) + (i*7);
-		q_b = v_b + 3;
-
-		bone_trans_a = Mat4::ROT_TRANS(Quat(q_a),Vec3(v_a));
-		bone_trans_b = Mat4::ROT_TRANS(Quat(q_b),Vec3(v_b));
-
-		bone_trans = Mat4::LERP(bone_trans_a,bone_trans_b,t);
-
+		bone_trans = Mat4::LERP(Mat4(trans_a),Mat4(trans_b),t);
 		//Copying transformation Mat4 into the float array
 		for(int j = 0; j < 16; j++)
 		{
 			current_pose_mat4s[16*i + j] = bone_trans.m[j];
 		}
 
+		//Calculate inverse-transpose Mat3
+		trans_IT_a = (anims_IT[current_anim]) + (bone_count * 9 * current_frame) + (i*9);
+		trans_IT_b = (anims_IT[current_anim]) + (bone_count * 9 * dest_frame) + (i*9);
 
-		//Calculate interpolated inverse-transpose Mat3
-		q_a = (anims_IT[current_anim]) + (bone_count * 4 * current_frame) + (i*4);
-		q_b = (anims_IT[current_anim]) + (bone_count * 4 * dest_frame) + (i*4);
-
-		bone_IT_trans_a = Mat3::ROTATE(Quat(q_a));
-		bone_IT_trans_b = Mat3::ROTATE(Quat(q_b));
-
-		bone_IT_trans = Mat3::LERP(bone_IT_trans_a,bone_IT_trans_b,t);
-
+		bone_IT_trans = Mat3::LERP(Mat3(trans_IT_a),Mat3(trans_IT_b),t);
 		//Copying inverse-transpose Mat3 into the float array
 		for(int j = 0; j < 9; j++)
 		{
@@ -133,16 +116,15 @@ void Skeleton::calc_pose_mats()
 	//Repopulating our current frame matrices with the new correct bone matrices
 	Mat4 bone_trans;
 	Mat3 bone_IT_trans;
-	float* v_a;
-	float* q_a;
+	float* trans;
+	float* trans_IT;
 
 	for(int i = 0; i < bone_count; i++)
 	{
 		//Calculate transformation Mat4
-		v_a = (anims[current_anim]) + (bone_count * 7 * current_frame) + (i*7);
-		q_a = v_a + 3;
-		bone_trans = Mat4::ROT_TRANS(Quat(q_a),Vec3(v_a));
 
+		trans = (anims[current_anim]) + (bone_count * 16 * current_frame) + (i*16);
+		bone_trans = Mat4(trans);
 		//Copying transformation Mat4 into the float array
 		for(int j = 0; j < 16; j++)
 		{
@@ -151,9 +133,8 @@ void Skeleton::calc_pose_mats()
 
 
 		//Calculate inverse-transpose Mat3
-		q_a = (anims_IT[current_anim]) + (bone_count * 4 * current_frame) + (i*4);
-
-		bone_IT_trans = Mat3::ROTATE(Quat(q_a));
+		trans_IT = (anims_IT[current_anim]) + (bone_count * 9 * current_frame) + (i*9);
+		bone_IT_trans = Mat3::ROTATE(trans_IT);
 
 		//Copying inverse-transpose Mat3 into the float array
 		for(int j = 0; j < 9; j++)
@@ -168,8 +149,6 @@ int Skeleton::update_frame()
 {
 	if(!playing_anim)
 		return 1;
-
-	set_fps(60.0f*TEMP_T+0.5f);
 
 	float ctime = time();
 	if(ctime > time_for_next_frame)
@@ -413,16 +392,16 @@ int Skeleton::load_animation(const char* filepath)
 	//Second int is the frame count
 	//List thereafter is a list of frames
 	//Each frame holds a list of data to build matrices per bone
-		//This data is 7 floats, first 3 are the translation vector, last 4 are the rotation quaternion
+		//This data is 16 floats for the 4x4 transform matrix
 	//List thereafter is a list of frames
 	//Each frame in this list holds the data needed to build inverse transpose 3x3 Matrix of the bone matrices
-		//This data is 4 floats that represent the rotation quaternion
+		//This data is 9 floats for the 3x3 matrix
 	//animation_bone_count = animation_raw_data[0];
 
 	//Assigning the new just-loaded stuff
 	all_anims_raw_data[cindex] = loaded_anim;
 	anim_lengths[cindex] = all_anims_raw_data[cindex][1];
 	anims[cindex] = (float*) all_anims_raw_data[cindex] + 2;
-	anims_IT[cindex] = (float*) all_anims_raw_data[cindex] + 2 + (7 * bone_count * anim_lengths[cindex]);
+	anims_IT[cindex] = (float*) all_anims_raw_data[cindex] + 2 + (16 * bone_count * anim_lengths[cindex]);
 	return 1;
 }

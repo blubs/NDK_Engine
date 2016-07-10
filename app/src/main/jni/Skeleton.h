@@ -45,11 +45,9 @@ public:
 	//Arrays of pointers or values for all animations
 	const unsigned int** all_anims_raw_data = NULL;
 	unsigned int* anim_lengths;
-	//Array of positions and quaternions representing all animation frame transformations
-	//Structure for each bone per frame is as follows: first 3 floats: translation, next 4 floats: rotation quaternion
+	//Array of transform 4x4 matrices representing all animation frame transformations
 	float** anims;
-	//Array of quaternion values representing all animation frames (this is the quat of the inverse-transpose of the bone transforms)
-	//Used for normal calculation
+	//Array of transform 3x3 rotation matrices representing all inverse-transpose of bone transform
 	float** anims_IT;
 
 	int anim_count = 0;
