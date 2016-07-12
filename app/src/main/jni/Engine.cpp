@@ -890,14 +890,17 @@ void Engine::draw_frame ()
 
 	//Make player spin
 	//player->angles.y = fmodf(t*2.0f,TWO_PI);
+	player->angles.x = ((0.5f - state.y) * TWO_PI);
+	player->angles.y = (0.5f - state.x) * TWO_PI;
+
 	player->render(vp);
 
 	//Making the test audio source rotate about the player
 	//float distance = 5.0f + 2.0f * cosf(t*12.75f);
 	float distance = 5.0f;
-	//test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
-	test_sound_source->pos = Vec3(0,distance,0);
-	//test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
+	test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
+	//test_sound_source->pos = Vec3(0,distance,0);
+	test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
 	//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
 	//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
 

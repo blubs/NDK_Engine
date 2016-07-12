@@ -213,7 +213,6 @@ int Skeleton::update_frame()
 
 	}
 
-	LOGE("cframe: %d, nframe: %d\n",current_frame,dest_frame);
 	if(current_frame != dest_frame)
 		calc_lerped_pose_mats();
 	else

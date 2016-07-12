@@ -35,7 +35,7 @@ Mat4 Entity::get_world_transform(bool modify_trans)
 	return world_transform;
 }
 
-virtual int Entity::render(Mat4 vp)
+int Entity::render(Mat4 vp)
 {
 	if(!model)
 		return 1;
