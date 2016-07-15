@@ -923,6 +923,9 @@ void Engine::draw_frame ()
 	//test_text->render(camera->ortho_proj_m);
 	//test_img->render(camera->ortho_proj_m);
 
+	//TODO: make this only execute at 30 times per second
+	player->update();
+
 	eglSwapBuffers(egl_display, egl_surface);
 }
 
