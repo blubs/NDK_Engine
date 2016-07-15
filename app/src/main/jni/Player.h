@@ -15,31 +15,11 @@ public:
 	//Have to store an array of all models that make up the player
 	Skel_Model* player_model;
 
-	int render(Mat4 vp)
-	{
-		if(!mat)
-			return 1;
-
-		//TODO: render all playermodels
-		mat->bind_material();
-		skel->update_frame();
-		player_model->render(get_world_transform(true),vp,mat);
-		return 1;
-	}
+	int render(Mat4 vp);
 
 	//Update method that is ran every frame
 	//Most of the actual game logic is contained here
-	int update()
-	{
-		//6 m/s * frame time
-		pos.y += 6.0f * 1/60.0f;
-
-		if(pos.y >= 40)
-		{
-			pos.y = -40;
-		}
-		return 1;
-	}
+	int update();
 };
 
 #endif //ENGINE_PLAYER_H
