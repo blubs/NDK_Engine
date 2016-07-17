@@ -100,27 +100,7 @@ public:
 	Skeleton* parent_skel = NULL;
 	int parent_bone_index = 0;
 
-	Mat4 get_world_transform(bool modify_trans)
-	{
-		if(!parent_skel)
-		{
-			LOGE("Error: Entity_Bone_Joint skeletal parent not set.\n");
-			return Mat4::IDENTITY();
-		}
-		if(transform_calculated && modify_trans)
-		{
-			return world_transform;
-		}
-
-		transform = parent_skel->get_bone_transform(parent_bone_index) * parent_skel->get_bone_rest_transform(parent_bone_index);
-
-		if(modify_trans)
-			transform_calculated = true;
-		//Bone transforms seem to introduce a roll of 90 degrees, so undoing it
-		Quat fix_roll(HALF_PI, Vec3::FRONT());
-
-		return parent_skel->get_world_transform(modify_trans) * transform * Mat4::ROTATE(fix_roll);
-	}
+	Mat4 get_world_transform(bool modify_trans);
 };
 
 

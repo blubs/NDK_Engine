@@ -23,9 +23,9 @@ int Player::update()
 	//6 m/s * frame time
 	pos.y += 6.0f * 1/60.0f;
 
-	if(pos.y >= 40)
+	if(pos.y >= 20)
 	{
-		pos.y = -40;
+		pos.y = -20;
 	}
 	return 1;
 }
