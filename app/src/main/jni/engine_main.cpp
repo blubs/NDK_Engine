@@ -22,6 +22,31 @@ void android_main(struct android_app *app)
 	LOGI("LIFECYCLE: ANDROID_MAIN RAN\n");
 #endif
 
+	//============ Attempting to call java methods from cpp =============
+	// First have to set up environment variables and make sure we can retrieve them
+
+	jvalue java_args[2];
+	java_args[0].i = 2;
+	java_args[1].i = 3;
+
+	JNIEnv* env = app->activity->env;
+
+	//Checking to make sure we have an env variable
+	LOGE("app: %p, activity: %p, env: %p\n",app,app->activity,app->activity->env);
+
+	//jclass java_cls = env->FindClass("CLASS PROJECT NAME GOES HERE");
+	//jclass global_java_cls_ref = (jclass) env->NewGlobalRef(java_cls);
+
+	//jmethodID java_method = env->GetMethodID(global_java_cls_ref,"test","(II)Z");
+	//TODO: somehow get java object instance reference
+	//jboolean result = env->CallBooleanMethodA(object,java_method,java_args);
+
+	//todo: call later to free global reference:
+	//env->FreeGlobalRef(global_java_cls_ref);
+
+
+	//======================= end java test =============================
+
 	//Reads saved data and writes saved data
 /*	const char* data = File_Utils::read_savedata("test.dat");
 	LOGI("Read file: %s.\n",data);
