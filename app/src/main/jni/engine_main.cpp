@@ -1,6 +1,20 @@
 #include "engine_main.h"
 
+#include "jni.h"
 
+
+//these methods aren't being called, is the java vm even being started?
+//=======================================================================
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
+{
+	LOGE("JNI OnLoad called");
+	return 1;
+}
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved)
+{
+	LOGE("JNI OnUnload called");
+}
+//=======================================================================
 void android_main(struct android_app *app)
 {
 	//Making sure glue is not stripped
@@ -24,6 +38,7 @@ void android_main(struct android_app *app)
 
 	//============ Attempting to call java methods from cpp =============
 	// First have to set up environment variables and make sure we can retrieve them
+	LOGE("Starting Android Java Code");
 
 	jvalue java_args[2];
 	java_args[0].i = 2;
@@ -31,10 +46,31 @@ void android_main(struct android_app *app)
 
 	JNIEnv* env = app->activity->env;
 
-	//Checking to make sure we have an env variable
-	LOGE("app: %p, activity: %p, env: %p\n",app,app->activity,app->activity->env);
 
-	//jclass java_cls = env->FindClass("CLASS PROJECT NAME GOES HERE");
+	//Checking to make sure we have an env variable
+	//LOGE("app: %p, activity: %p, env: %p\n",app,app->activity,app->activity->env);
+	//env pointer is not null
+
+	jclass java_cls;
+
+	JavaVM* vm;
+	//LOGE("vm before: %p",vm);
+	//env->GetJavaVM(&vm);
+	vm = app->activity->vm;
+
+	JNIEnv* env_2;
+
+	vm->GetEnv((void**)&env_2,JNI_VERSION_1_6);
+
+	LOGE("Env from activity: %p, Env from VM: %p",env,env_2);
+
+	//JNI_CreateJavaVM();
+
+
+	//LOGE("vm after: %p",vm);
+	LOGE("log class before: %d\n",(int)java_cls);
+	//java_cls = env->FindClass("CLASS PROJECT NAME GOES HERE");
+	LOGE("log class after: %d\n",(int)java_cls);
 	//jclass global_java_cls_ref = (jclass) env->NewGlobalRef(java_cls);
 
 	//jmethodID java_method = env->GetMethodID(global_java_cls_ref,"test","(II)Z");
@@ -45,6 +81,7 @@ void android_main(struct android_app *app)
 	//env->FreeGlobalRef(global_java_cls_ref);
 
 
+	LOGE("Android Java Code done");
 	//======================= end java test =============================
 
 	//Reads saved data and writes saved data

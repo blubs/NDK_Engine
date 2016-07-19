@@ -37,9 +37,9 @@ public:
 	void update_view_matrix();
 
 
-	static int VIEWBOB_NONE = 0;
-	static int VIEWBOB_RUNNING = 1;
-	static int VIEWBOB_SLIDING = 2;
+	static const int VIEWBOB_NONE = 0;
+	static const int VIEWBOB_RUNNING = 1;
+	static const int VIEWBOB_SLIDING = 2;
 	void set_viewbob(int type);
 	void viewbob_run_footstep(float strength);
 	//TOOD: what do I need to be able to evaluate the camera viewbob in terms of timing?
