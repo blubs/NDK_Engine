@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "247277650527",
+    "firebase_url": "https://ndk-engine.firebaseio.com",
+    "project_id": "ndk-engine",
+    "storage_bucket": "ndk-engine.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247277650527:android:e7558313565b06e1",
+        "android_client_info": {
+          "package_name": "engine.games.luisg.engine"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "247277650527-pqj2j1nn3i1e67qcvrorf7pq1lrt9r5c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBAYe42FZn8fX0GtLs3EUnkCQaZMdmpNs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
