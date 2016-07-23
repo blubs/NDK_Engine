@@ -1,10 +1,14 @@
 package engine.games.luisg.engine;
 
+import android.app.Activity;
 import android.app.NativeActivity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 //import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.AdRequest;
@@ -24,7 +28,12 @@ public class Launcher extends NativeActivity
 		loge("JNI: on create started");
 		super.onCreate(savedInstanceState);
 
-		LinearLayout layout = new LinearLayout(this);
+		Context context = this.getApplication().getApplicationContext();
+
+		Intent openAdActivity = new Intent(this,AdActivity.class);
+		startActivity(openAdActivity);
+
+		/*LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.VERTICAL);
 
 		//Supposedly this should work, however the packages to use these libraries aren't recognized
@@ -39,16 +48,18 @@ public class Launcher extends NativeActivity
 		view.loadAd(adRequestBuilder.build());
 		//view.setVisibility(View.VISIBLE);
 
-		setContentView(layout);
+		setContentView(layout);*/
 		loge("JNI: on create finished");
 	}
 
 	public void loge(String msg)
 	{
+
 		Log.println(Log.ERROR,"jni",msg);
 	}
 	public void logi(String msg)
 	{
+
 		Log.println(Log.INFO,"jni",msg);
 	}
 

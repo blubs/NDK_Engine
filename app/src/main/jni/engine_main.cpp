@@ -35,11 +35,9 @@ void android_main(struct android_app *app)
 	JavaVM* vm = activity->vm;
 	JNIEnv* jni;
 
-	//(*vm).AttachCurrentThread(activity->vm,&jni,NULL);
 	(*vm).AttachCurrentThread(&jni,NULL);
 	env = jni;
 
-	//jclass activityClass = jni->GetObjectClass(jni,activity->clazz);
 	jclass activityClass = jni->GetObjectClass(activity->clazz);
 
 	if(!activityClass)
