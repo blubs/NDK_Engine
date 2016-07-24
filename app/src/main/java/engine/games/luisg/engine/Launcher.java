@@ -36,7 +36,6 @@ public class Launcher extends NativeActivity
 		/*LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.VERTICAL);
 
-		//Supposedly this should work, however the packages to use these libraries aren't recognized
 		AdView view = new AdView(this);
 		view.setAdUnitId("ca-app-pub-3940256099942544~3347511713");
 		view.setAdSize(AdSize.SMART_BANNER);
