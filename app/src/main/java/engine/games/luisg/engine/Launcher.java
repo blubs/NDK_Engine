@@ -33,21 +33,6 @@ public class Launcher extends NativeActivity
 		Intent openAdActivity = new Intent(this,AdActivity.class);
 		startActivity(openAdActivity);
 
-		/*LinearLayout layout = new LinearLayout(this);
-		layout.setOrientation(LinearLayout.VERTICAL);
-
-		AdView view = new AdView(this);
-		view.setAdUnitId("ca-app-pub-3940256099942544~3347511713");
-		view.setAdSize(AdSize.SMART_BANNER);
-
-		AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
-		adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
-
-		layout.addView(view);
-		view.loadAd(adRequestBuilder.build());
-		//view.setVisibility(View.VISIBLE);
-
-		setContentView(layout);*/
 		loge("JNI: on create finished");
 	}
 

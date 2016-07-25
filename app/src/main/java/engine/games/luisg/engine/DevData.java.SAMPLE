@@ -1,0 +1,12 @@
+package engine.games.luisg.engine;
+/**
+ * Created by blubs on 7/24/2016.
+ */
+ //This is a sample file showcasing what the file DevData.java should look like
+public class DevData
+{
+	//Include any other sensitive application-specific data for the Java portion of the app here
+	//The following adUnitId is merely a test one
+		//Put your actual adUnitId here
+	static String adUnitId = "ca-app-pub-3940256099942544/6300978111";
+}
