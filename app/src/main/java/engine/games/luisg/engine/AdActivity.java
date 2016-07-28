@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.widget.LinearLayout;
 
 import android.view.View;
@@ -28,6 +29,19 @@ public class AdActivity extends Activity
 		LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.VERTICAL);
 
+		LinearLayout.LayoutParams layout_params = new LinearLayout.LayoutParams(
+			   LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
+
+		layout.setLayoutParams(layout_params);
+
+
+		LinearLayout.LayoutParams ad_params = new LinearLayout.LayoutParams(
+			LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
+		layout_params.gravity = Gravity.BOTTOM;
+
+
+		//layout.setLayoutParams(ad_params);
+		//layout.setGravity(Gravity.BOTTOM);
 
 		AdView view = new AdView(this);
 
@@ -49,7 +63,12 @@ public class AdActivity extends Activity
 		adRequestBuilder.addTestDevice("BANANANAANANANANANANNANANANANANA");
 
 		layout.addView(view);
+
+		((LinearLayout.LayoutParams)view.getLayoutParams()).gravity = Gravity.BOTTOM;
 		view.loadAd(adRequestBuilder.build());
+		//view.setLayoutParams(layout_params);
+
+		//((GridLayout.LayoutParams)button.getLayoutParams()).setGravity(int)
 		//view.setVisibility(View.VISIBLE);
 
 		setContentView(layout);
