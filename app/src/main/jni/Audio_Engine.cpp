@@ -2,9 +2,9 @@
 // Created by F1 on 6/18/2016.
 //
 
-#include "Audio_Engine.h"
+#include "Audio_Engine.hpp"
 
-#include "misc.h"
+#include "misc.hpp"
 
 Audio_Engine* Audio_Engine::instance = NULL;
 

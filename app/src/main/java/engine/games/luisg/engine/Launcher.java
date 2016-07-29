@@ -1,19 +1,11 @@
 package engine.games.luisg.engine;
 
-import android.app.Activity;
 import android.app.NativeActivity;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-//import com.google.android.gms.ads.*;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.AdSize;
 //import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 /**
@@ -22,23 +14,29 @@ import com.google.android.gms.ads.AdSize;
 
 public class Launcher extends NativeActivity
 {
+	public static Launcher singletonInstance;
+
+	public AdActivity adActivity;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
-		loge("JNI: on create started");
 		super.onCreate(savedInstanceState);
 
-		Context context = this.getApplication().getApplicationContext();
+		Log.println(Log.INFO, "tag", "about to set instance for launcher");
+		singletonInstance = this;
+		Log.println(Log.INFO,"tag","set instance for launcher");
+
+//		Context context = this.getApplication().getApplicationContext();
 
 		Intent openAdActivity = new Intent(this,AdActivity.class);
 		startActivity(openAdActivity);
 
-		loge("JNI: on create finished");
+		Log.println(Log.INFO, "tag", "code after startActivity was called");
 	}
 
 	public void loge(String msg)
 	{
-
 		Log.println(Log.ERROR,"jni",msg);
 	}
 	public void logi(String msg)

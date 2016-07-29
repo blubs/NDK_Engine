@@ -2,7 +2,7 @@
 // Created by F1 on 5/16/2016.
 //
 
-#include "Material.h"
+#include "Material.hpp"
 
 
 //Should only be called at startup, to clear out our fields.

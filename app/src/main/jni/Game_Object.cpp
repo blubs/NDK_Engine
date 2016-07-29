@@ -2,9 +2,9 @@
 // Created by F1 on 6/3/2016.
 //
 
-#include "Game_Object.h"
+#include "Game_Object.hpp"
 //Placing include here to avoid circular dependency
-#include "Audio_Engine.h"
+#include "Audio_Engine.hpp"
 
 Game_Object::Game_Object()
 {

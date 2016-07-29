@@ -6,12 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 //import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -21,56 +24,69 @@ import com.google.android.gms.ads.AdSize;
  */
 public class AdActivity extends Activity
 {
+	public static AdActivity singletonInstance;
+
+	public Launcher launcher;
+	AdView adView;
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 
-		LinearLayout layout = new LinearLayout(this);
-		layout.setOrientation(LinearLayout.VERTICAL);
+		singletonInstance = this;
 
-		LinearLayout.LayoutParams layout_params = new LinearLayout.LayoutParams(
-			   LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.MATCH_PARENT);
-
-		layout.setLayoutParams(layout_params);
-
-
-		LinearLayout.LayoutParams ad_params = new LinearLayout.LayoutParams(
-			LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT);
-		layout_params.gravity = Gravity.BOTTOM;
+		//Because we know the Launcher activity starts first, the instance is set
+		launcher = Launcher.singletonInstance;
+		//Passing a reference to this instance to it as well
+		launcher.adActivity = this;
 
 
-		//layout.setLayoutParams(ad_params);
-		//layout.setGravity(Gravity.BOTTOM);
+		RelativeLayout layout = new RelativeLayout(this);
 
-		AdView view = new AdView(this);
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
 
-		//The following line does nothing
-		//It appears as though the layout width is already filling the parent
-		//layout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
-		//Only covers the area immediately behind the ad, not useful at all
+		adView = new AdView(this);
+
+		//Only covers the area immediately behind the ad, not entirely useful
 		//view.setBackgroundColor(Color.GRAY);
 
+
+		layout.addView(adView, params);
+
 		//This is for a test ad
-		view.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
-		view.setAdSize(AdSize.BANNER);
+		adView.setAdSize(AdSize.BANNER);
+		adView.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
 		//This is for using my actual ad unit id
 		//view.setAdUnitId(DevData.adUnitId);
-
-		AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
 		//adRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
-		adRequestBuilder.addTestDevice("BANANANAANANANANANANNANANANANANA");
+		//Supposedly for test ads
+		//adRequestBuilder.addTestDevice("BANANANAANANANANANANNANANANANANA");
+		//Log recommends using this to get test ads
 
-		layout.addView(view);
+		//Deferring the following code due to delayed startup
+		final Handler handler = new Handler();
+		handler.postDelayed(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Log.println(Log.INFO, "jni", "============= Initiating Ad Startup ==============");
+				AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
+				adRequestBuilder.addTestDevice("3218CD7402F3F338F79121C840AC0D98");
+				adView.loadAd(adRequestBuilder.build());
+				adView.bringToFront();
+				Log.println(Log.INFO, "jni", "============= Finished Ad Startup ==============");
+			}
+		}, 5000);
 
-		((LinearLayout.LayoutParams)view.getLayoutParams()).gravity = Gravity.BOTTOM;
-		view.loadAd(adRequestBuilder.build());
-		//view.setLayoutParams(layout_params);
+		launcher.loge("TEST FROM ADACTIVITY HAHAHAHA");
 
+/*
 		//((GridLayout.LayoutParams)button.getLayoutParams()).setGravity(int)
 		//view.setVisibility(View.VISIBLE);
-
+*/
 		setContentView(layout);
 	}
 }

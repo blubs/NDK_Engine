@@ -5,7 +5,7 @@
 #ifndef ENGINE_MATH_H
 #define ENGINE_MATH_H
 
-#include "../common.h"
+#include "common.hpp"
 
 #define PI 3.14159265359f
 #define HALF_PI 1.57079632679f

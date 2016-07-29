@@ -2,8 +2,8 @@
 // Created by F1 on 5/16/2016.
 //
 
-#include "Shader.h"
-#include "File_Utils.h"
+#include "Shader.hpp"
+#include "File_Utils.hpp"
 
 //Loads the raw shader source
 int Shader::load(const char* vshader_name, const char* fshader_name)

@@ -2,7 +2,7 @@
 // Created by F1 on 4/29/2016.
 //
 
-#include "Camera.h"
+#include "Camera.hpp"
 
 //Update the view attributes
 void Camera::set_persp_view(float field_of_view, int width, int height, float near_clipping_plane, float far_clipping_plane)

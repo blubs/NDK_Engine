@@ -2,7 +2,7 @@
 // Created by F1 on 5/5/2016.
 //
 
-#include "Static_Model.h"
+#include "Static_Model.hpp"
 int Static_Model::render(Mat4 m,Mat4 vp,Material* mat)
 {
 	if(!mat)

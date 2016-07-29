@@ -11,7 +11,7 @@ struct Asset_File
 	int len;
 };
 
-#include "common.h"
+#include "common.hpp"
 
 #define SAVE_FILE_PATH "data/data/engine.games.luisg.engine/files/"
 

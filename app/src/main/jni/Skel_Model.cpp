@@ -2,7 +2,7 @@
 // Created by F1 on 5/29/2016.
 //
 
-#include "Skel_Model.h"
+#include "Skel_Model.hpp"
 
 int Skel_Model::render(Mat4 m,Mat4 vp, Material* mat)
 {

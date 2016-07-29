@@ -5,10 +5,10 @@
 #ifndef ENGINE_AUDIO_ENGINE_H
 #define ENGINE_AUDIO_ENGINE_H
 
-#include "SL_Utils.h"
-#include "common.h"
-#include "Sound_Source.h"
-#include "Camera.h"
+#include "SL_Utils.hpp"
+#include "common.hpp"
+#include "Sound_Source.hpp"
+#include "Camera.hpp"
 
 class Audio_Engine
 {

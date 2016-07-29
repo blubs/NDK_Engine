@@ -5,8 +5,8 @@
 #ifndef ENGINE_SOUND_SOURCE_H
 #define ENGINE_SOUND_SOURCE_H
 
-#include "Game_Object.h"
-#include "Sound_Sample.h"
+#include "Game_Object.hpp"
+#include "Sound_Sample.hpp"
 
 //class Sound_Source : public Entity
 class Sound_Source : public Entity

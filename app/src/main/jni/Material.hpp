@@ -1,8 +1,8 @@
 //
 // Created by F1 on 5/16/2016.
 //
-#include "common.h"
-#include "Shader.h"
+#include "common.hpp"
+#include "Shader.hpp"
 
 #ifndef ENGINE_MATERIAL_H
 #define ENGINE_MATERIAL_H

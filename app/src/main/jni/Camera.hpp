@@ -5,8 +5,8 @@
 #ifndef ENGINE_CAMERA_H
 #define ENGINE_CAMERA_H
 
-#include "common.h"
-#include "Game_Object.h"
+#include "common.hpp"
+#include "Game_Object.hpp"
 
 class Camera : public Entity
 {

@@ -5,7 +5,7 @@
 #ifndef ENGINE_MISC_H
 #define ENGINE_MISC_H
 
-#include "common.h"
+#include "common.hpp"
 
 //Sets start_time as current time for later usage as a reference point by time()
 void set_start_time();

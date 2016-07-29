@@ -5,8 +5,8 @@
 #ifndef ENGINE_ENTITY_H
 #define ENGINE_ENTITY_H
 
-#include "math/math.h"
-#include "Static_Model.h"
+#include "math/math.hpp"
+#include "Static_Model.hpp"
 
 //Forward declaration
 class Sound_Sample;

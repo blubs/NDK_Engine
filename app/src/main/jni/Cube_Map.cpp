@@ -2,7 +2,7 @@
 // Created by F1 on 6/30/2016.
 //
 
-#include "Cube_Map.h"
+#include "Cube_Map.hpp"
 
 int Cube_Map::load_single_image(const char* filepath, const char** data, int* len)
 {

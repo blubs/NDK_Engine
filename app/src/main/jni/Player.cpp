@@ -2,7 +2,7 @@
 // Created by F1 on 4/29/2016.
 //
 
-#include "Player.h"
+#include "Player.hpp"
 
 int Player::render(Mat4 vp)
 {

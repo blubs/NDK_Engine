@@ -5,9 +5,9 @@
 #ifndef ENGINE_UI_H
 #define ENGINE_UI_H
 
-#include "math/math.h"
-#include "Material.h"
-#include "Texture.h"
+#include "math/math.hpp"
+#include "Material.hpp"
+#include "Texture.hpp"
 
 class UI_Text
 {

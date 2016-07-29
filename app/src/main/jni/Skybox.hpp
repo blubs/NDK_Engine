@@ -5,9 +5,9 @@
 #ifndef ENGINE_SKYBOX_H
 #define ENGINE_SKYBOX_H
 
-#include "Cube_Map.h"
-#include "Shader.h"
-#include "math/math.h"
+#include "Cube_Map.hpp"
+#include "Shader.hpp"
+#include "math.hpp"
 
 class Skybox
 {

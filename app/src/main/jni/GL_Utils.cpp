@@ -2,7 +2,7 @@
 // Created by F1 on 3/28/2016.
 //
 
-#include "GL_Utils.h"
+#include "GL_Utils.hpp"
 
 GLuint GL_Utils::load_shader(const char* shader_src, const char* shader_path, GLenum type)
 {

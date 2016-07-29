@@ -5,9 +5,9 @@
 #ifndef ENGINE_SOUND_SAMPLE_H
 #define ENGINE_SOUND_SAMPLE_H
 
-#include "common.h"
-#include "File_Utils.h"
-#include "SL_Utils.h"
+#include "common.hpp"
+#include "File_Utils.hpp"
+#include "SL_Utils.hpp"
 
 class Sound_Sample
 {

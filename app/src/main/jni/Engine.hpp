@@ -5,22 +5,22 @@
 #ifndef ENGINE_ENGINE_H
 #define ENGINE_ENGINE_H
 
-#include "common.h"
-#include "misc.h"
-#include "Audio_Engine.h"
-#include "File_Utils.h"
-#include "GL_Utils.h"
-#include "Camera.h"
-#include "Player.h"
-#include "Shader.h"
-#include "Material.h"
-#include "Skel_Model.h"
-#include "Skeleton.h"
-#include "Texture.h"
-#include "UI.h"
-#include "Static_Model.h"
-#include "Cube_Map.h"
-#include "Skybox.h"
+#include "common.hpp"
+#include "misc.hpp"
+#include "Audio_Engine.hpp"
+#include "File_Utils.hpp"
+#include "GL_Utils.hpp"
+#include "Camera.hpp"
+#include "Player.hpp"
+#include "Shader.hpp"
+#include "Material.hpp"
+#include "Skel_Model.hpp"
+#include "Skeleton.hpp"
+#include "Texture.hpp"
+#include "UI.hpp"
+#include "Static_Model.hpp"
+#include "Cube_Map.hpp"
+#include "Skybox.hpp"
 
 
 // Saved State Data
