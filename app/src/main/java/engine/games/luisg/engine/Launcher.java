@@ -25,14 +25,14 @@ public class Launcher extends NativeActivity
 
 		Log.println(Log.INFO, "tag", "about to set instance for launcher");
 		singletonInstance = this;
-		Log.println(Log.INFO,"tag","set instance for launcher");
 
 //		Context context = this.getApplication().getApplicationContext();
 
-		Intent openAdActivity = new Intent(this,AdActivity.class);
-		startActivity(openAdActivity);
+                //TODO: try to create a fragment here, see if I can overlay a fragment above the ndk opengl window
+                //if not, I may have to send input from ad activity to main activity and test reliability
+		//Intent openAdActivity = new Intent(this,AdActivity.class);
+		//startActivity(openAdActivity);
 
-		Log.println(Log.INFO, "tag", "code after startActivity was called");
 	}
 
 	public void loge(String msg)
