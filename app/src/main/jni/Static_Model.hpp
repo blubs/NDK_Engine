@@ -8,7 +8,7 @@
 #include "common.hpp"
 #include "Material.hpp"
 #include "File_Utils.hpp"
-#include "math.hpp"
+#include "math/math.hpp"
 class Static_Model
 {
 public:

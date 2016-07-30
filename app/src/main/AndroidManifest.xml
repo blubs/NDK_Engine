@@ -34,12 +34,6 @@
 
         <!-- Ad Overlay Activity -->
 
-        <activity   android:name="AdActivity"
-                    android:label="AdActivity"
-                    android:theme="@style/Theme.Transparent"
-                    android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize">
-        </activity>
-
 
     </application>
 

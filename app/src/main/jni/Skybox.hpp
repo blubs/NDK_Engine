@@ -7,7 +7,7 @@
 
 #include "Cube_Map.hpp"
 #include "Shader.hpp"
-#include "math.hpp"
+#include "math/math.hpp"
 
 class Skybox
 {
