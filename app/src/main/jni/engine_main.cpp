@@ -2,8 +2,6 @@
 
 #include "jni.h"
 
-//FIXME remove this
-JNIEnv* env = NULL;
 
 void android_main(struct android_app *app)
 {
@@ -28,50 +26,15 @@ void android_main(struct android_app *app)
 
 	//============ Attempting to call java methods from cpp =============
 	// First have to set up environment variables and make sure we can retrieve them
-	LOGE("Starting Android Java Code");
+	JNI_Interface* jnii = new JNI_Interface(app->activity);
 
-	ANativeActivity* activity = app->activity;
+	jnii->test_function();
 
-	JavaVM* vm = activity->vm;
-	JNIEnv* jni;
-
-	(*vm).AttachCurrentThread(&jni,NULL);
-	env = jni;
-
-	jclass activityClass = jni->GetObjectClass(activity->clazz);
-
-	if(!activityClass)
-	{
-		LOGE("Failed to get native activity class");
-	}
-	else
-		LOGE("Found native activity class");
-
-	jmethodID method = jni->GetMethodID(activityClass,"test","(II)Z");
-
-	jobject instance = activity->clazz;
-
-
-	jvalue java_args[2];
-	java_args[0].i = 2;
-	java_args[1].i = 3;
-
-	jboolean result = env->CallBooleanMethodA(instance,method,java_args);
-	LOGE("2 == 3? %d",result);
-
-	java_args[0].i = 49;
-	java_args[1].i = 49;
-
-	result = env->CallBooleanMethodA(instance,method,java_args);
-	LOGE("49 == 49? %d",result);
-
-
-
+	delete jnii;
 
 	//================
 
 	//JNIEnv* env = app->activity->env;
-
 
 	//Checking to make sure we have an env variable
 	//LOGE("app: %p, activity: %p, env: %p\n",app,app->activity,app->activity->env);

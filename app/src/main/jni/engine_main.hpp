@@ -12,6 +12,7 @@
 #include "GL_Utils.hpp"
 #include "Camera.hpp"
 #include "Player.hpp"
+#include "JNI_Interface.hpp"
 
 
 
