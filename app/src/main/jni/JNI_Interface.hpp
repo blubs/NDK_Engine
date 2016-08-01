@@ -14,12 +14,15 @@ public:
 	ANativeActivity* activity;
 	JavaVM* java_vm;
 
-	//FIXME: not sure if we can safely store global references to all of this java data
+	//The following variables are set as global references
 	jclass activity_class;
 	jobject activity_instance;
 
-	//Method references
+	//Method references (these do not need to be stored as global references)
 	jmethodID test_method;
+
+	jmethodID show_ad_method;
+	jmethodID hide_ad_method;
 
 	JNI_Interface(ANativeActivity* act)
 	{
@@ -30,22 +33,24 @@ public:
 
 		bool attached_jni_thread = get_jni_env(&jni);
 
-		activity_class = jni->GetObjectClass(activity->clazz);
+		jclass local_activity_class = jni->GetObjectClass(activity->clazz);
+		activity_class = (jclass) jni->NewGlobalRef(local_activity_class);
 
 		if(!activity_class)
 		{
-			LOGE("Failed to get native activity class");
+			LOGE("Error: Failed to get native activity class");
 		}
 		else
-			LOGE("Found native activity class");
+			LOGI("Found native activity class");
 
 
 		test_method = jni->GetMethodID(activity_class,"test","(II)Z");
 
-		activity_instance = activity->clazz;
-		//FIXME: should we use the following?
-		//	if so, uncomment the code to delet ethe global ref in the destructor
-		//activity_instance = jni->NewGlobalRef(activity->clazz);
+		show_ad_method = jni->GetMethodID(activity_class,"showAd","()V");
+		hide_ad_method = jni->GetMethodID(activity_class,"hideAd","()V");
+
+		jobject local_activity_instance = activity->clazz;
+		activity_instance = jni->NewGlobalRef(local_activity_instance);
 
 		if(attached_jni_thread)
 		{
@@ -55,8 +60,17 @@ public:
 
 	~JNI_Interface()
 	{
-		//Uncomment if we decide to use global refs
-		//jni->DeleteGlobalRef(activity_instance);
+		JNIEnv* jni;
+
+		bool attached_jni_thread = get_jni_env(&jni);
+
+		jni->DeleteGlobalRef(activity_instance);
+		jni->DeleteGlobalRef(activity_class);
+
+		if(attached_jni_thread)
+		{
+			detach_thread();
+		}
 	}
 
 	bool get_jni_env(JNIEnv** env)
@@ -79,6 +93,32 @@ public:
 		java_vm->DetachCurrentThread();
 	}
 
+	//Shows ads
+	void show_ad()
+	{
+		JNIEnv* jni;
+
+		bool attached_jni_thread = get_jni_env(&jni);
+		jni->CallVoidMethod(activity_instance,show_ad_method);
+		if(attached_jni_thread)
+		{
+			detach_thread();
+		}
+	}
+	//Hides ads
+	void hide_ad()
+	{
+		JNIEnv* jni;
+
+		bool attached_jni_thread = get_jni_env(&jni);
+		jni->CallVoidMethod(activity_instance,hide_ad_method);
+		if(attached_jni_thread)
+		{
+			detach_thread();
+		}
+	}
+
+	//Method which calls the test java method
 	void test_function()
 	{
 		JNIEnv* jni;

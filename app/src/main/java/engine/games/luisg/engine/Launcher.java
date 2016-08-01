@@ -65,44 +65,6 @@ public class Launcher extends NativeActivity
 				setupAdView();
 			}
 		}, 3000);
-
-
-		final Handler handler2 = new Handler();
-		handler2.postDelayed(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Log.println(Log.INFO, "jni", "============= show ad ==============");
-				showAd();
-				Log.println(Log.INFO, "jni", "============= show ad finished ================");
-			}
-		}, 6000);
-
-		final Handler handler3 = new Handler();
-		handler3.postDelayed(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Log.println(Log.INFO, "jni", "============= hide ad ==============");
-				hideAd();
-				Log.println(Log.INFO, "jni", "============= hide ad finished ================");
-			}
-		}, 9000);
-
-		final Handler handler4 = new Handler();
-		handler4.postDelayed(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				Log.println(Log.INFO, "jni", "============= show ad 2 ==============");
-				showAd();
-				Log.println(Log.INFO, "jni", "============= show ad 2 finished ================");
-			}
-		}, 12000);
-
 	}
 
 	public void setupAdView()
@@ -157,17 +119,35 @@ public class Launcher extends NativeActivity
 
 	public void showAd()
 	{
-		if(!adsInitialized)
-			return;
-		popup.showAtLocation(mainLayout, Gravity.BOTTOM, 0, 0);
-		popup.update();
+		singletonInstance.runOnUiThread(
+			new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					if(!adsInitialized)
+						return;
+					popup.showAtLocation(mainLayout, Gravity.BOTTOM, 0, 0);
+					popup.update();
+				}
+			}
+		);
 	}
 
 	public void hideAd()
 	{
-		if(!adsInitialized)
-			return;
-		popup.dismiss();
+		singletonInstance.runOnUiThread(
+			new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					if(!adsInitialized)
+						return;
+					popup.dismiss();
+				}
+			}
+		);
 	}
 	public void loge(String msg)
 	{
@@ -175,7 +155,6 @@ public class Launcher extends NativeActivity
 	}
 	public void logi(String msg)
 	{
-
 		Log.println(Log.INFO,"jni",msg);
 	}
 

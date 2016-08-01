@@ -24,54 +24,6 @@ void android_main(struct android_app *app)
 	LOGI("LIFECYCLE: ANDROID_MAIN RAN\n");
 #endif
 
-	//============ Attempting to call java methods from cpp =============
-	// First have to set up environment variables and make sure we can retrieve them
-	JNI_Interface* jnii = new JNI_Interface(app->activity);
-
-	jnii->test_function();
-
-	delete jnii;
-
-	//================
-
-	//JNIEnv* env = app->activity->env;
-
-	//Checking to make sure we have an env variable
-	//LOGE("app: %p, activity: %p, env: %p\n",app,app->activity,app->activity->env);
-	//env pointer is not null
-
-	//jclass java_cls;
-
-	//JavaVM* vm;
-	//LOGE("vm before: %p",vm);
-	//env->GetJavaVM(&vm);
-	//vm = app->activity->vm;
-
-	//JNIEnv* env_2;
-
-	//vm->GetEnv((void**)&env_2,JNI_VERSION_1_6);
-
-	//LOGE("Env from activity: %p, Env from VM: %p",env,env_2);
-
-	//JNI_CreateJavaVM();
-
-
-	//LOGE("vm after: %p",vm);
-	//LOGE("log class before: %d\n",(int)java_cls);
-	//java_cls = env->FindClass("CLASS PROJECT NAME GOES HERE");
-	//LOGE("log class after: %d\n",(int)java_cls);
-	//jclass global_java_cls_ref = (jclass) env->NewGlobalRef(java_cls);
-
-	//jmethodID java_method = env->GetMethodID(global_java_cls_ref,"test","(II)Z");
-	//TODO: somehow get java object instance reference
-	//jboolean result = env->CallBooleanMethodA(object,java_method,java_args);
-
-	//todo: call later to free global reference:
-	//env->FreeGlobalRef(global_java_cls_ref);
-
-
-	LOGE("Android Java Code done");
-	//======================= end java test =============================
 
 	//Reads saved data and writes saved data
 /*	const char* data = File_Utils::read_savedata("test.dat");

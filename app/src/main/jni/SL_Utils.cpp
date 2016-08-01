@@ -7,7 +7,6 @@
 //Code not utilized for getting native device sample rate, buffer size, and frame count
 // (not used because latency is not a critical issue to this project, we can deal with having sample rate conversion latency)
 //	app->activity->instance->getSystemService(Context.AUDIO_SERVICE);
-//	where to get env from?
 //	jclass audioSystem = env->FindClass("android/media/AudioSystem");
 //	jmethodID method = env->GetStaticMethodID(audioSystem, "getPrimaryOutputSamplingRate","()I");
 //	jint sample_rate = env->CallStaticIntMethod(audioSystem, method);

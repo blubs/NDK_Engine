@@ -21,6 +21,7 @@
 #include "Static_Model.hpp"
 #include "Cube_Map.hpp"
 #include "Skybox.hpp"
+#include "JNI_Interface.hpp"
 
 
 // Saved State Data
@@ -41,6 +42,8 @@ public:
 
 	static void handle_cmd(struct android_app *app, int32_t cmd);
 	static int32_t handle_input(struct android_app *app, AInputEvent *event);
+
+	JNI_Interface* jnii;
 
 	void term_display();
 	int init_display();

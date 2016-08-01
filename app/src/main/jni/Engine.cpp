@@ -29,6 +29,8 @@ Engine::Engine (struct android_app *droid_app)
 
 	audio_engine = new Audio_Engine();
 
+	jnii = new JNI_Interface(app->activity);
+
 	//===================== Setting up game world objects =======================
 
 	//========================== Instantiating shaders ==========================
@@ -79,6 +81,8 @@ Engine::~Engine()
 {
 	if(audio_engine)
 		delete audio_engine;
+	if(jnii)
+		delete jnii;
 
 	term_data();
 
@@ -872,8 +876,14 @@ void Engine::draw_frame ()
 	//if(state.x > 0.95f && player_skel->playing_anim)
 	//	player_skel->stop_anim();
 
+	//For test playing vault animation
 	static bool played_anim = false;
-	if(state.x < 0.10f)
+	if(!played_anim)
+	{
+		played_anim = true;
+		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+	}
+	/*if(state.x < 0.10f)
 	{
 		if( player_skel->current_anim != 2 && !played_anim)
 		{
@@ -884,6 +894,19 @@ void Engine::draw_frame ()
 	else
 	{
 		played_anim = false;
+	}*/
+
+	//Test show/hide ad calls
+	static bool ad_visible = false;
+	if(state.x < 0.10f && ad_visible)
+	{
+		jnii->hide_ad();
+		ad_visible = false;
+	}
+	else if(state.x > 0.90f && !ad_visible)
+	{
+		jnii->show_ad();
+		ad_visible = true;
 	}
 
 	float t = time();
