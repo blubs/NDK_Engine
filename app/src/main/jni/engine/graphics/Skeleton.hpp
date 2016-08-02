@@ -4,10 +4,10 @@
 
 #ifndef ENGINE_SKELETON_H
 #define ENGINE_SKELETON_H
-#include "common.hpp"
-#include "File_Utils.hpp"
-#include "Game_Object.hpp"
-#include "misc.hpp"
+#include "../common.hpp"
+#include "../File_Utils.hpp"
+#include "../Game_Object.hpp"
+#include "../misc.hpp"
 
 class Skeleton : public Entity
 {

@@ -4,7 +4,7 @@
 
 #include "Audio_Engine.hpp"
 
-#include "misc.hpp"
+#include "../misc.hpp"
 
 Audio_Engine* Audio_Engine::instance = NULL;
 

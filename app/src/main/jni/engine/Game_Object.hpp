@@ -6,7 +6,7 @@
 #define ENGINE_ENTITY_H
 
 #include "math/math.hpp"
-#include "Static_Model.hpp"
+#include "graphics/Static_Model.hpp"
 
 //Forward declaration
 class Sound_Sample;

@@ -5,8 +5,8 @@
 #ifndef ENGINE_PLAYER_H
 #define ENGINE_PLAYER_H
 
-#include "Game_Object.hpp"
-#include "Skel_Model.hpp"
+#include "../engine/Game_Object.hpp"
+#include "../engine/graphics/Skel_Model.hpp"
 
 class Player : public Entity
 {

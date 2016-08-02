@@ -4,7 +4,7 @@
 
 #include "Game_Object.hpp"
 //Placing include here to avoid circular dependency
-#include "Audio_Engine.hpp"
+#include "sound/Audio_Engine.hpp"
 
 Game_Object::Game_Object()
 {

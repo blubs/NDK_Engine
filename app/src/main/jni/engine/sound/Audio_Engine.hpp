@@ -6,9 +6,9 @@
 #define ENGINE_AUDIO_ENGINE_H
 
 #include "SL_Utils.hpp"
-#include "common.hpp"
+#include "../common.hpp"
 #include "Sound_Source.hpp"
-#include "Camera.hpp"
+#include "../../entities/Camera.hpp"
 
 class Audio_Engine
 {

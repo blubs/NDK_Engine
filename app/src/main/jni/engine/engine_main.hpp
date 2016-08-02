@@ -6,12 +6,12 @@
 #define ENGINE_ENGINE_MAIN_H
 
 #include "common.hpp"
-#include "SL_Utils.hpp"
+#include "sound/SL_Utils.hpp"
 #include "Engine.hpp"
 #include "File_Utils.hpp"
-#include "GL_Utils.hpp"
-#include "Camera.hpp"
-#include "Player.hpp"
+#include "graphics/GL_Utils.hpp"
+#include "../entities/Camera.hpp"
+#include "../entities/Player.hpp"
 
 
 

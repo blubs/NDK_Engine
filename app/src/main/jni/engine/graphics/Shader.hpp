@@ -1,7 +1,7 @@
 //
 // Created by F1 on 5/16/2016.
 //
-#include "common.hpp"
+#include "../common.hpp"
 #include "GL_Utils.hpp"
 
 #ifndef ENGINE_SHADER_H

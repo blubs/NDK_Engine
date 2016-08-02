@@ -5,7 +5,7 @@
 #ifndef ENGINE_UI_H
 #define ENGINE_UI_H
 
-#include "math/math.hpp"
+#include "../math/math.hpp"
 #include "Material.hpp"
 #include "Texture.hpp"
 

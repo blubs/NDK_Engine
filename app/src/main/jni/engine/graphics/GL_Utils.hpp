@@ -5,7 +5,7 @@
 #ifndef ENGINE_GL_UTILS_H
 #define ENGINE_GL_UTILS_H
 
-#include "common.hpp"
+#include "../common.hpp"
 
 class GL_Utils
 {

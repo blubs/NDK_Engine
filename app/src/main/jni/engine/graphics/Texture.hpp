@@ -5,8 +5,8 @@
 #ifndef ENGINE_TEXTURE_H
 #define ENGINE_TEXTURE_H
 
-#include "common.hpp"
-#include "File_Utils.hpp"
+#include "../common.hpp"
+#include "../File_Utils.hpp"
 
 class Texture
 {

@@ -5,8 +5,8 @@
 #ifndef ENGINE_CUBE_MAP_H
 #define ENGINE_CUBE_MAP_H
 
-#include "common.hpp"
-#include "File_Utils.hpp"
+#include "../common.hpp"
+#include "../File_Utils.hpp"
 
 
 class Cube_Map
