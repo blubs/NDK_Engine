@@ -33,6 +33,15 @@ void Shader::unload()
 		free((void*)frag_shader_src);
 }
 
+Shader::Shader(const char* vshader_name, const char* fshader_name)
+{
+	load(vshader_name,fshader_name);
+}
+
+Shader::~Shader()
+{
+	unload();
+}
 
 int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint params_count)
 {

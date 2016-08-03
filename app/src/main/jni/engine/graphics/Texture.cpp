@@ -27,6 +27,16 @@ void Texture::unload()
 	width = height = 0;
 }
 
+Texture::Texture(const char* filepath,int w, int h)
+{
+	load(filepath,w,h);
+}
+
+Texture::~Texture()
+{
+	unload();
+}
+
 int Texture::init_gl()
 {
 	GLuint tex_id;

@@ -31,50 +31,7 @@ Engine::Engine (struct android_app *droid_app)
 
 	jnii = new JNI_Interface(app->activity);
 
-	//===================== Setting up game world objects =======================
-
-	//========================== Instantiating shaders ==========================
-	test_shader = (Shader *) malloc(sizeof(Shader));
-	skel_color_shader = (Shader*) malloc(sizeof(Shader));
-	static_color_shader = (Shader*) malloc(sizeof(Shader));
-	text_shader = (Shader*) malloc(sizeof(Shader));
-
-	//========================= Instantiating materials =========================
-	mat_red = new Material();
-	mat_blue = new Material();
-	skel_color_mat = new Material();
-	static_color_mat = new Material();
-	text_mat = new Material();
-
-	//===================== Creating Skeletal Models ============================
-	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
-
-	//================== Instantiating Static Models ============================
-	model_prim_cube = (Static_Model*) malloc(sizeof(Static_Model));
-	model_prim_quad = (Static_Model*) malloc(sizeof(Static_Model));
-
-	//======================= Instantiating Textures ==========================
-	test_texture = (Texture*) malloc(sizeof(Texture));
-	char_set = (Texture*) malloc(sizeof(Texture));
-
-	//======================= Instantiating UI Objects ========================
-	test_text = (UI_Text*) malloc(sizeof(UI_Text));
-	test_img = (UI_Image*) malloc(sizeof(UI_Image));
-
-	//====================== Instantiating Objects ============================
-	player_skel = new Skeleton();
-	camera = new Camera();
-	player = new Player();
-	cam_to_bone = new Entity_Bone_Joint();
-	test_sound_source = new Entity();
-
-	skybox = new Skybox();
-	test_cube_map = (Cube_Map*) malloc(sizeof(Cube_Map));
-
-	//=================== Setting up temp sound containers ====================
-	test_pulse = (Sound_Sample*) malloc(sizeof(Sound_Sample));
-
-	//===========================================================================
+	game = new Game();
 }
 
 Engine::~Engine()
@@ -83,69 +40,10 @@ Engine::~Engine()
 		delete audio_engine;
 	if(jnii)
 		delete jnii;
+	if(game)
+		delete game;
 
 	term_data();
-
-	if(test_pulse)
-		free(test_pulse);
-
-	//Deleting Materials
-	if(mat_red)
-		delete mat_red;
-	if(mat_blue)
-		delete mat_blue;
-	if(skel_color_mat)
-		delete skel_color_mat;
-	if(static_color_mat)
-		delete static_color_mat;
-	if(text_mat)
-		delete text_mat;
-
-
-	//Freeing shaders
-	if(test_shader)
-		free(test_shader);
-	if(skel_color_shader)
-		free(skel_color_shader);
-	if(static_color_shader)
-		free(static_color_shader);
-	if(text_shader)
-		free(text_shader);
-
-	//Freeing models
-	if(test_arms)
-		free(test_arms);
-	if(model_prim_cube)
-		free(model_prim_cube);
-	if(model_prim_quad)
-		free(model_prim_quad);
-
-	//Freeing textures
-	if(test_texture)
-		free(test_texture);
-	if(char_set)
-		free(char_set);
-	if(test_text)
-		free(test_text);
-	if(test_img)
-		free(test_img);
-
-	//Deleting other objects
-	if(player_skel)
-		delete player_skel;
-	if(player)
-		delete player;
-	if(test_sound_source)
-		delete test_sound_source;
-	if(camera)
-		delete camera;
-	if(cam_to_bone)
-		delete cam_to_bone;
-
-	if(test_cube_map)
-		free(test_cube_map);
-	if(skybox)
-		delete skybox;
 }
 
 
@@ -323,79 +221,6 @@ int Engine::init_display ()
 	return 0;
 }
 
-//========================================= Loading assets ======================================
-
-int Engine::load_shaders ()
-{
-	test_shader->load("minimal.vert","minimal.frag");
-	skel_color_shader->load("skeletal_color.vert","skeletal_color.frag");
-	static_color_shader->load("static_color.vert","static_color.frag");
-	text_shader->load("monochrome_transparent.vert","monochrome_transparent.frag");
-	skybox->load_shader();
-	return 1;
-}
-
-
-//Returns 0 on fail, returns 1 on success.
-int Engine::load_assets ()
-{
-	//Loading the test texture.
-	test_texture->load("tex.pkm",512,512);
-	char_set->load("char_set.pkm",2048,2048);
-
-	test_cube_map->load("cube_maps/test_cube_map.pkm",512);
-
-	test_arms->load_model("test_arms.skmf");
-	model_prim_cube->load_model("primitive_cube.stmf");
-	model_prim_quad->load_model("primitive_quad.stmf");
-
-	player_skel->load("player_skeleton.sksf");
-	player_skel->load_animation("player_animations/run.skaf");
-	player_skel->load_animation("player_animations/showcase_hands.skaf");
-	player_skel->load_animation("player_animations/speed_vault.skaf");
-
-	//Sounds
-	test_pulse->load("test_audio_pulse.raw");
-	return 1;
-}
-
-//=================================================================================================
-
-//========================================= Unloading assets ======================================
-void Engine::unload_shaders ()
-{
-	test_shader->unload();
-	skel_color_shader->unload();
-	static_color_shader->unload();
-	text_shader->unload();
-	skybox->unload_shader();
-}
-
-void Engine::unload_assets ()
-{
-	//Sounds
-	if(test_pulse)
-		test_pulse->unload();
-	//Textures
-	if(test_texture)
-		test_texture->unload();
-	if(char_set)
-		char_set->unload();
-	if(test_cube_map)
-		test_cube_map->unload();
-	//Models
-	if(test_arms)
-		test_arms->unload_model();
-	if(model_prim_cube)
-		model_prim_cube->unload_model();
-	if(model_prim_quad)
-		model_prim_quad->unload_model();
-	//Skeletons
-	if(player_skel)
-		player_skel->unload();
-}
-//=================================================================================================
-
 void Engine::term_display ()
 {
 #ifdef DEBUG_MODE
@@ -442,119 +267,8 @@ int Engine::init_gl ()
 	//set blend function
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	game->init_gl();
 
-	//Initializing shader
-	//Populating parameter arrays
-
-	GLuint param_types[] =
-	{
-		Shader::PARAM_VERTICES,
-		Shader::PARAM_VERT_COLORS,
-		Shader::PARAM_VERT_UV1,
-		Shader::PARAM_TEXTURE_DIFFUSE,
-		Shader::PARAM_MVP_MATRIX,
-		Shader::PARAM_TEST_FIELD
-	};
-	const char *param_names[] =
-	{
-		"vert_pos",
-		"fill_color",
-		"src_tex_coord",
-		"tex",
-		"mvp",
-		"test_color_param"
-	};
-	uint param_count = 6;
-
-	test_shader->init_gl(param_types, param_names,param_count);
-
-	//======================================= Initializing the UI text shader =================================
-	GLuint text_param_types[] =
-	{
-		Shader::PARAM_VERTICES,
-		Shader::PARAM_VERT_UV1,
-		Shader::PARAM_TEXTURE_DIFFUSE,
-		Shader::PARAM_MVP_MATRIX,
-		Shader::PARAM_COLOR_MULT,
-		Shader::PARAM_COLOR_ADD
-	};
-	const char *text_param_names[] =
-	{
-		"vert_pos",
-		"src_tex_coord",
-		"tex",
-		"mvp",
-		"mult_color",
-		"add_color"
-	};
-	uint text_param_count = 6;
-
-	text_shader->init_gl(text_param_types, text_param_names,text_param_count);
-
-	//========================================= Initializing the skeletal mesh shader ================================
-
-	GLuint skel_mesh_params[] =
-	{
-		Shader::PARAM_VERTICES,
-		Shader::PARAM_VERT_UV1,
-		Shader::PARAM_VERT_NORMALS,
-		Shader::PARAM_MVP_MATRIX,
-		Shader::PARAM_M_IT_MATRIX,
-		Shader::PARAM_BONE_INDICES,
-		Shader::PARAM_BONE_WEIGHTS,
-		Shader::PARAM_BONE_MATRICES,
-		Shader::PARAM_BONE_IT_MATRICES
-	};
-	const char *skel_mesh_param_names[] =
-	{
-		"vert_pos",
-		"vert_uv",
-		"vert_nor",
-		"mvp",
-		"m_IT",
-		"bone_index",
-		"bone_weight",
-		"bone",
-		"bone_IT"
-	};
-	skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 9);
-
-	//=========================================== Initializing Static Mesh Color Shader =====================
-
-	GLuint static_mesh_params[] =
-	{
-		Shader::PARAM_VERTICES,
-		Shader::PARAM_VERT_UV1,
-		Shader::PARAM_VERT_UV2,
-		Shader::PARAM_VERT_NORMALS,
-		Shader::PARAM_MVP_MATRIX,
-		Shader::PARAM_M_IT_MATRIX,
-		Shader::PARAM_COLOR_MULT
-	};
-	const char *static_mesh_param_names[] =
-	{
-		"vert_pos",
-		"vert_uv_1",
-		"vert_uv_2",
-		"vert_nor",
-		"mvp",
-		"m_IT",
-		"color"
-	};
-	static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 7);
-
-	//==================================== Loading textures =======================================
-	test_texture->init_gl();
-	char_set->init_gl();
-	test_cube_map->init_gl();
-
-	//==================================== Setting up Mesh VBOs ====================================
-	test_arms->init_gl();
-	model_prim_cube->init_gl();
-	model_prim_quad->init_gl();
-
-	skybox->init_gl();
-	//========================================================================
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
 	glClearColor(1, 1, 1, 1);
@@ -566,116 +280,37 @@ int Engine::init_gl ()
 
 void Engine::term_gl ()
 {
-	//Terminating all loaded shaders
-	test_shader->term_gl();
-	skel_color_shader->term_gl();
-	static_color_shader->term_gl();
-	text_shader->term_gl();
-
-
-	//Terminating all loaded models
-	test_arms->term_gl();
-	model_prim_cube->term_gl();
-	model_prim_quad->term_gl();
-
-	skybox->term_gl();
-
-	test_texture->term_gl();
-	char_set->term_gl();
-	test_cube_map->term_gl();
-
+	game->term_gl();
 	gl_initialized = false;
 }
 
 int Engine::init_data ()
 {
 	LOGI("init_data...\n");
-	if(!load_shaders())
+	if(!game->load_assets())
 		return 0;
-	if(!load_assets())
-		return 0;
-
 	data_initialized = true;
 	return 1;
 }
 
 void Engine::term_data ()
 {
-	unload_shaders();
-	unload_assets();
+	game->unload_assets();
 	data_initialized = false;
 }
 
 void Engine::first_frame()
 {
-	player_skel->set_default_anim(0,Skeleton::END_TYPE_LOOP);
-	player->mat = skel_color_mat;
-	test_arms->skel = player_skel;
-
-	//============================= Setting up materials ================================
-
-	mat_red->set_shader(test_shader);
-	mat_blue->set_shader(test_shader);
-	text_mat->set_shader(text_shader);
-	skel_color_mat->set_shader(skel_color_shader);
-	static_color_mat->set_shader(static_color_shader);
-
-
-	//Setting up fixed shader parameters
-	float temp_color[] = {1.0f, 1.0f, 0.0f, 1.0f};
-	static_color_mat->set_fixed_shader_param(Shader::PARAM_COLOR_MULT,temp_color,sizeof(float)*4);
-	float temp_color_red[] = {1.0f, 0.4f, 0.4f, 1.0f};
-	mat_red->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, temp_color_red, sizeof(float) * 4);
-	float temp_color_blue[] = {0.4f, 0.4f, 1.0f, 1.0f};
-	mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, temp_color_blue, sizeof(float) * 4);
-
-
-
-	//===================================================================================
-
-	skybox->set_cube_map(test_cube_map);
-
-	test_sound_source->model = model_prim_cube;
-	test_sound_source->mat = static_color_mat;
-
-	test_text->init(text_mat,char_set);
-	//test_text->set_text("test\nT  E\n\nST !@\n#$%^&*()");
-	test_text->set_text("Pause\npause\nPAUSE\n\nPlay\nplay\nPLAY\n\nExit\nexit\nEXIT\n\ntest_text->set_text(\"Stuff\")");
-
-	//Place in top leftish corner
-	test_text->pos.x = -width * 0.4f;
-	test_text->pos.y = height * 0.4f;
-
-	test_img->init(text_mat,test_texture);
-	test_img->pos.x = width*0.5f - 100.0f;
-	test_img->pos.y = height*0.5f - 100.0f;
-	test_img->scale.x = 200.0f;
-	test_img->uv_maxs.x = 0.6f;
-	test_img->uv_mins.y = 0.5f;
-	test_img->maintain_aspect_ratio = true;
-
-	//test_img->scale.x = 0.2f;
-
-	player->player_model = test_arms;
-	player->skel = player_skel;
-
-
-	camera->parent = cam_to_bone;
-	cam_to_bone->parent_skel = player_skel;
-	cam_to_bone->parent_bone_index = 8; //head bone is at index 8, we could add methods for finding the bone
-	// but we don't need all of that at the moment (since camera is never going to be parented to anything but that bone)
-	player_skel->parent = player;
-	camera->set_persp_view(90.0f * DEG_TO_RAD, width,height, 0.01f, 1000.0f);
-	camera->set_ortho_view(width,height,0.0001f,1.0f);
-
-	Audio_Engine::set_audio_listener(camera);
+	game->screen_width = width;
+	game->screen_height = height;
+	game->start();
+	Audio_Engine::set_audio_listener(game->audio_listener);
 }
 
 //This is where we terminate any memory that was alllocated mid-game
 void Engine::last_frame()
 {
-	test_text->term();
-	test_img->term();
+	game->finish();
 }
 
 void Engine::draw_frame ()
@@ -721,11 +356,18 @@ void Engine::draw_frame ()
 	glDepthFunc(GL_LEQUAL);
 	glDepthMask(GL_TRUE);
 
+
+	game->update();
+	game->render();
+
+	//TODO: move all of this stuff to Game class
+
+
 	//Filling the screen with a color
 	//glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
 
 	//Setting all transforms to be recalculated
-	player_skel->transform_calculated = false;
+	/*player_skel->transform_calculated = false;
 	camera->transform_calculated = false;
 	player->transform_calculated = false;
 	test_sound_source->transform_calculated = false;
@@ -822,7 +464,8 @@ void Engine::draw_frame ()
 	glGenBuffers(1, &element_buffer);
 	//Bind the buffer to set the data
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)/*size of indices*/, cube_tris, GL_STATIC_DRAW);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)size of indices, cube_tris, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int), cube_tris, GL_STATIC_DRAW);
 
 	//Getting the texture gl_id
 	GLuint tex_gl_id = test_texture->gl_id;
@@ -883,18 +526,18 @@ void Engine::draw_frame ()
 		played_anim = true;
 		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
 	}
-	/*if(state.x < 0.10f)
-	{
-		if( player_skel->current_anim != 2 && !played_anim)
-		{
-			played_anim = true;
-			player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
-		}
-	}
-	else
-	{
-		played_anim = false;
-	}*/
+	//if(state.x < 0.10f)
+	//{
+	//	if( player_skel->current_anim != 2 && !played_anim)
+	//	{
+	//		played_anim = true;
+	//		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+	//	}
+	//}
+	//else
+	//{
+	//	played_anim = false;
+	//}
 
 	//Test show/hide ad calls
 	static bool ad_visible = false;
@@ -948,7 +591,7 @@ void Engine::draw_frame ()
 
 	//TODO: make this only execute at 30 times per second
 	player->update();
-
+	 */
 	eglSwapBuffers(egl_display, egl_surface);
 }
 

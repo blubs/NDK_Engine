@@ -43,7 +43,6 @@ public:
 	static const int PARAM_COLOR_ADD = 17;
 	static const int PARAM_CUBE_MAP = 18;
 	static const int PARAM_TEST_FIELD = 20;
-	//TODO: do cubemap textures need their own distinct texture types for each face?
 	//TODO: any other parameter types
 
 	//Arrays that hold arbitrary types of parameters
@@ -54,11 +53,10 @@ public:
 	//Running count of how many textures we have bound. Resets every time bind is initiated.
 	int bound_textures;
 
-	//Loads the raw shader source
-	int load(const char* vshader_name, const char* fshader_name);
-
-	//Frees the loaded raw shader source
-	void unload();
+	//Constructs and loads shader
+	Shader(const char* vshader_name, const char* fshader_name);
+	//Destroys and unloads shader
+	~Shader();
 
 	//Initializes the shader given vertex / fragment shader src and name, as well as a list of parameter types and values (including the number of parameters)
 	int init_gl(GLuint* param_types, const char** param_identifiers, uint params_count);
@@ -74,5 +72,11 @@ public:
 	//Same as above if we already know what index the data goes in.
 	int bind_shader_value_by_index (int index, void *data, int extra_data);
 
+private:
+	//Loads the raw shader source
+	int load(const char* vshader_name, const char* fshader_name);
+
+	//Frees the loaded raw shader source
+	void unload();
 };
 #endif //ENGINE_SHADER_H

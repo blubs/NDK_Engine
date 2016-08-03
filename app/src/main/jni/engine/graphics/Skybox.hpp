@@ -19,29 +19,13 @@ public:
 	//Due to simplicity of skybox, we don't require a skybox material, and it can hold its own shaders
 	Skybox()
 	{
-		shader = (Shader*) malloc(sizeof(Shader));
+		shader = new Shader("shaders/skybox.vert","shaders/skybox.frag");
 	}
 	~Skybox()
 	{
 		if(shader)
 		{
-			free(shader);
-		}
-	}
-
-	int load_shader()
-	{
-		if(shader)
-		{
-			shader->load("shaders/skybox.vert","shaders/skybox.frag");
-		}
-		return 1;
-	}
-	void unload_shader()
-	{
-		if(shader)
-		{
-			shader->unload();
+			delete shader;
 		}
 	}
 

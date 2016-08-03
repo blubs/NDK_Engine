@@ -15,10 +15,14 @@ public:
 	GLuint gl_id = 0;
 	int raw_data_length = 0;
 	int width,height = 0;
-	int load(const char* filepath,int w, int h);
-	void unload();
 	int init_gl();
 	void term_gl();
+
+	Texture(const char* filepath,int w, int h);
+	~Texture();
+private:
+	int load(const char* filepath,int w, int h);
+	void unload();
 };
 
 #endif //ENGINE_TEXTURE_H

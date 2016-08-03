@@ -22,6 +22,7 @@
 #include "graphics/Cube_Map.hpp"
 #include "graphics/Skybox.hpp"
 #include "JNI_Interface.hpp"
+#include "../Game.hpp"
 
 
 // Saved State Data
@@ -53,9 +54,6 @@ public:
 
 	Audio_Engine* audio_engine;
 
-	int load_shaders();
-	void unload_shaders();
-
 	int init_gl();
 	void term_gl();
 	bool gl_initialized = false;
@@ -64,34 +62,6 @@ public:
 	int init_data();
 	void term_data();
 	bool data_initialized = false;
-
-	Sound_Sample* test_pulse = NULL;
-
-	Shader* test_shader = NULL;
-
-	Material* mat_red = NULL;
-	Material* mat_blue = NULL;
-
-	Shader* skel_color_shader = NULL;
-	Material* skel_color_mat= NULL;
-
-	Shader* static_color_shader = NULL;
-	Material* static_color_mat = NULL;
-
-	Shader* text_shader = NULL;
-	Material* text_mat = NULL;
-
-
-	//This is independent from shader
-	Texture* test_texture = NULL;
-	Texture* char_set = NULL;
-
-	Skel_Model* test_arms = NULL;
-	Skeleton* player_skel = NULL;
-
-	Static_Model* model_prim_cube = NULL;
-	Static_Model* model_prim_quad = NULL;
-
 
 	void draw_frame();
 
@@ -115,17 +85,7 @@ public:
 	//struct saved_state* state;
 	int animating;
 
-	Camera* camera = NULL;
-	Player* player = NULL;
-	Entity_Bone_Joint* cam_to_bone = NULL;
-
-	Entity* test_sound_source = NULL;
-
-	UI_Text* test_text = NULL;
-	UI_Image* test_img = NULL;
-
-	Skybox* skybox = NULL;
-	Cube_Map* test_cube_map = NULL;
+	Game* game;
 
 	static float delta_time;
 };
