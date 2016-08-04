@@ -113,6 +113,16 @@ void Cube_Map::unload()
 	width = height = 0;
 }
 
+Cube_Map::Cube_Map(const char* filepath,int w)
+{
+	load(filepath,w);
+}
+Cube_Map::~Cube_Map()
+{
+	unload();
+}
+
+
 int Cube_Map::init_gl()
 {
 	GLuint tex_id;

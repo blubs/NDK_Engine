@@ -35,11 +35,14 @@ public:
 	int render(Mat4 m,Mat4 vp,Material* mat);
 
 	//We will eventually need methods for combining Meshes, and copying Meshes
-	int load_model(const char* filepath);
-
 	int init_gl();
 
 	void term_gl();
+
+	Static_Model(const char* filepath);
+	~Static_Model();
+private:
+	int load_model(const char* filepath);
 	void unload_model();
 
 };

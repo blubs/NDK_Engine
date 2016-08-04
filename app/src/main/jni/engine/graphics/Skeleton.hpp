@@ -85,10 +85,15 @@ public:
 	//Returns the rest transform of the ith bone
 	Mat4 get_bone_rest_transform(int i);
 
+	int load_animation(const char* filepath);
+
+	Skeleton(const char* filepath);
+	~Skeleton();
+
+private:
 	int load(const char* filepath);
 	void unload();
 
-	int load_animation(const char* filepath);
 
 };
 

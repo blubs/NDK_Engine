@@ -81,3 +81,12 @@ void Static_Model::unload_model()
 		free((void*)raw_data);
 }
 
+Static_Model::Static_Model(const char* filepath)
+{
+	load_model(filepath);
+}
+
+Static_Model::~Static_Model()
+{
+	unload_model();
+}

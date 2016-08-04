@@ -338,6 +338,16 @@ void Skeleton::unload()
 		free(current_pose_mat3s);
 }
 
+Skeleton::Skeleton(const char *filepath)
+{
+	load(filepath);
+}
+
+Skeleton::~Skeleton()
+{
+	unload();
+}
+
 int Skeleton::load_animation(const char* filepath)
 {
 	unsigned int* loaded_anim = (unsigned int*) File_Utils::load_raw_asset(filepath);

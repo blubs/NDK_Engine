@@ -34,13 +34,17 @@ public:
 
 	int width,height = 0;
 
-	int load_single_image(const char* filepath, const char** data, int* len);
-	int load(const char* filepath,int w);
-	void unload();
-
 	int init_gl();
 
 	void term_gl();
+
+	Cube_Map(const char* filepath,int w);
+	~Cube_Map();
+
+private:
+	int load_single_image(const char* filepath, const char** data, int* len);
+	int load(const char* filepath,int w);
+	void unload();
 };
 
 #endif //ENGINE_CUBE_MAP_H

@@ -96,3 +96,13 @@ void Skel_Model::unload_model()
 	if(raw_data)
 		free((void*)raw_data);
 }
+
+Skel_Model::Skel_Model(const char* filepath)
+{
+	load_model(filepath);
+}
+
+Skel_Model::~Skel_Model()
+{
+	unload_model();
+}

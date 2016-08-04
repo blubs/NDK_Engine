@@ -103,94 +103,83 @@ public:
 		skel_color_mat = new Material();
 		static_color_mat = new Material();
 		text_mat = new Material();
+
+		return 1;
 	}
 
 	void unload_materials()
 	{
-		if(mat_red)
-			delete mat_red;
-		if(mat_blue)
-			delete mat_blue;
-		if(skel_color_mat)
-			delete skel_color_mat;
-		if(text_mat)
-			delete text_mat;
+		delete mat_red;
+		delete mat_blue;
+		delete skel_color_mat;
+		delete text_mat;
 	}
 
 	int load_textures()
 	{
 		test_texture = new Texture("tex.pkm",512,512);
 		char_set = new Texture("char_set.pkm",2048,2048);
-		test_cube_map = (Cube_Map*) malloc(sizeof(Cube_Map));
-
-		//TODO: clean this up
-		test_cube_map->load("cube_maps/test_cube_map.pkm",512);
+		test_cube_map = new Cube_Map("cube_maps/test_cube_map.pkm",512);
+		return 1;
 	}
 	void unload_textures()
 	{
-		if(test_texture)
-			delete test_texture;
-		if(char_set)
-			delete char_set;
-		//TODO: clean this up
-
-		if(test_cube_map)
-			test_cube_map->unload();
-		if(test_img)
-			free(test_img);
+		delete test_texture;
+		delete char_set;
+		delete test_cube_map;
 	}
 
 	int load_models()
 	{
-	}
+		test_arms = new Skel_Model("test_arms.skmf");
 
-	void unload_models()
-	{
-	}
+		model_prim_cube = new Static_Model("primitive_cube.stmf");
+		model_prim_quad = new Static_Model("primitive_quad.stmf");
 
-	int load_assets ()
-	{
-
-		/*	//===================== Setting up game world objects =======================
-
-
-	//===================== Creating Skeletal Models ============================
-	test_arms = (Skel_Model*) malloc(sizeof(Skel_Model));
-
-	//================== Instantiating Static Models ============================
-	model_prim_cube = (Static_Model*) malloc(sizeof(Static_Model));
-	model_prim_quad = (Static_Model*) malloc(sizeof(Static_Model));
-
-	//======================= Instantiating UI Objects ========================
-	test_text = (UI_Text*) malloc(sizeof(UI_Text));
-	test_img = (UI_Image*) malloc(sizeof(UI_Image));
-
-	//====================== Instantiating Objects ============================
-	player_skel = new Skeleton();
-	camera = new Camera();
-	player = new Player();
-	cam_to_bone = new Entity_Bone_Joint();
-	test_sound_source = new Entity();
-
-	skybox = new Skybox();
-
-	//=================== Setting up temp sound containers ====================
-	test_pulse = (Sound_Sample*) malloc(sizeof(Sound_Sample));
-
-	//===========================================================================*/
-
-
-		test_arms->load_model("test_arms.skmf");
-		model_prim_cube->load_model("primitive_cube.stmf");
-		model_prim_quad->load_model("primitive_quad.stmf");
-
-		player_skel->load("player_skeleton.sksf");
+		player_skel = new Skeleton("player_skeleton.sksf");
 		player_skel->load_animation("player_animations/run.skaf");
 		player_skel->load_animation("player_animations/showcase_hands.skaf");
 		player_skel->load_animation("player_animations/speed_vault.skaf");
 
-		//Sounds
-		test_pulse->load("test_audio_pulse.raw");
+		skybox = new Skybox();
+		return 1;
+	}
+
+	void unload_models()
+	{
+		delete test_arms;
+
+		delete model_prim_cube;
+		delete model_prim_quad;
+
+		delete player_skel;
+
+		delete skybox;
+	}
+
+	int load_sounds()
+	{
+		test_pulse = new Sound_Sample("test_audio_pulse.raw");
+		return 1;
+	}
+
+	void unload_sounds()
+	{
+		delete test_pulse;
+	}
+
+	int load_assets ()
+	{
+		if(!load_textures())
+			return 0;
+		if(!load_shaders())
+			return 0;
+		if(!load_materials())
+			return 0;
+		if(!load_models())
+			return 0;
+		if(!load_sounds())
+			return 0;
 		return 1;
 	}
 
@@ -199,58 +188,17 @@ public:
 
 	void unload_assets ()
 	{
-		/*
-	if(test_pulse)
-		free(test_pulse);
-
-	//Freeing models
-	if(test_arms)
-		free(test_arms);
-	if(model_prim_cube)
-		free(model_prim_cube);
-	if(model_prim_quad)
-		free(model_prim_quad);
-
-	//Deleting other objects
-	//	if(test_text)
-	//		free(test_text);
-
-	if(player_skel)
-		delete player_skel;
-	if(player)
-		delete player;
-	if(test_sound_source)
-		delete test_sound_source;
-	if(camera)
-		delete camera;
-	if(cam_to_bone)
-		delete cam_to_bone;
-
-	if(test_cube_map)
-		free(test_cube_map);
-	if(skybox)
-		delete skybox;*/
-		//Sounds
-		if(test_pulse)
-			test_pulse->unload();
-		//Models
-		if(test_arms)
-			test_arms->unload_model();
-		if(model_prim_cube)
-			model_prim_cube->unload_model();
-		if(model_prim_quad)
-			model_prim_quad->unload_model();
-		//Skeletons
-		if(player_skel)
-			player_skel->unload();
+		unload_sounds();
+		unload_models();
+		unload_materials();
+		unload_shaders();
+		unload_textures();
 	}
 	//=================================================================================================
 	//Initialize GL aspects of all assets
 	int init_gl()
 	{
-		//Initializing shader
-		//Populating parameter arrays
-
+		//Initializing shaders
 		GLuint param_types[] =
 		{
 			Shader::PARAM_VERTICES,
@@ -359,6 +307,7 @@ public:
 		model_prim_quad->init_gl();
 
 		skybox->init_gl();
+		return 1;
 	}
 
 	void term_gl()
@@ -386,9 +335,13 @@ public:
 	//This is where we set up our game objects and their relationships
 	void start()
 	{
-		//TODO: create game objects here
-		audio_listener = camera;
+		camera = new Camera();
+		player = new Player();
+		cam_to_bone = new Entity_Bone_Joint();
+		test_sound_source = new Entity();
 
+		//===== Setting up relationships between game objects ======
+		audio_listener = camera;
 
 		player_skel->set_default_anim(0,Skeleton::END_TYPE_LOOP);
 		player->mat = skel_color_mat;
@@ -411,8 +364,6 @@ public:
 		float temp_color_blue[] = {0.4f, 0.4f, 1.0f, 1.0f};
 		mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, temp_color_blue, sizeof(float) * 4);
 
-
-
 		//===================================================================================
 
 		skybox->set_cube_map(test_cube_map);
@@ -420,15 +371,17 @@ public:
 		test_sound_source->model = model_prim_cube;
 		test_sound_source->mat = static_color_mat;
 
-		test_text->init(text_mat,char_set);
+
+		//===== Instantiating Game Objects =====
+		test_text = new UI_Text(text_mat,char_set);
 		//test_text->set_text("test\nT  E\n\nST !@\n#$%^&*()");
 		test_text->set_text("Pause\npause\nPAUSE\n\nPlay\nplay\nPLAY\n\nExit\nexit\nEXIT\n\ntest_text->set_text(\"Stuff\")");
-
 		//Place in top leftish corner
 		test_text->pos.x = -screen_width * 0.4f;
 		test_text->pos.y = screen_height * 0.4f;
 
-		test_img->init(text_mat,test_texture);
+
+		test_img = new UI_Image(text_mat,test_texture);
 		test_img->pos.x = screen_width*0.5f - 100.0f;
 		test_img->pos.y = screen_height*0.5f - 100.0f;
 		test_img->scale.x = 200.0f;
@@ -439,7 +392,6 @@ public:
 		player->player_model = test_arms;
 		player->skel = player_skel;
 
-
 		camera->parent = cam_to_bone;
 		cam_to_bone->parent_skel = player_skel;
 		cam_to_bone->parent_bone_index = 8; //head bone is at index 8, we could add methods for finding the bone
@@ -447,15 +399,19 @@ public:
 		player_skel->parent = player;
 		camera->set_persp_view(90.0f * DEG_TO_RAD, screen_width,screen_height, 0.01f, 1000.0f);
 		camera->set_ortho_view(screen_width,screen_height,0.0001f,1.0f);
-
 	}
 
 	//Ran on last frame
 	//This is where we destroy our game objects
 	void finish()
 	{
-		test_text->term();
-		test_img->term();
+		delete test_text;
+		delete test_img;
+
+		delete player;
+		delete test_sound_source;
+		delete camera;
+		delete cam_to_bone;
 	}
 
 	//Updates the game state / logic

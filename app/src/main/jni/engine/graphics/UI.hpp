@@ -54,7 +54,10 @@ public:
 	int set_text(const char* text_to_set);
 
 	void clear_text();
+	UI_Text(Material* m, Texture* tex);
+	~UI_Text();
 
+private:
 	int init(Material* m, Texture* tex);
 	void term();
 };
@@ -90,6 +93,10 @@ public:
 
 	int render(Mat4 vp);
 
+	UI_Image(Material* m, Texture* tex);
+	~UI_Image();
+
+private:
 	int init(Material* m, Texture* tex);
 	void term();
 	//TODO: consider adding animated sprite sheet support if we ever find ourselves in need of them

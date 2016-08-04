@@ -177,6 +177,16 @@ void UI_Text::term()
 	clear_text();
 }
 
+UI_Text::UI_Text (Material *m, Texture *tex)
+{
+	init(m,tex);
+}
+
+UI_Text::~UI_Text()
+{
+	term();
+}
+
 
 //============================ UI_Image method implementations ==============================
 int UI_Image::render(Mat4 vp)
@@ -259,4 +269,14 @@ int UI_Image::init(Material* m, Texture* texture)
 }
 void UI_Image::term()
 {
+}
+
+UI_Image::UI_Image(Material* m, Texture* tex)
+{
+	init(m,tex);
+}
+
+UI_Image::~UI_Image()
+{
+	term();
 }

@@ -18,6 +18,16 @@ public:
 
 	int raw_data_length = 0;
 
+	Sound_Sample(const char* filepath)
+	{
+		load(filepath);
+	}
+	~Sound_Sample()
+	{
+		unload();
+	};
+
+private:
 	int load(const char* filepath)
 	{
 		//Test audio file loading
@@ -50,6 +60,7 @@ public:
 			free((void*)raw_data);
 		raw_data_length = 0;
 	}
+
 };
 
 

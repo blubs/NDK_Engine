@@ -40,11 +40,15 @@ public:
 
 	//We will eventually need methods for combining Meshes, and copying Meshes
 
-	int load_model(const char* filepath);
-
 	int init_gl();
 
 	void term_gl();
+
+	Skel_Model(const char* filepath);
+	~Skel_Model();
+
+private:
+	int load_model(const char* filepath);
 	void unload_model();
 
 };
