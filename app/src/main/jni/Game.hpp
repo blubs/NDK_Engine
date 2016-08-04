@@ -106,7 +106,6 @@ public:
 
 		return 1;
 	}
-
 	void unload_materials()
 	{
 		delete mat_red;
@@ -144,7 +143,6 @@ public:
 		skybox = new Skybox();
 		return 1;
 	}
-
 	void unload_models()
 	{
 		delete test_arms;
@@ -162,7 +160,6 @@ public:
 		test_pulse = new Sound_Sample("test_audio_pulse.raw");
 		return 1;
 	}
-
 	void unload_sounds()
 	{
 		delete test_pulse;
@@ -182,10 +179,6 @@ public:
 			return 0;
 		return 1;
 	}
-
-	//=================================================================================================
-
-
 	void unload_assets ()
 	{
 		unload_sounds();
@@ -217,9 +210,7 @@ public:
 			"mvp",
 			"test_color_param"
 		};
-		uint param_count = 6;
-
-		test_shader->init_gl(param_types, param_names,param_count);
+		test_shader->init_gl(param_types, param_names,6);
 
 		//======================================= Initializing the UI text shader =================================
 		GLuint text_param_types[] =
@@ -240,12 +231,9 @@ public:
 			"mult_color",
 			"add_color"
 		};
-		uint text_param_count = 6;
-
-		text_shader->init_gl(text_param_types, text_param_names,text_param_count);
+		text_shader->init_gl(text_param_types, text_param_names,6);
 
 		//========================================= Initializing the skeletal mesh shader ================================
-
 		GLuint skel_mesh_params[] =
 		{
 			Shader::PARAM_VERTICES,
@@ -273,7 +261,6 @@ public:
 		skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 9);
 
 		//=========================================== Initializing Static Mesh Color Shader =====================
-
 		GLuint static_mesh_params[] =
 		{
 			Shader::PARAM_VERTICES,
@@ -317,7 +304,6 @@ public:
 		skel_color_shader->term_gl();
 		static_color_shader->term_gl();
 		text_shader->term_gl();
-
 
 		//Terminating all loaded models
 		test_arms->term_gl();
@@ -412,6 +398,28 @@ public:
 		delete test_sound_source;
 		delete camera;
 		delete cam_to_bone;
+	}
+
+	//Input static identifiers
+	const static int INPUT_EVENT_ON_TOUCH_DOWN = 1;
+	const static int INPUT_EVENT_ON_TOUCH_MOVE = 2;
+	const static int INPUT_EVENT_ON_TOUCH_RELEASE = 3;
+
+	//Temp test input variables
+	float input_x;
+	float input_y;
+
+	int handle_input(float x, float y, int event)
+	{
+		switch(event)
+		{
+			case INPUT_EVENT_ON_TOUCH_DOWN:
+			case INPUT_EVENT_ON_TOUCH_MOVE:
+			case INPUT_EVENT_ON_TOUCH_RELEASE:
+				input_x = x;
+				input_y = y;
+				break;
+		}
 	}
 
 	//Updates the game state / logic

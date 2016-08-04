@@ -117,34 +117,36 @@ int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 
 	if(type == AINPUT_EVENT_TYPE_MOTION)
 	{
-		/*int32_t motion_action = AMotionEvent_getAction(event);
-		int motion_type = motion_action & AMOTION_EVENT_ACTION_MASK;
-		float x = 0;
-		float y = 0;
-		switch(motion_type)
-		{
-			case AMOTION_EVENT_ACTION_DOWN:
-				x = AMotionEvent_getX(event, 0) / eng->width;
-				y = AMotionEvent_getY(event, 0) / eng->height;//0 being pointer index
-				//LOGI("Amotion event action down: (%.4f,%.4f)\n",x,y);
-				break;
-			case AMOTION_EVENT_ACTION_UP:
-				x = AMotionEvent_getX(event, 0) / eng->width;
-				y = AMotionEvent_getY(event, 0) / eng->height;//0 being pointer index
-				//LOGI("Amotion event action up: (%.4f,%.4f)\n",x,y);
-				break;
-			case AMOTION_EVENT_ACTION_MOVE:
-				x = AMotionEvent_getX(event, 0) / eng->width;
-				y = AMotionEvent_getY(event, 0) / eng->height;//0 being pointer index
-				//LOGI("Amotion event action move: (%.4f,%.4f)\n",x,y);
-				break;
-			default:
-				break;
-		}*/
-
 		eng->animating = 1;
 		eng->state.x = AMotionEvent_getX(event, 0) / eng->width;
 		eng->state.y = AMotionEvent_getY(event, 0) / eng->height;
+
+
+		int event = 0;
+		int32_t motion_action = AMotionEvent_getAction(event);
+		int motion_type = motion_action & AMOTION_EVENT_ACTION_MASK;
+
+
+
+		switch(motion_type)
+		{
+			case AMOTION_EVENT_ACTION_DOWN:
+				event = Game::INPUT_EVENT_ON_TOUCH_DOWN;
+				break;
+			case AMOTION_EVENT_ACTION_UP:
+				event = Game::INPUT_EVENT_ON_TOUCH_RELEASE;
+				break;
+			case AMOTION_EVENT_ACTION_MOVE:
+				event = Game::INPUT_EVENT_ON_TOUCH_MOVE;
+				break;
+			default:
+				break;
+		}
+		if(eng->game && event)
+		{
+			eng->game->handle_input(eng->state.x,eng->state.y,event);
+		}
+
 		return 1;
 	}
 	return 0;
