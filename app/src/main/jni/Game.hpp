@@ -431,7 +431,235 @@ public:
 	//Draws the scene
 	void render()
 	{
-		//TODO
+		//Filling the screen with a color
+		//glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
+
+		//Setting all transforms to be recalculated
+		player_skel->transform_calculated = false;
+		camera->transform_calculated = false;
+		player->transform_calculated = false;
+		test_sound_source->transform_calculated = false;
+		cam_to_bone->transform_calculated = false;
+
+
+		//glClear(GL_COLOR_BUFFER_BIT);
+
+		//================================== Begin Drawing test boxes ==========================================
+
+		const float cube_vertices[] =
+		{
+			//Front quad
+			-0.5f, 0.5f, 0.5f,
+			0.5f, 0.5f, 0.5f,
+			0.5f, 0.5f, -0.5f,
+			-0.5f, 0.5f, -0.5f,
+			//Back quad
+			0.5f, -0.5f, 0.5f,
+			-0.5f, -0.5f, 0.5f,
+			-0.5f, -0.5f, -0.5f,
+			0.5f, -0.5f, -0.5f,
+			//Right quad
+			//Left quad
+			//Top quad
+			//Bottom quad
+		};
+		const float cube_uvs[] =
+		{
+			//Front quad
+			1.0f, 0.0f,
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f,
+			//Back quad
+			1.0f, 0.0f,
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f,
+			//Right quad
+			//Left quad
+			//Top quad
+			//Bottom quad
+		};
+		const float cube_colors[] =
+		{
+			//Front quad
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			//Back quad
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 1.0f,
+			//Right quad
+			//Left quad
+			//Top quad
+			//Bottom quad
+		};
+
+		camera->pos = Vec3::ZERO();
+		camera->angles = Vec3::ZERO();
+		//Pitch
+		//camera->angles.x = ((0.5f - state.y) * TWO_PI);
+		//Yaw
+		//camera->angles.y = (0.5f - state.x) * TWO_PI;
+		//Roll
+		//camera->angles.z = 0.0f;
+		camera->update_view_matrix();
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//Referencing vertices by index
+		unsigned int cube_tris[] =
+		{
+			//Front quad
+			0, 1, 2, 2, 3, 0,
+			//Back quad
+			4, 5, 6, 6, 7, 4,
+			//Right quad
+			1, 4, 7, 7, 2, 1,
+			//Left quad
+			0, 3, 6, 6, 5, 0,
+			//Top quad
+			4, 1, 0, 0, 5, 4,
+			//Bottom quad
+			6, 3, 2, 2, 7, 6,
+		};
+
+		//TODO: material should hold these buffers
+		GLuint element_buffer;
+		glGenBuffers(1, &element_buffer);
+		//Bind the buffer to set the data
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)size of indices, cube_tris, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int), cube_tris, GL_STATIC_DRAW);
+
+		//Getting the texture gl_id
+		GLuint tex_gl_id = test_texture->gl_id;
+
+		int i = 0;
+		int j = 0;
+		int k = 0;
+		//Drawing a 3d array of cubes
+		for(i = 0; i < 4; i++)
+		{
+			for(j = 0; j < 4; j++)
+			{
+				for(k = 0; k < 4; k++)
+				{
+					if(i == 2 || j == 2 || k == 2)
+						continue;
+					Vec3 pos(5.0f * (i - 2.0f), 5.0f * (j - 2.0f), 5.0f * (k - 2.0f));
+
+					Mat4 model_pos = Mat4::TRANSLATE(pos);
+					//Mat4 model_transform = model_pos * model_rot; //don't rotate
+					Mat4 model_transform = model_pos; //don't rotate
+					Mat4 mvp = camera->persp_proj_m * camera->view_m * model_transform;
+
+					//Make a checker board pattern of cubes (alternating materials between each subsequent cube)
+					if((i + j + k) % 2)
+					{
+						mat_red->bind_material();
+						mat_red->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
+						mat_red->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
+						mat_red->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
+						mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex_gl_id);
+						mat_red->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
+					}
+					else
+					{
+						mat_blue->bind_material();
+						mat_blue->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
+						mat_blue->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
+						mat_blue->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
+						mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex_gl_id);
+						mat_blue->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
+					}
+					glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);
+				}
+			}
+		}
+		//================================== End Drawing test boxes ==========================================
+
+		Mat4 vp = camera->persp_proj_m * camera->view_m;
+
+		//if(state.x > 0.95f && player_skel->playing_anim)
+		//	player_skel->stop_anim();
+
+		//For test playing vault animation
+		static bool played_anim = false;
+		if(!played_anim)
+		{
+			played_anim = true;
+			player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+		}
+		//if(state.x < 0.10f)
+		//{
+		//	if( player_skel->current_anim != 2 && !played_anim)
+		//	{
+		//		played_anim = true;
+		//		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+		//	}
+		//}
+		//else
+		//{
+		//	played_anim = false;
+		//}
+
+		//Test show/hide ad calls
+		static bool ad_visible = false;
+		if(input_x < 0.10f && ad_visible)
+		{
+			//TODO: how to access jnii?
+		//	jnii->hide_ad();
+			ad_visible = false;
+		}
+		else if(input_x > 0.90f && !ad_visible)
+		{
+		//	jnii->show_ad();
+			ad_visible = true;
+		}
+
+		float t = time();
+
+		//Make player spin
+		//player->angles.y = fmodf(t*2.0f,TWO_PI);
+		player->angles.x = ((0.5f - input_y) * TWO_PI);
+		player->angles.y = (0.5f - input_x) * TWO_PI;
+
+		player->render(vp);
+
+		//Making the test audio source rotate about the player
+		//float distance = 5.0f + 2.0f * cosf(t*12.75f);
+		float distance = 5.0f;
+		test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
+		//test_sound_source->pos = Vec3(0,distance,0);
+		test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
+		//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
+		//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
+
+
+		//=========== Test Audio Playing every 0.5 seconds ==============
+		static float time_to_play_audio = 0.0f;
+		if(t > time_to_play_audio)
+		{
+			time_to_play_audio = t + 0.5f;
+			test_sound_source->play_sound(test_pulse);
+		}
+		Mat4 view_no_translation = camera->inf_proj_m * ((camera->view_m).pos_removed());
+		skybox->render(view_no_translation);
+
+		//Have to draw transparent sources after skybox
+		test_sound_source->render(vp);
+
+
+		//Test UI image
+		//test_text->render(camera->ortho_proj_m);
+		//test_img->render(camera->ortho_proj_m);
+
+		//TODO: make this only execute at 30 times per second
+		player->update();
 	}
 
 };
