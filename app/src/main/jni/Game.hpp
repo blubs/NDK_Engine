@@ -425,7 +425,67 @@ public:
 	//Updates the game state / logic
 	void update()
 	{
-		//TODO
+		//if(state.x > 0.95f && player_skel->playing_anim)
+		//	player_skel->stop_anim();
+
+		//For test playing vault animation
+		static bool played_anim = false;
+		if(!played_anim)
+		{
+			played_anim = true;
+			player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+		}
+		//if(state.x < 0.10f)
+		//{
+		//	if( player_skel->current_anim != 2 && !played_anim)
+		//	{
+		//		played_anim = true;
+		//		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+		//	}
+		//}
+		//else
+		//{
+		//	played_anim = false;
+		//}
+
+		//Test show/hide ad calls
+		static bool ad_visible = false;
+		if(input_x < 0.10f && ad_visible)
+		{
+			//TODO: how to access jnii?
+			//	jnii->hide_ad();
+			ad_visible = false;
+		}
+		else if(input_x > 0.90f && !ad_visible)
+			{
+				//	jnii->show_ad();
+				ad_visible = true;
+			}
+
+		float t = time();
+
+		//Make player spin
+		//player->angles.y = fmodf(t*2.0f,TWO_PI);
+		player->angles.x = ((0.5f - input_y) * TWO_PI);
+		player->angles.y = (0.5f - input_x) * TWO_PI;
+
+		//Making the test audio source rotate about the player
+		//float distance = 5.0f + 2.0f * cosf(t*12.75f);
+		float distance = 5.0f;
+		test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
+		//test_sound_source->pos = Vec3(0,distance,0);
+		test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
+		//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
+		//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
+
+
+		//=========== Test Audio Playing every 0.5 seconds ==============
+		static float time_to_play_audio = 0.0f;
+		if(t > time_to_play_audio)
+		{
+			time_to_play_audio = t + 0.5f;
+			test_sound_source->play_sound(test_pulse);
+		}
 	}
 
 	//Draws the scene
@@ -584,70 +644,9 @@ public:
 
 		Mat4 vp = camera->persp_proj_m * camera->view_m;
 
-		//if(state.x > 0.95f && player_skel->playing_anim)
-		//	player_skel->stop_anim();
-
-		//For test playing vault animation
-		static bool played_anim = false;
-		if(!played_anim)
-		{
-			played_anim = true;
-			player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
-		}
-		//if(state.x < 0.10f)
-		//{
-		//	if( player_skel->current_anim != 2 && !played_anim)
-		//	{
-		//		played_anim = true;
-		//		player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
-		//	}
-		//}
-		//else
-		//{
-		//	played_anim = false;
-		//}
-
-		//Test show/hide ad calls
-		static bool ad_visible = false;
-		if(input_x < 0.10f && ad_visible)
-		{
-			//TODO: how to access jnii?
-		//	jnii->hide_ad();
-			ad_visible = false;
-		}
-		else if(input_x > 0.90f && !ad_visible)
-		{
-		//	jnii->show_ad();
-			ad_visible = true;
-		}
-
-		float t = time();
-
-		//Make player spin
-		//player->angles.y = fmodf(t*2.0f,TWO_PI);
-		player->angles.x = ((0.5f - input_y) * TWO_PI);
-		player->angles.y = (0.5f - input_x) * TWO_PI;
-
 		player->render(vp);
-
-		//Making the test audio source rotate about the player
-		//float distance = 5.0f + 2.0f * cosf(t*12.75f);
-		float distance = 5.0f;
-		test_sound_source->pos = Vec3(distance * cosf(0.5f*t),distance * sinf(0.5f*t),0.0f);
-		//test_sound_source->pos = Vec3(0,distance,0);
-		test_sound_source->angles.y = fmodf(t*8.0f,TWO_PI);
-		//test_sound_source->angles.x = fmodf(t*2.5f,TWO_PI);	makes cube tumble!
-		//test_sound_source->angles.z = fmodf(t*3.0f,TWO_PI);	makes cube tumble!
-
-
-		//=========== Test Audio Playing every 0.5 seconds ==============
-		static float time_to_play_audio = 0.0f;
-		if(t > time_to_play_audio)
-		{
-			time_to_play_audio = t + 0.5f;
-			test_sound_source->play_sound(test_pulse);
-		}
 		Mat4 view_no_translation = camera->inf_proj_m * ((camera->view_m).pos_removed());
+
 		skybox->render(view_no_translation);
 
 		//Have to draw transparent sources after skybox

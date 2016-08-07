@@ -144,7 +144,6 @@ int32_t Engine::handle_input (struct android_app *app, AInputEvent *event)
 		{
 			eng->game->handle_input(eng->state.x,eng->state.y,event_type);
 		}
-
 		return 1;
 	}
 	return 0;
