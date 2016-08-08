@@ -302,6 +302,7 @@ void Engine::first_frame()
 {
 	game->screen_width = width;
 	game->screen_height = height;
+	game->jnii = jnii;
 	game->start();
 	Audio_Engine::set_audio_listener(game->audio_listener);
 }

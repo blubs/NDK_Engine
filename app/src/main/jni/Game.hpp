@@ -11,6 +11,7 @@
 #include "engine/graphics/UI.hpp"
 #include "engine/graphics/Skybox.hpp"
 #include "engine/sound/Sound_Source.hpp"
+#include "engine/JNI_Interface.hpp"
 
 
 class Game
@@ -29,6 +30,9 @@ public:
 	Camera* audio_listener;
 	int32_t screen_width;
 	int32_t screen_height;
+
+	//Access to engine-initiated JNI interface
+	JNI_Interface* jnii;
 
 	//=========================== Game Asset Variables ====================
 	//-------------- Sound Files --------------
@@ -452,15 +456,14 @@ public:
 		static bool ad_visible = false;
 		if(input_x < 0.10f && ad_visible)
 		{
-			//TODO: how to access jnii?
-			//	jnii->hide_ad();
+			jnii->hide_ad();
 			ad_visible = false;
 		}
 		else if(input_x > 0.90f && !ad_visible)
-			{
-				//	jnii->show_ad();
-				ad_visible = true;
-			}
+		{
+			jnii->show_ad();
+			ad_visible = true;
+		}
 
 		float t = time();
 
@@ -493,7 +496,6 @@ public:
 	{
 		//Filling the screen with a color
 		//glClearColor(state.x, 0.0f/*state.angle*/, state.y, 1);
-
 		//Setting all transforms to be recalculated
 		player_skel->transform_calculated = false;
 		camera->transform_calculated = false;
