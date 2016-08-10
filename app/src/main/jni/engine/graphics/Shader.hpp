@@ -26,23 +26,25 @@ public:
 	//Static types for parameters
 	static const int PARAM_VERTICES = 1;
 	static const int PARAM_VERT_NORMALS = 2;
-	static const int PARAM_VERT_COLORS = 3;
-	static const int PARAM_VERT_UV1 = 4;
-	static const int PARAM_VERT_UV2 = 5;
-	static const int PARAM_MVP_MATRIX = 6;
-	static const int PARAM_M_IT_MATRIX = 7;
-	static const int PARAM_TEXTURE_DIFFUSE = 8;
-	//static const int PARAM_TEXTURE_NORMAL = 9; TODO: later
-	//static const int PARAM_TEXTURE_MISC = 10; TODO: later
-	//static const int PARAM_TEXTURE_LIGHTMAP = 11; TODO: later
-	static const int PARAM_BONE_MATRICES = 12;
-	static const int PARAM_BONE_IT_MATRICES = 13;
-	static const int PARAM_BONE_INDICES = 14;
-	static const int PARAM_BONE_WEIGHTS = 15;
-	static const int PARAM_COLOR_MULT = 16;
-	static const int PARAM_COLOR_ADD = 17;
-	static const int PARAM_CUBE_MAP = 18;
-	static const int PARAM_TEST_FIELD = 20;
+	static const int PARAM_VERT_TANGENTS = 3;
+	static const int PARAM_VERT_BINORMALS = 4;
+	static const int PARAM_VERT_COLORS = 5;
+	static const int PARAM_VERT_UV1 = 6;
+	static const int PARAM_VERT_UV2 = 7;
+	static const int PARAM_MVP_MATRIX = 8;
+	static const int PARAM_M_IT_MATRIX = 9;
+	static const int PARAM_TEXTURE_DIFFUSE = 10;
+	static const int PARAM_TEXTURE_NORMAL = 11;
+	static const int PARAM_TEXTURE_MISC = 12;
+	static const int PARAM_TEXTURE_LIGHTMAP = 13;
+	static const int PARAM_BONE_MATRICES = 14;
+	static const int PARAM_BONE_IT_MATRICES = 15;
+	static const int PARAM_BONE_INDICES = 16;
+	static const int PARAM_BONE_WEIGHTS = 17;
+	static const int PARAM_COLOR_MULT = 18;
+	static const int PARAM_COLOR_ADD = 19;
+	static const int PARAM_CUBE_MAP = 20;
+	static const int PARAM_TEST_FIELD = 21;
 	//TODO: any other parameter types
 
 	//Arrays that hold arbitrary types of parameters

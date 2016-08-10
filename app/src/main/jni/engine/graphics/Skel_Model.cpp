@@ -20,6 +20,8 @@ int Skel_Model::render(Mat4 m,Mat4 vp, Material* mat)
 	mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
 	mat->bind_value(Shader::PARAM_VERT_UV1, (void*) uv_coords);
 	mat->bind_value(Shader::PARAM_VERT_NORMALS, (void*) normals);
+	mat->bind_value(Shader::PARAM_VERT_TANGENTS, (void*) normals);
+	mat->bind_value(Shader::PARAM_VERT_BINORMALS, (void*) normals);
 
 	Mat4 mvp = vp * m;
 	mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
@@ -62,6 +64,8 @@ int Skel_Model::load_model(const char* filepath)
 	//List thereafter is the position (3 floats) of all vertices
 	//List thereafter is the uv coordinates (2 floats) of all vertices
 	//List thereafter is the normals (3 floats) of all vertices
+	//List thereafter is the tangents (3 floats) of all vertices
+	//List thereafter is the binormals (3 floats) of all vertices
 	//List thereafter is 3 bone indices for all vertices
 	//List thereafter is 3 bone weights pertaining to the 3 bone indices defined above
 	//List thereafter is the indices vertices that make up the triangles
@@ -71,10 +75,12 @@ int Skel_Model::load_model(const char* filepath)
 	verts = (float*) raw_data + 2;
 	uv_coords = (float*) raw_data + 2 + (vertex_count*3);
 	normals = (float*) raw_data + 2 + (vertex_count*3) + (vertex_count * 2);
-	bone_indices = (float*) raw_data + 2 + 2*(vertex_count*3) + (vertex_count * 2);
-	bone_weights = (float*) raw_data + 2 + 3*(vertex_count*3) + (vertex_count * 2);
+	tangents = (float*) raw_data + 2 + 2*(vertex_count*3) + (vertex_count * 2);
+	binormals = (float*) raw_data + 2 + 3*(vertex_count*3) + (vertex_count * 2);
+	bone_indices = (float*) raw_data + 2 + 4*(vertex_count*3) + (vertex_count * 2);
+	bone_weights = (float*) raw_data + 2 + 5*(vertex_count*3) + (vertex_count * 2);
 
-	tri_verts = raw_data + 2 + 4*(vertex_count*3) + (vertex_count*2);
+	tri_verts = raw_data + 2 + 6*(vertex_count*3) + (vertex_count*2);
 	return 1;
 }
 

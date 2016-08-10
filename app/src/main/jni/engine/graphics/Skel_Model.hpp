@@ -21,6 +21,8 @@ public:
 	const float* verts;
 	const float* uv_coords;
 	const float* normals;
+	const float* tangents;
+	const float* binormals;
 
 	const float* bone_indices;
 	const float* bone_weights;

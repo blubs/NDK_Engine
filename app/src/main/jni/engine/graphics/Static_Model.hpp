@@ -21,6 +21,8 @@ public:
 	const float* uv_coords_1;
 	const float* uv_coords_2;
 	const float* normals;
+	const float* tangents;
+	const float* binormals;
 
 	const unsigned int* tri_verts;
 

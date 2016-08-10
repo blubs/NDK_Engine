@@ -99,6 +99,8 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 			//Attributes
 			case PARAM_VERTICES:
 			case PARAM_VERT_NORMALS:
+			case PARAM_VERT_TANGENTS:
+			case PARAM_VERT_BINORMALS:
 			case PARAM_VERT_COLORS:
 			case PARAM_VERT_UV1:
 			case PARAM_VERT_UV2:
@@ -113,6 +115,9 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 			case PARAM_MVP_MATRIX:
 			case PARAM_M_IT_MATRIX:
 			case PARAM_TEXTURE_DIFFUSE:
+			case PARAM_TEXTURE_NORMAL:
+			case PARAM_TEXTURE_MISC:
+			case PARAM_TEXTURE_LIGHTMAP:
 			case PARAM_COLOR_MULT:
 			case PARAM_COLOR_ADD:
 			case PARAM_TEST_FIELD:
@@ -120,6 +125,7 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 				*((GLint*)(param_location[i])) = -1;
 				*((GLint*)(param_location[i])) = glGetUniformLocation(gl_program, param_identifiers[i]);
 				break;
+			//Matrix Arrays
 			case PARAM_BONE_MATRICES:
 			case PARAM_BONE_IT_MATRICES:
 			{
@@ -237,6 +243,8 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 	{
 		case PARAM_VERTICES:
 		case PARAM_VERT_NORMALS:
+		case PARAM_VERT_TANGENTS:
+		case PARAM_VERT_BINORMALS:
 			uloc = *((GLuint*)(param_location[index]));
 			glVertexAttribPointer(uloc, 3, GL_FLOAT, GL_FALSE, 0, (float *) data);
 			glEnableVertexAttribArray(uloc);
@@ -261,6 +269,9 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 			glUniformMatrix4fv(loc, 1, GL_FALSE, ((float *) data));
 			break;
 		case PARAM_TEXTURE_DIFFUSE:
+		case PARAM_TEXTURE_NORMAL:
+		case PARAM_TEXTURE_LIGHTMAP:
+		case PARAM_TEXTURE_MISC:
 			loc = *((GLint*)(param_location[index]));
 			glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
 			glBindTexture(GL_TEXTURE_2D, (GLuint) data);

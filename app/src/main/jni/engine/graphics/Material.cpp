@@ -64,7 +64,7 @@ int Material::set_fixed_shader_param (GLint type, void *value, int param_length)
 		if(type == shader->param_type[i])
 		{
 			//Actually allocate our own memory for the pointer
-			alloced_params[i] = malloc(sizeof(char) * param_length);
+			alloced_params[i] = malloc(param_length);
 			memcpy((alloced_params[i]), value, (size_t) param_length);
 			return 1;
 		}

@@ -43,6 +43,7 @@ public:
 	Shader* skel_color_shader = NULL;
 	Shader* static_color_shader = NULL;
 	Shader* text_shader = NULL;
+	Shader* player_skin_shader = NULL;
 
 	//------------- Materials -----------------
 	Material* mat_red = NULL;
@@ -50,10 +51,12 @@ public:
 	Material* skel_color_mat= NULL;
 	Material* static_color_mat = NULL;
 	Material* text_mat = NULL;
+	Material* player_skin_mat = NULL;
 
 	//------------ Textures -------------------
 	Texture* test_texture = NULL;
 	Texture* char_set = NULL;
+	Texture* tex_arm_nor = NULL;
 	Cube_Map* test_cube_map = NULL;
 
 	//------------- Models --------------------
@@ -82,22 +85,20 @@ public:
 
 	int load_shaders ()
 	{
-		test_shader = new Shader("minimal.vert","minimal.frag");
-		skel_color_shader = new Shader("skeletal_color.vert","skeletal_color.frag");
-		static_color_shader = new Shader("static_color.vert","static_color.frag");
-		text_shader = new Shader("monochrome_transparent.vert","monochrome_transparent.frag");
+		test_shader = new Shader("shaders/minimal.vert","shaders/minimal.frag");
+		skel_color_shader = new Shader("shaders/skeletal_color.vert","shaders/skeletal_color.frag");
+		static_color_shader = new Shader("shaders/static_color.vert","shaders/static_color.frag");
+		text_shader = new Shader("shaders/monochrome_transparent.vert","shaders/monochrome_transparent.frag");
+		player_skin_shader = new Shader("shaders/player_skin.vert","shaders/player_skin.frag");
 		return 1;
 	}
 	void unload_shaders ()
 	{
-		if(test_shader)
-			delete test_shader;
-		if(skel_color_shader)
-			delete skel_color_shader;
-		if(static_color_shader)
-			delete static_color_shader;
-		if(text_shader)
-			delete text_shader;
+		delete test_shader;
+		delete skel_color_shader;
+		delete static_color_shader;
+		delete text_shader;
+		delete player_skin_shader;
 	}
 
 	int load_materials()
@@ -107,6 +108,7 @@ public:
 		skel_color_mat = new Material();
 		static_color_mat = new Material();
 		text_mat = new Material();
+		player_skin_mat = new Material();
 
 		return 1;
 	}
@@ -116,12 +118,14 @@ public:
 		delete mat_blue;
 		delete skel_color_mat;
 		delete text_mat;
+		delete player_skin_mat;
 	}
 
 	int load_textures()
 	{
 		test_texture = new Texture("tex.pkm",512,512);
 		char_set = new Texture("char_set.pkm",2048,2048);
+		tex_arm_nor = new Texture("textures/arm_nor.pkm",1024,1024);
 		test_cube_map = new Cube_Map("cube_maps/test_cube_map.pkm",512);
 		return 1;
 	}
@@ -129,6 +133,7 @@ public:
 	{
 		delete test_texture;
 		delete char_set;
+		delete tex_arm_nor;
 		delete test_cube_map;
 	}
 
@@ -264,6 +269,39 @@ public:
 		};
 		skel_color_shader->init_gl(skel_mesh_params, skel_mesh_param_names, 9);
 
+		//========================================= Initializing Player Skin Skeletal Shader =============================
+		GLuint player_skin_params[] =
+		{
+			Shader::PARAM_VERTICES,
+			Shader::PARAM_VERT_UV1,
+			Shader::PARAM_VERT_NORMALS,
+			Shader::PARAM_VERT_TANGENTS,
+			Shader::PARAM_VERT_BINORMALS,
+			Shader::PARAM_TEXTURE_NORMAL,
+			Shader::PARAM_MVP_MATRIX,
+			Shader::PARAM_M_IT_MATRIX,
+			Shader::PARAM_BONE_INDICES,
+			Shader::PARAM_BONE_WEIGHTS,
+			Shader::PARAM_BONE_MATRICES,
+			Shader::PARAM_BONE_IT_MATRICES
+		};
+		const char *player_skin_param_names[] =
+		{
+			"vert_pos",
+			"vert_uv",
+			"vert_nor",
+			"vert_tan",
+			"vert_binor",
+			"tex_nor",
+			"mvp",
+			"m_IT",
+			"bone_index",
+			"bone_weight",
+			"bone",
+			"bone_IT"
+		};
+		player_skin_shader->init_gl(player_skin_params,player_skin_param_names,12);
+
 		//=========================================== Initializing Static Mesh Color Shader =====================
 		GLuint static_mesh_params[] =
 		{
@@ -290,6 +328,7 @@ public:
 		//==================================== Loading textures =======================================
 		test_texture->init_gl();
 		char_set->init_gl();
+		tex_arm_nor->init_gl();
 		test_cube_map->init_gl();
 
 		//==================================== Setting up Mesh VBOs ====================================
@@ -318,6 +357,7 @@ public:
 
 		test_texture->term_gl();
 		char_set->term_gl();
+		tex_arm_nor->term_gl();
 		test_cube_map->term_gl();
 	}
 
@@ -334,7 +374,7 @@ public:
 		audio_listener = camera;
 
 		player_skel->set_default_anim(0,Skeleton::END_TYPE_LOOP);
-		player->mat = skel_color_mat;
+		player->mat = player_skin_mat;
 		test_arms->skel = player_skel;
 
 		//============================= Setting up materials ================================
@@ -344,7 +384,9 @@ public:
 		text_mat->set_shader(text_shader);
 		skel_color_mat->set_shader(skel_color_shader);
 		static_color_mat->set_shader(static_color_shader);
+		player_skin_mat->set_shader(player_skin_shader);
 
+		player_skin_mat->set_fixed_shader_param(Shader::PARAM_TEXTURE_NORMAL,(void*)&(tex_arm_nor->gl_id),sizeof(GLuint));
 
 		//Setting up fixed shader parameters
 		float temp_color[] = {1.0f, 1.0f, 0.0f, 1.0f};
@@ -489,6 +531,9 @@ public:
 			time_to_play_audio = t + 0.5f;
 			test_sound_source->play_sound(test_pulse);
 		}
+
+		//TODO: make this only execute at 30 times per second
+		player->update();
 	}
 
 	//Draws the scene
@@ -658,9 +703,6 @@ public:
 		//Test UI image
 		//test_text->render(camera->ortho_proj_m);
 		//test_img->render(camera->ortho_proj_m);
-
-		//TODO: make this only execute at 30 times per second
-		player->update();
 	}
 
 };

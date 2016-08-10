@@ -345,7 +345,6 @@ void Engine::draw_frame ()
 	}
 
 	static bool is_first_frame = true;
-
 	if(is_first_frame)
 	{
 		first_frame();
