@@ -347,13 +347,12 @@ void Engine::draw_frame ()
 	static bool is_first_frame = true;
 	if(is_first_frame)
 	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glDepthMask(GL_TRUE);
 		first_frame();
 		is_first_frame = false;
 	}
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glDepthMask(GL_TRUE);
 
 	game->update();
 	game->render();

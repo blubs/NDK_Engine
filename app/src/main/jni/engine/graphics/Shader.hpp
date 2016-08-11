@@ -47,6 +47,8 @@ public:
 	static const int PARAM_TEST_FIELD = 21;
 	//TODO: any other parameter types
 
+
+
 	//Arrays that hold arbitrary types of parameters
 	void** param_location;
 	GLuint* param_type;
@@ -80,5 +82,32 @@ private:
 
 	//Frees the loaded raw shader source
 	void unload();
+
+public:
+	//The following section is for static global variables that shaders access if the source includes reference to them
+	//Global parameters
+	static const int GLOBAL_PARAM_FLOAT_TIME = 0;
+	static const int GLOBAL_PARAM_MATRIX_VP = 1;
+	static const int GLOBAL_PARAM_MATRIX_V = 2;
+	static const int GLOBAL_PARAM_MATRIX_V_NOTRANS_P_INF = 3;//For skybox
+	static const int GLOBAL_PARAM_MATRIX_P_PERSP = 4;
+	static const int GLOBAL_PARAM_MATRIX_P_ORTHO = 5;
+	static const int GLOBAL_PARAM_MATRIX_P_INF = 6;
+	static const int GLOBAL_PARAM_VEC3_CAM_POS = 7;
+	static const int GLOBAL_PARAM_VEC3_CAM_DIR = 8;
+	static const int GLOBAL_PARAM_VEC3_DIRLIGHT_DIR = 9;
+	static const int GLOBAL_PARAM_VEC3_DIRLIGHT_COL = 10;
+
+	static const char* GLOBAL_PARAM_FLOAT_TIME_ID = "time";
+	static const char* GLOBAL_PARAM_MATRIX_VP_ID = "mat_vp";
+	static const char* GLOBAL_PARAM_MATRIX_V_ID = "mat_v";
+	static const char* GLOBAL_PARAM_MATRIX_V_NOTRANS_P_INF_ID = "mat_vp_skybox";//For skybox
+	static const char* GLOBAL_PARAM_MATRIX_P_PERSP_ID = "mat_p_persp";
+	static const char* GLOBAL_PARAM_MATRIX_P_ORTHO_ID = "mat_p_ortho";
+	static const char* GLOBAL_PARAM_MATRIX_P_INF_ID = "mat_p_inf";
+	static const char* GLOBAL_PARAM_VEC3_CAM_POS_ID = "cam_pos";
+	static const char* GLOBAL_PARAM_VEC3_CAM_DIR_ID = "cam_dir";
+	static const char* GLOBAL_PARAM_VEC3_DIRLIGHT_DIR_ID = "dirlight_dir";
+	static const char* GLOBAL_PARAM_VEC3_DIRLIGHT_COL_ID = "dirlight_col";
 };
 #endif //ENGINE_SHADER_H
