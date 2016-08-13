@@ -174,11 +174,13 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 				break;
 		}
 	}
+	init_global_params();
 	return 0;
 }
 
 void Shader::term_gl ()
 {
+	term_global_params();
 	if(frag_shader)
 		GL_Utils::unload_shader(frag_shader);
 	if(vert_shader)
@@ -209,6 +211,7 @@ void Shader::term_gl ()
 int Shader::bind_shader ()
 {
 	glUseProgram(gl_program);
+	bind_used_global_params();
 	bound_textures = 0;
 	return 1;
 }
@@ -328,3 +331,43 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 	}
 	return 1;
 }
+
+
+//Global Param variable initialization
+//GLint global_param_loc[5] = {-1,-1,-1,-1,-1};
+
+//GLOBAL_PARAM_COUNT = 5;
+
+//Global parameter SHADER identifiers
+const char *Shader::GLOBAL_PARAM_FLOAT_TIME_ID = "time";
+const char *Shader::GLOBAL_PARAM_VEC3_CAM_POS_ID = "cam_pos";
+const char *Shader::GLOBAL_PARAM_VEC3_CAM_DIR_ID = "cam_dir";
+const char *Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_DIR_ID = "dirlight_dir";
+const char *Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_COL_ID = "dirlight_col";
+
+//List of shader identifiers for the global parameters
+const char *Shader::GLOBAL_PARAM_IDS[] =
+{
+	Shader::GLOBAL_PARAM_FLOAT_TIME_ID,
+	Shader::GLOBAL_PARAM_VEC3_CAM_POS_ID,
+	Shader::GLOBAL_PARAM_VEC3_CAM_DIR_ID,
+	Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_DIR_ID,
+	Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_COL_ID
+};
+
+//Memory for the static parameters
+float Shader::global_param_float_time[1] = {0};
+float Shader::global_param_vec3_cam_pos[3] = {0,0,0};
+float Shader::global_param_vec3_cam_dir[3] = {0,0,0};
+float Shader::global_param_vec3_dirlight_dir[3] = {0,0,0};
+float Shader::global_param_vec3_dirlight_col[3] = {0,0,0};
+
+//Array holding all global parameter locations
+float *Shader::global_params[] =
+{
+	Shader::global_param_float_time,
+	Shader::global_param_vec3_cam_pos,
+	Shader::global_param_vec3_cam_dir,
+	Shader::global_param_vec3_dirlight_dir,
+	Shader::global_param_vec3_dirlight_col
+};

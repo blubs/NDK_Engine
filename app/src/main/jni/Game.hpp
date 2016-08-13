@@ -479,7 +479,8 @@ public:
 		if(!played_anim)
 		{
 			played_anim = true;
-			player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+			//player_skel->play_anim(2,Skeleton::END_TYPE_DEFAULT_ANIM);
+			player_skel->play_anim(1,Skeleton::END_TYPE_LOOP);
 		}
 		//if(state.x < 0.10f)
 		//{
@@ -614,6 +615,26 @@ public:
 		//Roll
 		//camera->angles.z = 0.0f;
 		camera->update_view_matrix();
+
+
+
+		//Setting up global shader parameters
+		//Time
+		float t = time();
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_FLOAT_TIME,&t);
+		//Camera direction
+		float cam_dir[] = {camera->forward.x,camera->forward.y,camera->forward.z};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_CAM_DIR, cam_dir);
+		//Camera position
+		float cam_pos[] = {camera->pos.x,camera->pos.y,camera->pos.z};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_CAM_POS, cam_pos);
+		//Directional light direction
+		float light_dir[] = {0,0,-1};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_DIR, cam_dir);
+		//Directional light color
+		float light_col[] = {1.0,0.0,0.0};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_COL, cam_dir);
+
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

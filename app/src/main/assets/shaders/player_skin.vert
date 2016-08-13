@@ -12,11 +12,16 @@ attribute vec3 bone_index;
 uniform mat4 bone[58];
 uniform mat3 bone_IT[58];
 
+//uniform vec3 cam_dir;
+uniform vec3 light_dir;
+
 varying vec4 v_color;
 varying vec2 v_uv;
-varying vec3 v_nor;
-varying vec3 v_tan;
-varying vec3 v_binor;
+//varying vec3 v_nor;
+//varying vec3 v_tan;
+//varying vec3 v_binor;
+varying vec3 cam_dir_tanspace;
+varying vec3 light_dir_tanspace;
 
 void main()
 {
@@ -50,11 +55,22 @@ void main()
 
 	mat3 normal_transform = m_IT * (bone1_nor * bone_weight.x + bone2_nor * bone_weight.y + bone3_nor * bone_weight.z);
 
-	v_nor = normal_transform * vert_nor;
-	v_tan = normal_transform * vert_tan;
-	v_binor = normal_transform * vert_binor;
+	//These 3 vectors are in world space
+	vec3 v_nor = normal_transform * vert_nor;
+	vec3 v_tan = normal_transform * vert_tan;
+	vec3 v_binor = normal_transform * vert_binor;
 
-	v_color = vec4(0.0,0.0,0.0,1.0);
+	mat3 temp = mat3(v_tan,v_nor,v_binor);
+
+	//Manually transposing for what reason? (Does GLES2 not have a transpose function?)
+	mat3 world_to_tangent = mat3(temp[0][0],temp[0][1],temp[0][2],
+							temp[1][0],temp[1][1],temp[1][2],
+							temp[2][0],temp[2][1],temp[2][2]);
+
+	light_dir_tanspace = world_to_tangent * light_dir;
+	//cam_dir_tanspace = world_to_tangent * cam_dir;
+
+	v_color = vec4(0.5,0.5,0.5,1.0);
 
 	gl_Position = mvp * pos;
 }
