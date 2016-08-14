@@ -36,7 +36,17 @@ void Camera::update_view_matrix()
 		transform = Mat4::ROT_TRANS(angles,pos,&right,&up,&forward) * Mat4::ROTATE(flip_y_and_z);
 
 	if(parent)
-		world_transform = parent->get_world_transform(true) * transform;
+	{
+		Mat4 parent_trans = parent->get_world_transform(true);
+		world_transform = parent_trans * transform;
+
+		//Getting the camera direction vectors in world-space
+		//Only rotating right up and forward vectors
+		Mat3 parent_rot = parent_trans.get_mat3();
+		right = parent_rot * right;
+		up = parent_rot * up;
+		forward = parent_rot * forward;
+	}
 	else
 		world_transform = transform;
 

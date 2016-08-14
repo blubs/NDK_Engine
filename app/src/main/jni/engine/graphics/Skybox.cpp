@@ -59,6 +59,7 @@ int Skybox::init_gl()
 		"mvp"
 	};
 	shader->init_gl(param_types, param_names,3);
+
 	return 1;
 }
 void Skybox::term_gl()

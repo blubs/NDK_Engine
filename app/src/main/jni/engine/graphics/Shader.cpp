@@ -10,14 +10,12 @@
 //Loads the raw shader source
 int Shader::load(const char* vshader_name, const char* fshader_name)
 {
-	vert_shader_name = (char*) malloc(sizeof(char) * strlen(vshader_name));
-	frag_shader_name = (char*) malloc(sizeof(char) * strlen(fshader_name));
+	vert_shader_name = (char*) malloc(sizeof(char) * (strlen(vshader_name)+1));
+	frag_shader_name = (char*) malloc(sizeof(char) * (strlen(fshader_name)+1));
 	strcpy(vert_shader_name,vshader_name);
 	strcpy(frag_shader_name,fshader_name);
 
-
 	//Loading the raw shader sources
-
 	vert_shader_src = File_Utils::load_raw_asset(vshader_name);
 	frag_shader_src = File_Utils::load_raw_asset(fshader_name);
 }
@@ -126,7 +124,6 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 				param_location[i] = (GLint*)malloc(sizeof(GLint));
 				*((GLint*)(param_location[i])) = -1;
 				*((GLint*)(param_location[i])) = glGetUniformLocation(gl_program, param_identifiers[i]);
-				LOGE("shader param type: %d location: %d",param_types[i],*((GLint*)(param_location[i])));
 				break;
 			//Matrix Arrays
 			case PARAM_BONE_MATRICES:
@@ -214,8 +211,8 @@ void Shader::term_gl ()
 int Shader::bind_shader ()
 {
 	glUseProgram(gl_program);
-	bind_used_global_params();
 	bound_textures = 0;
+	bind_used_global_params();
 	return 1;
 }
 
@@ -240,7 +237,7 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 {
 	if(*((GLint*)(param_location[index])) == -1)
 	{
-		LOGW("Warning: param location at index %d has not been set (type: %d)",index,param_type[index]);
+		LOGW("Warning: shader \"%s\" param location at index %d has not been set (type: %d)",vert_shader_name,index,param_type[index]);
 		return 0;
 	}
 	GLint loc = 0;
@@ -337,12 +334,6 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 	return 1;
 }
 
-
-//Global Param variable initialization
-//GLint global_param_loc[5] = {-1,-1,-1,-1,-1};
-
-//GLOBAL_PARAM_COUNT = 5;
-
 //Global parameter SHADER identifiers
 const char *Shader::GLOBAL_PARAM_FLOAT_TIME_ID = "time";
 const char *Shader::GLOBAL_PARAM_VEC3_CAM_POS_ID = "cam_pos";
@@ -384,7 +375,6 @@ void Shader::init_global_params()
 	{
 		global_param_loc[i] = -1;
 		global_param_loc[i] = glGetUniformLocation(gl_program, GLOBAL_PARAM_IDS[i]);
-		LOGE("Param: %s, loc: %d",GLOBAL_PARAM_IDS[i],global_param_loc[i]);
 	}
 }
 void Shader::term_global_params()
@@ -399,7 +389,7 @@ void Shader::term_global_params()
 //Binds any of the global params that this shader uses
 void Shader::bind_used_global_params()
 {
-	GLint loc = -1;
+	GLint loc;
 	for(int type = 0; type < GLOBAL_PARAM_COUNT; type++)
 	{
 		if(global_param_loc[type] == -1)
@@ -419,6 +409,8 @@ void Shader::bind_used_global_params()
 				//One float
 			case GLOBAL_PARAM_FLOAT_TIME:
 				glUniform1f(loc,global_params[type][0]);
+				break;
+			default:
 				break;
 		}
 	}
@@ -442,5 +434,7 @@ void Shader::set_static_global_param(int type,float *value)
 			//One float
 		case GLOBAL_PARAM_FLOAT_TIME:
 			global_params[type][0] = value[0];
+		default:
+			break;
 	}
 }

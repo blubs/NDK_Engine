@@ -20,8 +20,8 @@ int Skel_Model::render(Mat4 m,Mat4 vp, Material* mat)
 	mat->bind_value(Shader::PARAM_VERTICES, (void*) verts);
 	mat->bind_value(Shader::PARAM_VERT_UV1, (void*) uv_coords);
 	mat->bind_value(Shader::PARAM_VERT_NORMALS, (void*) normals);
-	mat->bind_value(Shader::PARAM_VERT_TANGENTS, (void*) normals);
-	mat->bind_value(Shader::PARAM_VERT_BINORMALS, (void*) normals);
+	mat->bind_value(Shader::PARAM_VERT_TANGENTS, (void*) tangents);
+	mat->bind_value(Shader::PARAM_VERT_BINORMALS, (void*) binormals);
 
 	Mat4 mvp = vp * m;
 	mat->bind_value(Shader::PARAM_MVP_MATRIX, (void*) mvp.m);
@@ -34,7 +34,6 @@ int Skel_Model::render(Mat4 m,Mat4 vp, Material* mat)
 
 
 	float* pose_data = skel->get_current_pose();
-
 	mat->bind_values(Shader::PARAM_BONE_MATRICES, (void*) (pose_data),skel->bone_count);
 
 	float* pose_IT_data = skel->get_current_pose_IT();
@@ -43,8 +42,14 @@ int Skel_Model::render(Mat4 m,Mat4 vp, Material* mat)
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tri_verts_buffer);
 
-	//glDrawArrays(GL_TRIANGLES, 0, vert_count);
 	glDrawElements(GL_TRIANGLES, tri_vert_count, GL_UNSIGNED_INT, (void *) 0);
+
+	/*GLenum error = glGetError();
+	while(error != GL_NO_ERROR)
+	{
+		LOGE("GL error: %d",error);
+		error = glGetError();
+	}*/
 
 	return 1;
 }

@@ -1,3 +1,4 @@
+//Actual Shader
 uniform mat4 mvp;
 uniform mat3 m_IT;
 attribute vec4 vert_pos;
@@ -12,14 +13,13 @@ attribute vec3 bone_index;
 uniform mat4 bone[58];
 uniform mat3 bone_IT[58];
 
-//uniform vec3 cam_dir;
+uniform vec3 cam_dir;
 uniform vec3 dirlight_dir;
 
-varying vec4 v_color;
 varying vec2 v_uv;
-//varying vec3 v_nor;
-//varying vec3 v_tan;
-//varying vec3 v_binor;
+varying vec3 v_nor;
+varying vec3 v_tan;
+varying vec3 v_binor;
 varying vec3 cam_dir_tanspace;
 varying vec3 dirlight_dir_tanspace;
 
@@ -58,17 +58,16 @@ void main()
 	vec3 v_tan = normal_transform * vert_tan;
 	vec3 v_binor = normal_transform * vert_binor;
 
-	mat3 temp = mat3(v_tan,v_nor,v_binor);
+	mat3 temp = mat3(v_tan,v_binor,v_nor);
 
 	//Manually transposing for what reason? (Does GLES2 not have a transpose function?)
-	mat3 world_to_tangent = mat3(temp[0][0],temp[0][1],temp[0][2],
-							temp[1][0],temp[1][1],temp[1][2],
-							temp[2][0],temp[2][1],temp[2][2]);
+	mat3 world_to_tangent = mat3(temp[0][0],temp[1][0],temp[2][0],
+							temp[0][1],temp[1][1],temp[2][1],
+							temp[0][2],temp[1][2],temp[2][2]);
 
-	dirlight_dir_tanspace = world_to_tangent * dirlight_dir;
-	//cam_dir_tanspace = world_to_tangent * cam_dir;
+	dirlight_dir_tanspace = world_to_tangent * -dirlight_dir;
+	cam_dir_tanspace = world_to_tangent * -cam_dir;
 
-	v_color = vec4(0.5,0.5,0.5,1.0);
 	v_uv = vert_uv;
 	gl_Position = mvp * pos;
 }

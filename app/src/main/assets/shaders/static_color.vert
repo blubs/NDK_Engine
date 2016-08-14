@@ -22,4 +22,3 @@ void main()
 	pos.w = 1.0;
 	gl_Position = mvp * pos;
 }
-

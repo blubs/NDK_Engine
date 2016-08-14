@@ -326,12 +326,10 @@ public:
 		static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 7);
 
 		//==================================== Loading textures =======================================
-		LOGE("Initializing textures gl");
 		test_texture->init_gl();
 		char_set->init_gl();
 		tex_arm_nor->init_gl();
 		test_cube_map->init_gl();
-		LOGE("Finished initializing textures gl");
 		//==================================== Setting up Mesh VBOs ====================================
 		test_arms->init_gl();
 		model_prim_cube->init_gl();
@@ -344,6 +342,7 @@ public:
 	void term_gl()
 	{
 		//Terminating all loaded shaders
+		player_skin_shader->term_gl();
 		test_shader->term_gl();
 		skel_color_shader->term_gl();
 		static_color_shader->term_gl();
@@ -356,12 +355,11 @@ public:
 
 		skybox->term_gl();
 
-		LOGE("Terminating textures gl");
+		//Terminating all loaded textures
 		test_cube_map->term_gl();
 		tex_arm_nor->term_gl();
 		char_set->term_gl();
 		test_texture->term_gl();
-		LOGE("Finished Terminating textures gl");
 	}
 
 	//Ran on first frame
@@ -388,8 +386,6 @@ public:
 		static_color_mat->set_shader(static_color_shader);
 		player_skin_mat->set_shader(player_skin_shader);
 
-		//FIXME: this system will not work after term gl and init gl are called again
-		//FIXME: we need a system that adds the code to do every time gl is initialized and terminated
 		player_skin_mat->set_fixed_shader_param_ptr(Shader::PARAM_TEXTURE_NORMAL,(void*) tex_arm_nor);
 
 		//Setting up fixed shader parameters
@@ -557,6 +553,40 @@ public:
 
 		//glClear(GL_COLOR_BUFFER_BIT);
 
+
+		camera->pos = Vec3::ZERO();
+		camera->angles = Vec3::ZERO();
+
+		//Pitch
+		//camera->angles.x = ((0.5f - input_y) * TWO_PI);
+		//Yaw
+		//camera->angles.y = (0.5f - input_x) * TWO_PI;
+		//Roll
+		//camera->angles.z = 0.0f;
+
+		camera->update_view_matrix();
+
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//Setting up global shader parameters
+		//Time
+		float t = time();
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_FLOAT_TIME,&t);
+		//Camera direction
+		float cam_dir[] = {camera->forward.x,camera->forward.y,camera->forward.z};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_CAM_DIR, cam_dir);
+		//Camera position
+		float cam_pos[] = {camera->pos.x,camera->pos.y,camera->pos.z};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_CAM_POS, cam_pos);
+		//Directional light direction
+		float light_dir[] = {0,0,-1};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_DIR, light_dir);
+		//Directional light color
+		float light_col[] = {1.0,0.0,0.0};
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_COL, light_col);
+
+
 		//================================== Begin Drawing test boxes ==========================================
 
 		const float cube_vertices[] =
@@ -610,38 +640,6 @@ public:
 			//Top quad
 			//Bottom quad
 		};
-
-		camera->pos = Vec3::ZERO();
-		camera->angles = Vec3::ZERO();
-		//Pitch
-		//camera->angles.x = ((0.5f - state.y) * TWO_PI);
-		//Yaw
-		//camera->angles.y = (0.5f - state.x) * TWO_PI;
-		//Roll
-		//camera->angles.z = 0.0f;
-		camera->update_view_matrix();
-
-
-
-		//Setting up global shader parameters
-		//Time
-		float t = time();
-		Shader::set_static_global_param(Shader::GLOBAL_PARAM_FLOAT_TIME,&t);
-		//Camera direction
-		float cam_dir[] = {camera->forward.x,camera->forward.y,camera->forward.z};
-		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_CAM_DIR, cam_dir);
-		//Camera position
-		float cam_pos[] = {camera->pos.x,camera->pos.y,camera->pos.z};
-		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_CAM_POS, cam_pos);
-		//Directional light direction
-		float light_dir[] = {0,0,-1};
-		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_DIR, light_dir);
-		//Directional light color
-		float light_col[] = {1.0,0.0,0.0};
-		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_COL, light_col);
-
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//Referencing vertices by index
 		unsigned int cube_tris[] =
@@ -710,6 +708,7 @@ public:
 				}
 			}
 		}
+		glDeleteBuffers(1,&element_buffer);
 		//================================== End Drawing test boxes ==========================================
 
 		Mat4 vp = camera->persp_proj_m * camera->view_m;
@@ -725,7 +724,7 @@ public:
 
 		//Test UI image
 		//test_text->render(camera->ortho_proj_m);
-		//test_img->render(camera->ortho_proj_m);
+		test_img->render(camera->ortho_proj_m);
 	}
 
 };

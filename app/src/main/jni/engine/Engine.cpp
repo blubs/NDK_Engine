@@ -271,6 +271,9 @@ int Engine::init_gl ()
 	glViewport(0, 0, width, height);
 	//glDepthRangef(0.0f,1.0f); useless line
 	glClearColor(1, 1, 1, 1);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_TRUE);
 	LOGI("Init gl finished");
 
 	gl_initialized = true;
@@ -347,9 +350,6 @@ void Engine::draw_frame ()
 	static bool is_first_frame = true;
 	if(is_first_frame)
 	{
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-		glDepthMask(GL_TRUE);
 		first_frame();
 		is_first_frame = false;
 	}
