@@ -117,10 +117,12 @@ int Material::bind_material ()
 			shader->bind_shader_value_by_index(i, params[i], 0);
 		}
 		else
+		{
 			if(alloced_params[i])
 			{
 				shader->bind_shader_value_by_index(i, alloced_params[i], 0);
 			}
+		}
 	}
 	return 1;
 }
@@ -136,7 +138,7 @@ int Material::bind_value (GLuint type, void *value)
 
 	if(type == Shader::PARAM_BONE_MATRICES)
 	{
-		LOGE("Error: Param bone matrices should be sent with the method \"bind_values\", not bind_value\n");
+		LOGE("Error: Param bone matrices should be sent with the method \"bind_values\", not \"bind_value\"\n");
 		return 0;
 	}
 	return shader->bind_shader_value(type, value, 0);

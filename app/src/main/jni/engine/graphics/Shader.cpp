@@ -4,6 +4,8 @@
 
 #include "Shader.hpp"
 #include "../File_Utils.hpp"
+#include "Texture.hpp"
+#include "Cube_Map.hpp"
 
 //Loads the raw shader source
 int Shader::load(const char* vshader_name, const char* fshader_name)
@@ -124,6 +126,7 @@ int Shader::init_gl (GLuint *param_types, const char **param_identifiers, uint p
 				param_location[i] = (GLint*)malloc(sizeof(GLint));
 				*((GLint*)(param_location[i])) = -1;
 				*((GLint*)(param_location[i])) = glGetUniformLocation(gl_program, param_identifiers[i]);
+				LOGE("shader param type: %d location: %d",param_types[i],*((GLint*)(param_location[i])));
 				break;
 			//Matrix Arrays
 			case PARAM_BONE_MATRICES:
@@ -271,20 +274,22 @@ int Shader::bind_shader_value_by_index (int index, void *data, int extra_data)
 			loc = *((GLint*)(param_location[index]));
 			glUniformMatrix4fv(loc, 1, GL_FALSE, ((float *) data));
 			break;
+		//Textures special case: passed data is a pointer to a texture object
 		case PARAM_TEXTURE_DIFFUSE:
 		case PARAM_TEXTURE_NORMAL:
 		case PARAM_TEXTURE_LIGHTMAP:
 		case PARAM_TEXTURE_MISC:
 			loc = *((GLint*)(param_location[index]));
 			glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
-			glBindTexture(GL_TEXTURE_2D, (GLuint) data);
+			glBindTexture(GL_TEXTURE_2D, ((Texture*)data)->gl_id);
 			glUniform1i(loc, bound_textures);
 			bound_textures++;
 			break;
+		//Cube map special case: passed data is a pointer to a cube map object
 		case PARAM_CUBE_MAP:
 			loc = *((GLint*)(param_location[index]));
 			glActiveTexture(GL_Utils::tex_index_to_enum(bound_textures));
-			glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint) data);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, ((Cube_Map*)data)->gl_id);
 			glUniform1i(loc, bound_textures);
 			bound_textures++;
 			break;
@@ -371,3 +376,71 @@ float *Shader::global_params[] =
 	Shader::global_param_vec3_dirlight_dir,
 	Shader::global_param_vec3_dirlight_col
 };
+
+
+void Shader::init_global_params()
+{
+	for(int i = 0; i < GLOBAL_PARAM_COUNT; i++)
+	{
+		global_param_loc[i] = -1;
+		global_param_loc[i] = glGetUniformLocation(gl_program, GLOBAL_PARAM_IDS[i]);
+		LOGE("Param: %s, loc: %d",GLOBAL_PARAM_IDS[i],global_param_loc[i]);
+	}
+}
+void Shader::term_global_params()
+{
+	for(int i = 0; i < GLOBAL_PARAM_COUNT; i++)
+	{
+		global_param_loc[i] = -1;
+	}
+}
+//TODO: a method for unbinding used global params?
+//this would be required because we search on init_gl, so we should destroy on term_gl
+//Binds any of the global params that this shader uses
+void Shader::bind_used_global_params()
+{
+	GLint loc = -1;
+	for(int type = 0; type < GLOBAL_PARAM_COUNT; type++)
+	{
+		if(global_param_loc[type] == -1)
+			continue;
+
+		loc = global_param_loc[type];
+
+		switch(type)
+		{
+			//3 floats
+			case GLOBAL_PARAM_VEC3_CAM_POS:
+			case GLOBAL_PARAM_VEC3_CAM_DIR:
+			case GLOBAL_PARAM_VEC3_DIRLIGHT_DIR:
+			case GLOBAL_PARAM_VEC3_DIRLIGHT_COL:
+				glUniform3f(loc, global_params[type][0], global_params[type][1], global_params[type][2]);
+				break;
+				//One float
+			case GLOBAL_PARAM_FLOAT_TIME:
+				glUniform1f(loc,global_params[type][0]);
+				break;
+		}
+	}
+}
+
+//Sets static global params to be accessed by all shaders
+//type is the global param to set
+//value is a pointer to 1,3, or 16 float values
+void Shader::set_static_global_param(int type,float *value)
+{
+	switch(type)
+	{
+		//3 floats
+		case GLOBAL_PARAM_VEC3_CAM_POS:
+		case GLOBAL_PARAM_VEC3_CAM_DIR:
+		case GLOBAL_PARAM_VEC3_DIRLIGHT_DIR:
+		case GLOBAL_PARAM_VEC3_DIRLIGHT_COL:
+			global_params[type][2] = value[2];
+			global_params[type][1] = value[1];
+			//FALLTHROUGH for the first index
+			//One float
+		case GLOBAL_PARAM_FLOAT_TIME:
+			global_params[type][0] = value[0];
+	}
+}

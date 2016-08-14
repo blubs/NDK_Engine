@@ -326,11 +326,12 @@ public:
 		static_color_shader->init_gl(static_mesh_params, static_mesh_param_names, 7);
 
 		//==================================== Loading textures =======================================
+		LOGE("Initializing textures gl");
 		test_texture->init_gl();
 		char_set->init_gl();
 		tex_arm_nor->init_gl();
 		test_cube_map->init_gl();
-
+		LOGE("Finished initializing textures gl");
 		//==================================== Setting up Mesh VBOs ====================================
 		test_arms->init_gl();
 		model_prim_cube->init_gl();
@@ -355,10 +356,12 @@ public:
 
 		skybox->term_gl();
 
-		test_texture->term_gl();
-		char_set->term_gl();
-		tex_arm_nor->term_gl();
+		LOGE("Terminating textures gl");
 		test_cube_map->term_gl();
+		tex_arm_nor->term_gl();
+		char_set->term_gl();
+		test_texture->term_gl();
+		LOGE("Finished Terminating textures gl");
 	}
 
 	//Ran on first frame
@@ -378,7 +381,6 @@ public:
 		test_arms->skel = player_skel;
 
 		//============================= Setting up materials ================================
-
 		mat_red->set_shader(test_shader);
 		mat_blue->set_shader(test_shader);
 		text_mat->set_shader(text_shader);
@@ -386,13 +388,16 @@ public:
 		static_color_mat->set_shader(static_color_shader);
 		player_skin_mat->set_shader(player_skin_shader);
 
-		player_skin_mat->set_fixed_shader_param(Shader::PARAM_TEXTURE_NORMAL,(void*)&(tex_arm_nor->gl_id),sizeof(GLuint));
+		//FIXME: this system will not work after term gl and init gl are called again
+		//FIXME: we need a system that adds the code to do every time gl is initialized and terminated
+		player_skin_mat->set_fixed_shader_param_ptr(Shader::PARAM_TEXTURE_NORMAL,(void*) tex_arm_nor);
 
 		//Setting up fixed shader parameters
 		float temp_color[] = {1.0f, 1.0f, 0.0f, 1.0f};
 		static_color_mat->set_fixed_shader_param(Shader::PARAM_COLOR_MULT,temp_color,sizeof(float)*4);
 		float temp_color_red[] = {1.0f, 0.4f, 0.4f, 1.0f};
 		mat_red->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, temp_color_red, sizeof(float) * 4);
+		mat_red->set_fixed_shader_param_ptr(Shader::PARAM_TEXTURE_DIFFUSE, (void*) test_texture);
 		float temp_color_blue[] = {0.4f, 0.4f, 1.0f, 1.0f};
 		mat_blue->set_fixed_shader_param(Shader::PARAM_TEST_FIELD, temp_color_blue, sizeof(float) * 4);
 
@@ -630,10 +635,10 @@ public:
 		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_CAM_POS, cam_pos);
 		//Directional light direction
 		float light_dir[] = {0,0,-1};
-		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_DIR, cam_dir);
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_DIR, light_dir);
 		//Directional light color
 		float light_col[] = {1.0,0.0,0.0};
-		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_COL, cam_dir);
+		Shader::set_static_global_param(Shader::GLOBAL_PARAM_VEC3_DIRLIGHT_COL, light_col);
 
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -663,9 +668,6 @@ public:
 		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int)size of indices, cube_tris, GL_STATIC_DRAW);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(unsigned int), cube_tris, GL_STATIC_DRAW);
 
-		//Getting the texture gl_id
-		GLuint tex_gl_id = test_texture->gl_id;
-
 		int i = 0;
 		int j = 0;
 		int k = 0;
@@ -692,7 +694,7 @@ public:
 						mat_red->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
 						mat_red->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
 						mat_red->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
-						mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex_gl_id);
+						//mat_red->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) test_texture);
 						mat_red->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 					}
 					else
@@ -701,7 +703,7 @@ public:
 						mat_blue->bind_value(Shader::PARAM_VERTICES, (void *) cube_vertices);
 						mat_blue->bind_value(Shader::PARAM_VERT_UV1, (void *) cube_uvs);
 						mat_blue->bind_value(Shader::PARAM_VERT_COLORS, (void *) cube_colors);
-						mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex_gl_id);
+						mat_blue->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) test_texture);
 						mat_blue->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 					}
 					glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *) 0);

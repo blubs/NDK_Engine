@@ -51,6 +51,7 @@ int Texture::init_gl()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	gl_id = tex_id;
+	LOGE("texture glid: %d",gl_id);
 	return 1;
 }
 

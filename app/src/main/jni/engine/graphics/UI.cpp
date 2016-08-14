@@ -116,7 +116,7 @@ int UI_Text::render(Mat4 vp)
 		mat->bind_material();
 		mat->bind_value(Shader::PARAM_VERTICES,(void*) quad_verts);
 		mat->bind_value(Shader::PARAM_VERT_UV1,(void*) quad_uvs);
-		mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) charset->gl_id);
+		mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) charset);
 		mat->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 
 		mat->bind_value(Shader::PARAM_COLOR_MULT, (void *) mult_col);
@@ -231,7 +231,7 @@ int UI_Image::render(Mat4 vp)
 	mat->bind_material();
 	mat->bind_value(Shader::PARAM_VERTICES,(void*) quad_verts);
 	mat->bind_value(Shader::PARAM_VERT_UV1,(void*) quad_uvs);
-	mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex->gl_id);
+	mat->bind_value(Shader::PARAM_TEXTURE_DIFFUSE, (void *) tex);
 	mat->bind_value(Shader::PARAM_MVP_MATRIX, (void *) mvp.m);
 
 	mat->bind_value(Shader::PARAM_COLOR_MULT, (void *) mult_col);

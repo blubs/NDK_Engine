@@ -146,6 +146,7 @@ int Cube_Map::init_gl()
 	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	gl_id = tex_id;
+	LOGE("cube map glid: %d",gl_id);
 	return 1;
 }
 

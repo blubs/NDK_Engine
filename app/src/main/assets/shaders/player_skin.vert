@@ -13,7 +13,7 @@ uniform mat4 bone[58];
 uniform mat3 bone_IT[58];
 
 //uniform vec3 cam_dir;
-uniform vec3 light_dir;
+uniform vec3 dirlight_dir;
 
 varying vec4 v_color;
 varying vec2 v_uv;
@@ -21,11 +21,10 @@ varying vec2 v_uv;
 //varying vec3 v_tan;
 //varying vec3 v_binor;
 varying vec3 cam_dir_tanspace;
-varying vec3 light_dir_tanspace;
+varying vec3 dirlight_dir_tanspace;
 
 void main()
 {
-	v_uv = vert_uv;
 	vec4 bone1;
 	vec4 bone2;
 	vec4 bone3;
@@ -49,7 +48,6 @@ void main()
 	bone3 = bone[index] * pos;
 	bone3_nor = bone_IT[index];
 
-
 	//Averaging out the bone weights
 	pos = bone1 * bone_weight.x + bone2 * bone_weight.y + bone3 * bone_weight.z;
 
@@ -67,11 +65,10 @@ void main()
 							temp[1][0],temp[1][1],temp[1][2],
 							temp[2][0],temp[2][1],temp[2][2]);
 
-	light_dir_tanspace = world_to_tangent * light_dir;
+	dirlight_dir_tanspace = world_to_tangent * dirlight_dir;
 	//cam_dir_tanspace = world_to_tangent * cam_dir;
 
 	v_color = vec4(0.5,0.5,0.5,1.0);
-
+	v_uv = vert_uv;
 	gl_Position = mvp * pos;
 }
-

@@ -118,72 +118,15 @@ public:
 	static float *global_params[];
 private:
 	//Checks if any of the global params exists in the shader source
-	void init_global_params()
-	{
-		for(int i = 0; i < GLOBAL_PARAM_COUNT; i++)
-		{
-			global_param_loc[i] = -1;
-			global_param_loc[i] = glGetUniformLocation(gl_program, GLOBAL_PARAM_IDS[i]);
-			LOGE("Param: %s, loc: %d",GLOBAL_PARAM_IDS[i],global_param_loc[i]);
-		}
-	}
-	void term_global_params()
-	{
-		for(int i = 0; i < GLOBAL_PARAM_COUNT; i++)
-		{
-			global_param_loc[i] = -1;
-		}
-	}
-	//TODO: a method for unbinding used global params?
-		//this would be required because we search on init_gl, so we should destroy on term_gl
+	void init_global_params();
+	void term_global_params();
 	//Binds any of the global params that this shader uses
-	void bind_used_global_params()
-	{
-		GLint loc = -1;
-		for(int type = 0; type < GLOBAL_PARAM_COUNT; type++)
-		{
-			if(global_param_loc[type] == -1)
-				continue;
-
-			loc = global_param_loc[type];
-
-			switch(type)
-			{
-				//3 floats
-				case GLOBAL_PARAM_VEC3_CAM_POS:
-				case GLOBAL_PARAM_VEC3_CAM_DIR:
-				case GLOBAL_PARAM_VEC3_DIRLIGHT_DIR:
-				case GLOBAL_PARAM_VEC3_DIRLIGHT_COL:
-					glUniform3f(loc, ((float*)(global_params[type]))[0], ((float*)(global_params[type]))[1], ((float*)(global_params[type]))[2]);
-					break;
-				//One float
-				case GLOBAL_PARAM_FLOAT_TIME:
-					glUniform1f(loc,((float*)(global_params[type]))[0]);
-					break;
-			}
-		}
-	}
+	void bind_used_global_params();
 
 public:
 	//Sets static global params to be accessed by all shaders
 		//type is the global param to set
 		//value is a pointer to 1,3, or 16 float values
-	static void set_static_global_param(int type,float *value)
-	{
-		switch(type)
-		{
-			//3 floats
-			case GLOBAL_PARAM_VEC3_CAM_POS:
-			case GLOBAL_PARAM_VEC3_CAM_DIR:
-			case GLOBAL_PARAM_VEC3_DIRLIGHT_DIR:
-			case GLOBAL_PARAM_VEC3_DIRLIGHT_COL:
-				global_params[type][2] = value[2];
-				global_params[type][1] = value[1];
-					//FALLTHROUGH for the first index
-			//One float
-			case GLOBAL_PARAM_FLOAT_TIME:
-				global_params[type][0] = value[0];
-		}
-	}
+	static void set_static_global_param(int type,float *value);
 };
 #endif //ENGINE_SHADER_H
