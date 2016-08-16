@@ -57,6 +57,7 @@ public:
 	Texture* test_texture = NULL;
 	Texture* char_set = NULL;
 	Texture* tex_arm_nor = NULL;
+	Texture* tex_arm_diff = NULL;
 	Cube_Map* test_cube_map = NULL;
 
 	//------------- Models --------------------
@@ -126,6 +127,7 @@ public:
 		test_texture = new Texture("tex.pkm",512,512);
 		char_set = new Texture("char_set.pkm",2048,2048);
 		tex_arm_nor = new Texture("textures/arm_nor.pkm",1024,1024);
+		tex_arm_diff = new Texture("textures/arm_diff.pkm",1024,1024);
 		test_cube_map = new Cube_Map("cube_maps/test_cube_map.pkm",512);
 		return 1;
 	}
@@ -134,6 +136,7 @@ public:
 		delete test_texture;
 		delete char_set;
 		delete tex_arm_nor;
+		delete tex_arm_diff;
 		delete test_cube_map;
 	}
 
@@ -278,6 +281,7 @@ public:
 			Shader::PARAM_VERT_TANGENTS,
 			Shader::PARAM_VERT_BINORMALS,
 			Shader::PARAM_TEXTURE_NORMAL,
+			Shader::PARAM_TEXTURE_DIFFUSE,
 			Shader::PARAM_MVP_MATRIX,
 			Shader::PARAM_M_IT_MATRIX,
 			Shader::PARAM_BONE_INDICES,
@@ -293,6 +297,7 @@ public:
 			"vert_tan",
 			"vert_binor",
 			"tex_nor",
+			"tex_diff",
 			"mvp",
 			"m_IT",
 			"bone_index",
@@ -300,7 +305,7 @@ public:
 			"bone",
 			"bone_IT"
 		};
-		player_skin_shader->init_gl(player_skin_params,player_skin_param_names,12);
+		player_skin_shader->init_gl(player_skin_params,player_skin_param_names,13);
 
 		//=========================================== Initializing Static Mesh Color Shader =====================
 		GLuint static_mesh_params[] =
@@ -329,6 +334,7 @@ public:
 		test_texture->init_gl();
 		char_set->init_gl();
 		tex_arm_nor->init_gl();
+		tex_arm_diff->init_gl();
 		test_cube_map->init_gl();
 		//==================================== Setting up Mesh VBOs ====================================
 		test_arms->init_gl();
@@ -358,6 +364,7 @@ public:
 		//Terminating all loaded textures
 		test_cube_map->term_gl();
 		tex_arm_nor->term_gl();
+		tex_arm_diff->term_gl();
 		char_set->term_gl();
 		test_texture->term_gl();
 	}
@@ -387,6 +394,7 @@ public:
 		player_skin_mat->set_shader(player_skin_shader);
 
 		player_skin_mat->set_fixed_shader_param_ptr(Shader::PARAM_TEXTURE_NORMAL,(void*) tex_arm_nor);
+		player_skin_mat->set_fixed_shader_param_ptr(Shader::PARAM_TEXTURE_DIFFUSE,(void*) tex_arm_diff);
 
 		//Setting up fixed shader parameters
 		float temp_color[] = {1.0f, 1.0f, 0.0f, 1.0f};

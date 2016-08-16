@@ -5,6 +5,7 @@ varying vec3 cam_dir_tanspace;
 varying vec3 dirlight_dir_tanspace;
 
 uniform sampler2D tex_nor;
+uniform sampler2D tex_diff;
 
 void main()
 {
@@ -14,11 +15,14 @@ void main()
 	vec3 normal_dir = normalize(mix(vec3(0,0,1),(texture2D(tex_nor,v_uv).rgb * 2.0 - 1.0),normal_map_strength));
 
 	//Light Calculation
-	float diffuse = clamp(dot(normal_dir,dirlight_dir_tanspace),0.0,1.0);
+	//float diffuse = clamp(dot(normal_dir,dirlight_dir_tanspace),0.0,1.0);
+
+	const float wrap_amount = 0.7;
+	float wrapped_diffuse = clamp((dot(normal_dir,dirlight_dir_tanspace) + wrap_amount)/(1.0 + wrap_amount),0.0,1.0);
 
 	//Specular shading
 	const float shininess = 10.0;//ranged 1-20
-	float specular = diffuse * pow(clamp(dot(reflect(-dirlight_dir_tanspace,normal_dir),cam_dir_tanspace),0.0,1.0),shininess);
+	float specular = wrapped_diffuse * pow(clamp(dot(reflect(-dirlight_dir_tanspace,normal_dir),cam_dir_tanspace),0.0,1.0),shininess);
 
 	//Rim light shading
 	const float rim_power = 3.0;//ranged 0.1-10
@@ -26,8 +30,9 @@ void main()
 	rim = pow(rim,rim_power);
 
 	const float ambient_light = 0.1;
-	float light_power = ambient_light + diffuse + specular + rim;
+	//float light_power = ambient_light + diffuse + specular + rim;
+	float light_power = ambient_light + wrapped_diffuse + specular + rim;
 
-	vec3 color = vec3(0.5,0.5,0.5);
+	vec3 color = texture2D(tex_diff,v_uv).rgb;
 	gl_FragColor = vec4(color*light_power, 1.0);
 }
