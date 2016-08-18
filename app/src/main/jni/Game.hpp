@@ -558,9 +558,7 @@ public:
 		test_sound_source->transform_calculated = false;
 		cam_to_bone->transform_calculated = false;
 
-
 		//glClear(GL_COLOR_BUFFER_BIT);
-
 
 		camera->pos = Vec3::ZERO();
 		camera->angles = Vec3::ZERO();
@@ -666,7 +664,6 @@ public:
 			6, 3, 2, 2, 7, 6,
 		};
 
-		//TODO: material should hold these buffers
 		GLuint element_buffer;
 		glGenBuffers(1, &element_buffer);
 		//Bind the buffer to set the data
@@ -732,7 +729,7 @@ public:
 
 		//Test UI image
 		//test_text->render(camera->ortho_proj_m);
-		test_img->render(camera->ortho_proj_m);
+		//test_img->render(camera->ortho_proj_m);
 	}
 
 };
