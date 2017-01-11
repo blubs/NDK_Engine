@@ -416,7 +416,8 @@ public:
 		//===== Instantiating Game Objects =====
 		test_text = new UI_Text(text_mat,char_set);
 		//test_text->set_text("test\nT  E\n\nST !@\n#$%^&*()");
-		test_text->set_text("Pause\npause\nPAUSE\n\nPlay\nplay\nPLAY\n\nExit\nexit\nEXIT\n\ntest_text->set_text(\"Stuff\")");
+		//test_text->set_text("Pause\npause\nPAUSE\n\nPlay\nplay\nPLAY\n\nExit\nexit\nEXIT\n\ntest_text->set_text(\"Stuff\")");
+		test_text->set_text(" ");
 		//Place in top leftish corner
 		test_text->pos.x = -screen_width * 0.4f;
 		test_text->pos.y = screen_height * 0.4f;
